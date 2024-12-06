@@ -36,6 +36,9 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_screenutil: ^5.9.3
   google_fonts: ^6.2.1
+  http: ^1.2.2
+  jwt_decoder: ^2.0.1
+  shared_preferences: ^2.3.3
 
 dev_dependencies:
   flutter_test:

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:merobus/Components/AppColors.dart';
 import 'package:merobus/Components/CustomButton.dart';
+import 'package:merobus/Screens/Authentication/signin.dart';
 import 'package:merobus/Screens/Authentication/signup.dart';
 
 class GetStarted extends StatefulWidget {
@@ -63,7 +64,12 @@ class _GetStartedState extends State<GetStarted> {
           ),
           CustomButton(
             text: "Sign In",
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SignIn()),
+              );
+            },
             color: AppColors.primary,
             textColor: Colors.white,
             width: 366.w,
@@ -74,31 +80,21 @@ class _GetStartedState extends State<GetStarted> {
           SizedBox(
             height: 10.h,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                "Don't have an account? ",
-                style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
-              ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SignUp()),
-                  );
-                }, // Handle the sign-up tap
-                child: const Text(
-                  "Sign up",
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue, // Change color for emphasis
-                  ),
-                ),
-              ),
-            ],
-          )
+          CustomButton(
+            text: "Sign Up",
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SignUp()),
+              );
+            },
+            color: Colors.white,
+            textColor: AppColors.primary,
+            width: 366.w,
+            height: 48.h,
+            fontSize: 20.sp,
+            borderRadius: 12.r,
+          ),
         ],
       )),
     );

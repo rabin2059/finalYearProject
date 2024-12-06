@@ -10,7 +10,7 @@ class CustomButton extends StatelessWidget {
   final double? height;
   final double? fontSize;
   final double? borderRadius;
-  final Widget? prefixIcon;
+  final List<BoxShadow>? boxShadow;
 
   const CustomButton({
     super.key,
@@ -22,7 +22,7 @@ class CustomButton extends StatelessWidget {
     this.height,
     this.fontSize,
     this.borderRadius,
-    this.prefixIcon,
+    this.boxShadow,
   });
 
   @override
@@ -30,31 +30,36 @@ class CustomButton extends StatelessWidget {
     return SizedBox(
       width: width ?? double.infinity,
       height: height ?? 50.h,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color ?? Theme.of(context).primaryColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(borderRadius ?? 8.r),
-          ),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: color ?? Theme.of(context).primaryColor,
+          borderRadius: BorderRadius.circular(borderRadius ?? 8.r),
+          boxShadow: boxShadow ??
+              [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 4,
+                  offset: Offset(0, 0),
+                ),
+              ],
         ),
-        onPressed: onPressed,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (prefixIcon != null) ...[
-              prefixIcon!,
-              SizedBox(width: 8.w),
-            ],
-            Text(
-              text,
-              style: TextStyle(
-                fontSize: fontSize ?? 16.sp,
-                color: textColor ?? Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent, // Disable default shadow
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(borderRadius ?? 8.r),
             ),
-          ],
+          ),
+          onPressed: onPressed,
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: fontSize ?? 16.sp,
+              color: textColor ?? Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
       ),
     );

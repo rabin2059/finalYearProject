@@ -1,11 +1,20 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:merobus/Screens/Authentication/get_started.dart';
 import 'package:merobus/Screens/Authentication/signup.dart';
+import 'package:merobus/Screens/test.dart';
+import 'package:merobus/models/loginModel.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../Components/AppColors.dart';
 import '../../Components/CustomButton.dart';
 import '../../Components/CustomTextField.dart';
+import '../../navigation/navigation.dart';
+import '../../routes/routes.dart';
+import 'package:http/http.dart' as http;
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key});
@@ -15,6 +24,58 @@ class SignIn extends StatefulWidget {
 }
 
 class _SignInState extends State<SignIn> {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  String token = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loginUser();
+  }
+
+  Future<void> _loginUser() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final url = Uri.parse('${Routes.route}login');
+      final body = {
+        'email': emailController.text,
+        'password': passwordController.text,
+      };
+
+      final response = await http.post(
+        url,
+        body: jsonEncode(body),
+        headers: {'Content-Type': 'application/json'}, // Set headers for JSON
+      );
+      print(response.body);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final loginData = Login.fromJson(jsonDecode(response.body));
+        // print(loginData.user.role);
+        token = loginData.token ?? '';
+        prefs.setString('token', token);
+        setState(() {
+        });
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => Navigation(dept: loginData.user.role)),
+        );
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,9 +138,10 @@ class _SignInState extends State<SignIn> {
                       textNames('Email'),
                     ],
                   ),
-                  const CustomTextField(
+                  CustomTextField(
                     hint: 'Enter your email',
                     icon: CupertinoIcons.mail,
+                    controller: emailController,
                   ),
                   SizedBox(height: 20.h),
                   Row(
@@ -87,16 +149,34 @@ class _SignInState extends State<SignIn> {
                       textNames('Password'),
                     ],
                   ),
-                  const CustomTextField(
+                  CustomTextField(
                     hint: 'Enter your password',
                     icon: CupertinoIcons.lock,
                     suffixIcon: CupertinoIcons.eye_slash,
                     keyboardType: TextInputType.visiblePassword,
+                    controller: passwordController,
+                  ),
+                  SizedBox(
+                    height: 10.h,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      const Text(
+                        'Forgot Password ?',
+                        style: TextStyle(color: AppColors.textSecondary),
+                      ),
+                      SizedBox(
+                        width: 10.w,
+                      )
+                    ],
                   ),
                   SizedBox(height: 20.h),
                   CustomButton(
                     text: 'Log In',
-                    onPressed: () {},
+                    onPressed: () {
+                      _loginUser();
+                    },
                     height: 56.h,
                     width: 327.w,
                     color: AppColors.primary,
@@ -133,20 +213,6 @@ class _SignInState extends State<SignIn> {
                     ],
                   ),
                   SizedBox(height: 10.h),
-                  CustomButton(
-                    text: 'Login with Google',
-                    onPressed: () {},
-                    height: 56.h,
-                    width: 327.w,
-                    color: const Color(0xffFFFFFF),
-                    borderRadius: 28.r,
-                    textColor: AppColors.textPrimary,
-                    fontSize: 17.sp,
-                    prefixIcon: Image.asset(
-                      'assets/google.png',
-                      height: 20.h,
-                    ),
-                  ),
                   SizedBox(
                     height: 20.h,
                   ),
@@ -171,7 +237,8 @@ class _SignInState extends State<SignIn> {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.primary, // Change color for emphasis
+                            color:
+                                AppColors.primary, // Change color for emphasis
                           ),
                         ),
                       ),
