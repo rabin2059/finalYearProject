@@ -63,6 +63,10 @@ class _SignUpState extends State<SignUp> {
             backgroundColor: Colors.green,
           ),
         );
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const SignIn()),
+        );
       } else {
         final errorData = jsonDecode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(

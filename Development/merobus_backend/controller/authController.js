@@ -35,6 +35,11 @@ const signUp = async (req, res) => {
         role: 1,
       },
     });
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "20s" }
+    );
 
     res.status(201).json({
       message: "User created successfully",

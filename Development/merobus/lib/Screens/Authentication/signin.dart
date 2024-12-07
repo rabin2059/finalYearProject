@@ -16,6 +16,8 @@ import '../../navigation/navigation.dart';
 import '../../routes/routes.dart';
 import 'package:http/http.dart' as http;
 
+import 'forgot.dart';
+
 class SignIn extends StatefulWidget {
   const SignIn({super.key});
 
@@ -162,9 +164,18 @@ class _SignInState extends State<SignIn> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      const Text(
-                        'Forgot Password ?',
-                        style: TextStyle(color: AppColors.textSecondary),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const Forgot()),
+                          );
+                        },
+                        child: const Text(
+                          'Forgot Password ?',
+                          style: TextStyle(color: AppColors.textSecondary),
+                        ),
                       ),
                       SizedBox(
                         width: 10.w,
