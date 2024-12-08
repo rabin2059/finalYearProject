@@ -92,6 +92,13 @@ class _NavigationState extends State<Navigation> {
                     });
                   },
                 ),
+                ListTile(
+                  leading: const Icon(Icons.logout),
+                  title: const Text('Logout'),
+                  onTap: () {
+                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SignIn()));
+                  },
+                ),
               ],
             ),
           ),
