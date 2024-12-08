@@ -44,7 +44,7 @@ class _NavigationState extends State<Navigation> {
           onPressed: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) =>  SignIn()),
+              MaterialPageRoute(builder: (context) => const SignIn()),
             );
           },
         ),
@@ -96,7 +96,10 @@ class _NavigationState extends State<Navigation> {
                   leading: const Icon(Icons.logout),
                   title: const Text('Logout'),
                   onTap: () {
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SignIn()));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const SignIn()));
                   },
                 ),
               ],
