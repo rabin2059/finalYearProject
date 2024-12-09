@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
-            fontFamily: GoogleFonts.mukta().fontFamily,
+            fontFamily: GoogleFonts.roboto().fontFamily,
             useMaterial3: true,
             scaffoldBackgroundColor: Colors.white, // Set background to white
           ),
