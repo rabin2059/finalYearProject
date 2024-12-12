@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 import 'Screens/Authentication/get_started.dart';
+import 'providers/map_provider.dart';
+import 'Screens/bus/bus_details_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => MapProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -26,6 +36,16 @@ class MyApp extends StatelessWidget {
             scaffoldBackgroundColor: Colors.white, // Set background to white
           ),
           home: child,
+          routes: {
+            '/bus-details': (context) {
+              final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+              return BusDetailsScreen(
+                bus: args['bus'],
+                routePoints: args['routePoints'],
+                userLocation: args['userLocation'],
+              );
+            },
+          },
         );
       },
       child: const GetStarted(),

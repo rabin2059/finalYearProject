@@ -36,9 +36,14 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_screenutil: ^5.9.3
   google_fonts: ^6.2.1
-  http: ^1.2.2
+  http: ^1.1.0
   jwt_decoder: ^2.0.1
   shared_preferences: ^2.3.3
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+  flutter_polyline_points: ^2.0.0
+  geolocator: ^10.1.0
+  provider: ^6.0.5
 
 dev_dependencies:
   flutter_test:
