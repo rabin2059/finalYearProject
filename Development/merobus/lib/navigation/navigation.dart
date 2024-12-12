@@ -3,6 +3,7 @@ import 'package:merobus/Components/CustomButton.dart';
 import 'package:merobus/Screens/Authentication/signin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Components/AppColors.dart';
+import '../Screens/maps/map.dart';
 
 class Navigation extends StatefulWidget {
   const Navigation({super.key, required this.dept});
@@ -35,7 +36,11 @@ class _NavigationState extends State<Navigation> {
 
   List<Widget> _buildPassengerScreens(BuildContext context) {
     return [
-      const Center(child: Text('Passenger Option 1')),
+      Center(
+          child: CustomButton(
+              text: "Map",
+              onPressed: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => MapScreen())))),
       const Center(child: Text('Passenger Option 2')),
       const Center(child: Text('Passenger Option 3')),
       Center(
