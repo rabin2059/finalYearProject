@@ -14,7 +14,7 @@ const signUp = async (req, res) => {
       return res.status(400).json({ message: "Password didn't match !" });
     }
 
-    const existingUser = await prisma.passenger.findFirst({
+    const existingUser = await prisma.user.findFirst({
       where: {
         email: email,
       },
@@ -27,7 +27,7 @@ const signUp = async (req, res) => {
     const hashPassword = await bcrypt.hash(password, 10);
     console.log(hashPassword);
     
-    const user = await prisma.passenger.create({
+    const user = await prisma.user.create({
       data: {
         username: username,
         email: email,
@@ -60,7 +60,7 @@ const login = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
-    const user = await prisma.passenger.findFirst({
+    const user = await prisma.user.findFirst({
       where: {
         email: email,
       },
