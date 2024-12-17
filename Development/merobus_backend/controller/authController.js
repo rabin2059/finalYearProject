@@ -1,6 +1,7 @@
 // Import required dependencies
 const prisma = require("../utils/prisma.js");
 const bcrypt = require("bcrypt");
+const validator = require("validator");
 const jwt = require("jsonwebtoken");
 
 // Handle user signup
@@ -13,6 +14,14 @@ const signUp = async (req, res) => {
     // Validate required fields
     if (!username || !email || !password || !confirmPassword) {
       return res.status(400).json({ message: "All fields are required" });
+    }
+
+    if (!validator.isEmail(email)) {
+      return res.status(400).json({ message: "Invalid email address" });
+    }
+
+    if (!validator.isStrongPassword(password)) {
+      return res.status(400).json({ message: "Password is not strong" });
     }
 
     // Check if passwords match

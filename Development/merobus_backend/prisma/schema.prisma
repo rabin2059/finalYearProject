@@ -20,5 +20,6 @@ model User {
   role      Int      @default(1)
   otp       String?
   otp_expiry DateTime?
+  status    String?
 }
 

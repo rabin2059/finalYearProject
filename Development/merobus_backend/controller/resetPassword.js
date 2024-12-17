@@ -1,10 +1,16 @@
 const transporter = require("../configs/mailconfigs");
 const prisma = require("../utils/prisma.js");
 const bcrypt = require("bcrypt");
+const validator = require("validator");
 
 const reqOTP = async (req, res) => {
   try {
     const { email } = req.body;
+
+    if (!validator.isEmail(email)) {
+      return res.status(400).json({ message: "Invalid email address" });
+    }
+
     const user = await prisma.user.findUnique({
       where: {
         email: email,
@@ -92,6 +98,10 @@ const resetPassword = async (req, res) => {
   try {
     const { email, password, confirmPassword } = req.body;
 
+    if (!validator.isEmail(email)) {
+      return res.status(400).json({ message: "Invalid email address" });
+    }
+
     const user = await prisma.user.findUnique({
       where: {
         email: email,
@@ -100,6 +110,10 @@ const resetPassword = async (req, res) => {
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!validator.isStrongPassword(password)) {
+      return res.status(400).json({ message: "Password is not strong" });
     }
 
     if (password !== confirmPassword) {
