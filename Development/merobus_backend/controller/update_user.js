@@ -1,7 +1,7 @@
 const prisma = require("../utils/prisma.js");
 
 const changeRole = async (req, res) => {
-  const { id, role, licenseNo } = req.body;
+  const { id, licenseNo } = req.body;
   console.log(req.body);
 
   const user = await prisma.user.findFirst({
@@ -22,14 +22,25 @@ const changeRole = async (req, res) => {
       data: {
         role: role,
         licenseNo: licenseNo,
+        status: "onHold",
       },
     });
+
+    if (user.status === "Approved") {
+      const updatedUser = await prisma.user.update({
+        where: { id: parseInt(id) },
+        data: {
+          id: parseInt(id),
+          role: 2,
+          status: "Approved",
+        },
+      });
+    }
 
     return res
       .status(200)
       .json({ message: "User updated successfully", user: updatedUser });
   }
-  
 };
 
 const updateUser = async (req, res) => {
