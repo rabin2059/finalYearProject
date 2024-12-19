@@ -11,14 +11,14 @@ import 'package:merobus/Components/AppColors.dart';
 import 'package:http/http.dart' as http;
 
 // Main map screen widget
-class MapScreen extends StatefulWidget {
-  const MapScreen({super.key});
+class MapScreens extends StatefulWidget {
+  const MapScreens({super.key});
 
   @override
-  State<MapScreen> createState() => _MapScreenState();
+  State<MapScreens> createState() => _MapScreensState();
 }
 
-class _MapScreenState extends State<MapScreen> {
+class _MapScreensState extends State<MapScreens> {
   // Controllers
   final MapController _controller = MapController();
   final TextEditingController _searchController = TextEditingController();

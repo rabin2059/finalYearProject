@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'Screens/Authentication/get_started.dart';
+import 'Screens/googe maps/google_map.dart';
 
 void main() {
   runApp(
@@ -39,6 +40,7 @@ class MyApp extends StatelessWidget {
         );
       },
       child: const GetStarted(),
+      // child: const MapScreen(),
     );
   }
 }

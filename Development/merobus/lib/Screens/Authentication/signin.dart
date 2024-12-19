@@ -34,7 +34,6 @@ class _SignInState extends State<SignIn> {
   @override
   void initState() {
     super.initState();
-    _loginUser();
   }
 
   Future<void> _loginUser() async {
@@ -58,12 +57,15 @@ class _SignInState extends State<SignIn> {
         // print(loginData.user.role);
         token = loginData.token ?? '';
         prefs.setString('token', token);
-        setState(() {
-        });
+        setState(() {});
         Navigator.push(
           context,
           MaterialPageRoute(
               builder: (context) => Navigation(dept: loginData.user.role)),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Invalid email or password")),
         );
       }
     } catch (e) {
