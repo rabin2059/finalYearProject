@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../Components/AppColors.dart';
+import '../Screens/Main Screens/setting_screen.dart';
 import '../Screens/main screens/home_screen.dart';
 
 class Navigation extends StatefulWidget {
@@ -113,7 +114,7 @@ class _NavigationState extends State<Navigation> {
           children: <Widget>[
             const Center(child: Text('Alerts Screen')),
             HomeScreen(dept: widget.dept), // Shared HomeScreen for Passenger/Driver
-            const Center(child: Text('Account Screen')), // Common account screen for both roles
+            SettingScreen(dept: widget.dept),
           ],
         ),
         bottomNavigationBar: _buildBottomNavigationBar(),

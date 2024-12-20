@@ -42,7 +42,7 @@ class CustomTextField extends StatelessWidget {
           hintText: hint,
           hintStyle: const TextStyle(
               color: Color(0xffADADAD)), // Set text color to black
-          suffixIcon: suffixIcon != null 
+          suffixIcon: suffixIcon != null
               ? InkWell(
                   onTap: onSuffixTap,
                   child: Icon(suffixIcon),
