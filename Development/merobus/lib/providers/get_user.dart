@@ -1,12 +1,26 @@
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-import '../models/loginModel.dart';
-import '../routes/routes.dart';
+import 'package:merobus/routes/routes.dart';
+import 'dart:convert';
 
-Future<User> getUser() async {
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('token');
-  final response = await http.get(Uri.parse('${Routes.route}user'), headers: {'Authorization': 'Bearer $token'});
-  return User.fromJson(jsonDecode(response.body));
+import '../models/user_model.dart';
+
+Future<User?> getUser(int userId) async {
+  try {
+    final url = Uri.parse('${Routes.route}getUser?id=$userId');
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      // Parse the response body into a UserModel
+      final userModel = UserModel.fromJson(json.decode(response.body));
+      return userModel.user;
+    } else if (response.statusCode == 404) {
+      print("User not found");
+      return null;
+    } else {
+      print("Error: ${response.statusCode} - ${response.body}");
+      return null;
+    }
+  } catch (e) {
+    print("Exception occurred: $e");
+    return null;
+  }
 }

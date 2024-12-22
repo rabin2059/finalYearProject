@@ -15,6 +15,7 @@ model User {
   phone     String?
   address   String?
   licenseNo String?
+  vehicleNo String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   role      Int      @default(1)

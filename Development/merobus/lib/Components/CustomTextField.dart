@@ -4,26 +4,34 @@ import 'package:merobus/Components/AppColors.dart';
 
 class CustomTextField extends StatelessWidget {
   final String hint;
-  final IconData icon;
+  final IconData? icon; // Make the icon optional
   final IconData? suffixIcon;
   final TextInputType keyboardType;
   final TextEditingController? controller;
   final String? Function(String?)? validator;
   final Color? backgroundColor;
   final Color? borderColor;
+  final Color? hintColor; // Add hintColor property
   final VoidCallback? onSuffixTap;
+  final VoidCallback? onTap; // Add onTap callback
+  final bool readOnly; // Add a readOnly property
+  final ValueChanged<String>? onChanged; // Add onChanged callback
 
   const CustomTextField({
     super.key,
     required this.hint,
-    required this.icon,
+    this.icon, // Icon is optional now
     this.suffixIcon,
     this.keyboardType = TextInputType.text,
     this.controller,
     this.validator,
     this.backgroundColor = Colors.white,
     this.borderColor = Colors.grey,
+    this.hintColor = const Color(0xffADADAD), // Default hint color
     this.onSuffixTap,
+    this.onTap, // Initialize onTap callback
+    this.readOnly = false, // Default to false
+    this.onChanged, // Initialize onChanged callback
   });
 
   @override
@@ -35,13 +43,19 @@ class CustomTextField extends StatelessWidget {
         controller: controller,
         keyboardType: keyboardType,
         validator: validator,
+        readOnly: readOnly, // Set readOnly dynamically
+        onChanged: onChanged, // Pass the onChanged callback
+        onTap: onTap, // Pass the onTap callback
         decoration: InputDecoration(
           filled: true,
           fillColor: backgroundColor,
-          prefixIcon: Icon(icon, color: const Color(0xff858585)),
+          prefixIcon: icon != null // Conditionally show prefixIcon
+              ? Icon(icon, color: const Color(0xff858585))
+              : null,
           hintText: hint,
-          hintStyle: const TextStyle(
-              color: Color(0xffADADAD)), // Set text color to black
+          hintStyle: TextStyle(
+            color: hintColor, // Use the custom hint color
+          ),
           suffixIcon: suffixIcon != null
               ? InkWell(
                   onTap: onSuffixTap,

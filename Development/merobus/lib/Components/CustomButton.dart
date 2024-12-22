@@ -39,7 +39,7 @@ class CustomButton extends StatelessWidget {
           border: Border.all(color: borderColor ?? Colors.transparent),
           boxShadow: boxShadow ??
               [
-                BoxShadow(
+                const BoxShadow(
                   color: Colors.black26,
                   blurRadius: 4,
                   offset: Offset(0, 0),

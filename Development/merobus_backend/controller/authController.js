@@ -43,7 +43,7 @@ const signUp = async (req, res) => {
     // Hash password before storing
     const hashPassword = await bcrypt.hash(password, 10);
     console.log(hashPassword);
-    
+
     // Create new user in database
     const user = await prisma.user.create({
       data: {
@@ -101,17 +101,16 @@ const login = async (req, res) => {
     }
 
     // Generate JWT token
-    const token = jwt.sign(
-      { userId: user.id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "20s" }
-    );
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "20s",
+    });
+    const userRole = user.role;
 
     // Send success response
     res.status(200).json({
       message: "Login successful",
-      user,
       token,
+      userRole,
     });
   } catch (error) {
     console.log(error);
@@ -134,6 +133,7 @@ const checkTokenExpiration = async (req, res) => {
     try {
       // Verify and decode the token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log(decoded);
 
       // Token is valid - send success response
       return res.status(200).json({

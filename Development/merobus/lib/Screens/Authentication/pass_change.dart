@@ -127,7 +127,7 @@ class _PassState extends State<PassChange> {
     }
 
     // Send password change request
-    final response = await http.post(
+    final response = await http.put(
       url,
       body: jsonEncode(body),
       headers: {'Content-Type': 'application/json'},

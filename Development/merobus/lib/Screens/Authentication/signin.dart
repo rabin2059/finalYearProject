@@ -50,18 +50,16 @@ class _SignInState extends State<SignIn> {
         body: jsonEncode(body),
         headers: {'Content-Type': 'application/json'}, // Set headers for JSON
       );
-      print(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final loginData = Login.fromJson(jsonDecode(response.body));
-        // print(loginData.user.role);
         token = loginData.token ?? '';
         prefs.setString('token', token);
         setState(() {});
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => Navigation(dept: loginData.user.role)),
+              builder: (context) => Navigation(dept: loginData.userRole)),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -191,7 +189,7 @@ class _SignInState extends State<SignIn> {
                       _loginUser();
                     },
                     height: 56.h,
-                    width: 327.w,
+                    width: 3237.w,
                     color: AppColors.primary,
                     borderRadius: 28.r,
                     fontSize: 17.sp,

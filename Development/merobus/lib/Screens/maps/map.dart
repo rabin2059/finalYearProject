@@ -1,5 +1,6 @@
 // Import required packages
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -9,6 +10,10 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:merobus/Components/AppColors.dart';
 import 'package:http/http.dart' as http;
+
+import '../../Components/CustomButton.dart';
+import '../../Components/CustomTextField.dart';
+import '../../providers/location_permission.dart';
 
 // Main map screen widget
 class MapScreens extends StatefulWidget {
@@ -34,8 +39,9 @@ class _MapScreensState extends State<MapScreens> {
 
   // UI state variables
   List<dynamic> _searchResults = [];
-  bool _isSearching = false;
-  bool _isRouteExpanded = false;
+  bool isLoading = false;
+  bool isSearching = true;
+  final bool _isRouteExpanded = false;
 
   double _currentZoom = 13.0;
   bool _showMarker = true;
@@ -71,391 +77,290 @@ class _MapScreensState extends State<MapScreens> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          // Main map widget
-          FlutterMap(
-            mapController: _controller,
-            options: MapOptions(
-              initialZoom: 13.h,
-              initialCenter: _currentLocation ??
-                  const LatLng(
-                      27.7172, 85.3240), // Use current location if available
-              onTap: (_, __) {
-                setState(() => _isSearching = false);
-              },
-              onMapEvent: _onMapEvent,
-            ),
-            children: [
-              // Map tile layer
-              TileLayer(
-                urlTemplate:
-                    'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-                subdomains: const ['a', 'b', 'c', 'd'],
-                // userAgentPackageName: 'com.example.merobus',
-                // additionalOptions: const {
-                //   'attribution':
-                //       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-                // },
-              ),
-              if (_startLocation != null &&
-                  _endLocation != null &&
-                  routePoints.isNotEmpty)
-                PolylineLayer(
-                  polylines: [
-                    Polyline(
-                      points: routePoints,
-                      color: Colors.blue,
-                      strokeWidth: 4.0,
-                    ),
-                  ],
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Stack(children: [
+              // Main map widget
+              FlutterMap(
+                mapController: _controller,
+                options: MapOptions(
+                  initialZoom: _currentZoom,
+                  initialCenter: _currentLocation ??
+                      const LatLng(27.7172,
+                          85.3240), // Use current location if available
+                  onMapEvent: _onMapEvent,
                 ),
-              // Marker layer for showing locations
-              MarkerLayer(
-                markers: [
-                  if (!_isRouteExpanded && _currentLocation != null)
-                    Marker(
-                      point: _currentLocation!,
-                      width: 40.w,
-                      height: 40.h,
-                      child: Icon(Icons.place,
-                          color: AppColors.primary, size: 30.r),
+                children: [
+                  // Map tile layer
+                  TileLayer(
+                    urlTemplate:
+                        'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+                    subdomains: const ['a', 'b', 'c', 'd'],
+                    // userAgentPackageName: 'com.example.merobus',
+                    // additionalOptions: const {
+                    //   'attribution':
+                    //       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                    // },
+                  ),
+                  if (_startLocation != null &&
+                      _endLocation != null &&
+                      routePoints.isNotEmpty)
+                    PolylineLayer(
+                      polylines: [
+                        Polyline(
+                          points: routePoints,
+                          color: Colors.blue,
+                          strokeWidth: 4.0,
+                        ),
+                      ],
                     ),
-                  if (_startLocation != null)
-                    Marker(
-                      point: _startLocation!,
-                      width: 40.w,
-                      height: 40.h,
-                      child: Icon(Icons.location_on,
-                          color: Colors.green, size: 30.r),
-                    ),
-                  if (_endLocation != null)
-                    Marker(
-                      point: _endLocation!,
-                      width: 40.w,
-                      height: 40.h,
-                      child: Icon(Icons.place, color: Colors.red, size: 30.r),
-                    ),
+                  // Marker layer for showing locations
+                  MarkerLayer(
+                    markers: [
+                      if (!_isRouteExpanded && _currentLocation != null)
+                        Marker(
+                          point: _currentLocation!,
+                          width: 40.w,
+                          height: 40.h,
+                          child: Icon(Icons.place,
+                              color: AppColors.primary, size: 30.r),
+                        ),
+                      if (_startLocation != null)
+                        Marker(
+                          point: _startLocation!,
+                          width: 40.w,
+                          height: 40.h,
+                          child: Icon(Icons.location_on,
+                              color: Colors.green, size: 30.r),
+                        ),
+                      if (_endLocation != null)
+                        Marker(
+                          point: _endLocation!,
+                          width: 40.w,
+                          height: 40.h,
+                          child:
+                              Icon(Icons.place, color: Colors.red, size: 30.r),
+                        ),
+                    ],
+                  ),
                 ],
               ),
-            ],
-          ),
-
-          // Search bar - only visible when route is not expanded
-          if (!_isRouteExpanded)
-            Positioned(
-              top: 48.h,
-              left: 15.w,
-              right: 15.w,
-              child: Column(
-                children: [
-                  // Search text field
-                  TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search Location',
-                      filled: true,
-                      fillColor: AppColors.buttonText,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(50.r),
-                        borderSide: BorderSide.none,
-                      ),
-                      prefixIcon: const Icon(Icons.search,
-                          color: AppColors.textPrimary),
-                      suffixIcon: _isSearching
-                          ? IconButton(
-                              onPressed: () {
-                                _searchController.clear();
-                                setState(() {
-                                  _isSearching = false;
-                                  _searchResults = [];
-                                });
-                              },
-                              icon: const Icon(Icons.clear))
-                          : null,
-                      contentPadding: EdgeInsets.symmetric(vertical: 12.h),
-                    ),
-                    onTap: () {
-                      setState(() {
-                        _isSearching = true;
-                      });
-                    },
-                  ),
-                  // Search results list
-                  if (_isSearching && _searchResults.isNotEmpty)
-                    Container(
-                      margin: EdgeInsets.only(top: 4.h),
-                      decoration: BoxDecoration(
-                        color: AppColors.buttonText,
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                      constraints: BoxConstraints(maxHeight: 200.h),
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: _searchResults.length,
-                        itemBuilder: (context, index) {
-                          final result = _searchResults[index];
-                          return ListTile(
-                            title: Text(result['display_name']),
-                            onTap: () {
-                              final lat = double.parse(result['lat']);
-                              final lng = double.parse(result['lon']);
-                              _goToSearchResult(lat, lng);
-                            },
-                          );
+              Positioned(
+                top: 50.h,
+                left: 15.w,
+                child: FloatingActionButton(
+                  heroTag: "back",
+                  mini: true,
+                  backgroundColor: Colors.white,
+                  elevation: 2,
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Icon(Icons.arrow_back, size: 25.r),
+                ),
+              ),
+              isSearching
+                  ? Positioned(
+                      top: 400.h,
+                      right: 15.w,
+                      child: FloatingActionButton(
+                        heroTag: "location",
+                        backgroundColor: AppColors.buttonText,
+                        foregroundColor: AppColors.primary,
+                        onPressed: () {
+                          _showCurrentLocation();
+                          setState(() {
+                            isSearching = false;
+                          });
                         },
+                        child: Icon(Icons.my_location_outlined, size: 25.r),
                       ),
                     )
-                ],
-              ),
-            ),
-
-          // Expandable route search panel
-          if (_isRouteExpanded)
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(20.r),
-                    topRight: Radius.circular(20.r),
-                  ),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 10,
-                      offset: Offset(0, -2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Panel header
-                    Padding(
-                      padding: EdgeInsets.all(16.r),
-                      child: Text(
-                        'Search your Route',
-                        style: TextStyle(
-                          fontSize: 20.sp,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  : Positioned(
+                      bottom: 90.h,
+                      right: 15.w,
+                      child: FloatingActionButton(
+                        heroTag: "location",
+                        backgroundColor: AppColors.buttonText,
+                        foregroundColor: AppColors.primary,
+                        onPressed: () {
+                          _showCurrentLocation();
+                        },
+                        child: Icon(Icons.my_location_outlined, size: 25.r),
                       ),
                     ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.r),
-                      child: Column(
-                        children: [
-                          // From location field
-                          Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(8.r),
-                            ),
-                            child: TextField(
-                              controller: _startController,
-                              decoration: InputDecoration(
-                                hintText: 'From location',
-                                border: InputBorder.none,
-                                prefixIcon: const Icon(
-                                    Icons.location_on_outlined,
-                                    color: Colors.grey),
-                                suffixIcon: const Icon(Icons.my_location,
-                                    color: Colors.green),
-                                contentPadding:
-                                    EdgeInsets.symmetric(horizontal: 16.r),
+              isSearching
+                  ? Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          left: 10.w,
+                          right: 10.w,
+                        ),
+                        child: Container(
+                          height: _searchResults.isEmpty ? 378.h : 478.h,
+                          width: 375.w,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(30.r)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 6,
+                                offset: const Offset(0, -3),
                               ),
-                              onTap: () {
-                                setState(() {
-                                  _activeController = _startController;
-                                  _searchResults = [];
-                                });
-                              },
-                              onChanged: _searchPlaces,
-                            ),
+                            ],
                           ),
-                          SizedBox(height: 12.h),
-                          // To location field
-                          Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(8.r),
-                            ),
-                            child: TextField(
-                              controller: _endController,
-                              decoration: InputDecoration(
-                                hintText: 'To location',
-                                border: InputBorder.none,
-                                prefixIcon: const Icon(
-                                    Icons.location_on_outlined,
-                                    color: Colors.grey),
-                                suffixIcon:
-                                    const Icon(Icons.map, color: Colors.grey),
-                                contentPadding:
-                                    EdgeInsets.symmetric(horizontal: 16.r),
-                              ),
-                              onTap: () {
-                                setState(() {
-                                  _activeController = _endController;
-                                  _searchResults = [];
-                                });
-                              },
-                              onChanged: _searchPlaces,
-                            ),
-                          ),
-                          SizedBox(height: 16.h),
-                          // Go To button
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                if (_startLocation != null && _endLocation != null) {
-                                  // Get route points first
-                                  await getRoutePoints();
-                                  
-                                  // Move map to show both markers
-                                  final bounds = LatLngBounds.fromPoints([
-                                    _startLocation!,
-                                    _endLocation!,
-                                  ]);
-                                  _controller.move(
-                                    bounds.center,
-                                    _controller.camera.zoom ?? 13.h,
-                                  );
-
-                                  setState(() {
-                                    _isRouteExpanded = false; // Hide the route panel
-                                  });
-                                } else {
-                                  // Show error if locations aren't selected
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Please select both start and end locations'),
-                                      backgroundColor: Colors.red,
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                                top: 10.h, left: 20.w, right: 20.w),
+                            child: Column(
+                              children: [
+                                if (_searchResults.isNotEmpty)
+                                  Container(
+                                    margin: EdgeInsets.only(top: 4.h),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.buttonText,
+                                      borderRadius: BorderRadius.circular(8.r),
                                     ),
-                                  );
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF8BC34A),
-                                padding: EdgeInsets.symmetric(vertical: 16.h),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8.r),
+                                    constraints:
+                                        BoxConstraints(maxHeight: 100.h),
+                                    child: ListView.builder(
+                                      shrinkWrap: true,
+                                      itemCount: _searchResults.length,
+                                      itemBuilder: (context, index) {
+                                        final result = _searchResults[index];
+                                        return ListTile(
+                                          title: Text(result['display_name']),
+                                          onTap: () {
+                                            final lat =
+                                                double.parse(result['lat']);
+                                            final lng =
+                                                double.parse(result['lon']);
+                                            _selectRouteLocation(lat, lng);
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                SizedBox(height: 10.h),
+                                Text.rich(
+                                  TextSpan(
+                                    children: [
+                                      TextSpan(
+                                        text: "Search Your ",
+                                        style: TextStyle(
+                                          fontSize: 18.sp,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors
+                                              .black, // Black for "Search Your"
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: "Route",
+                                        style: TextStyle(
+                                          fontSize: 18.sp,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors
+                                              .primary, // AppColors.primary for "Route"
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              child: Text(
-                                'Go To',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16.sp,
-                                  fontWeight: FontWeight.bold,
+                                SizedBox(height: 10.h),
+                                Row(
+                                  children: [
+                                    Text('From',
+                                        style: TextStyle(fontSize: 16.sp)),
+                                  ],
                                 ),
-                              ),
+                                SizedBox(height: 5.h),
+                                CustomTextField(
+                                  hint: 'From Location',
+                                  icon: Icons.location_on_outlined,
+                                  suffixIcon: Icons.my_location_outlined,
+                                  borderColor: Colors.transparent,
+                                  backgroundColor: const Color(0xffF6F8FA),
+                                  controller: _startController,
+                                  onSuffixTap: () async {
+                                    try {
+                                      final location =
+                                          await _getCurrentLocation();
+                                      _startController.text =
+                                          '${location.latitude}, ${location.longitude}';
+                                    } catch (e) {
+                                      print(e); // Handle error appropriately
+                                    }
+                                  },
+                                  onTap: () {
+                                    setState(() {
+                                      _activeController = _startController;
+                                      _searchResults = [];
+                                    });
+                                  },
+                                  onChanged: _searchPlaces,
+                                ),
+                                SizedBox(height: 20.h),
+                                Row(
+                                  children: [
+                                    Text('To',
+                                        style: TextStyle(fontSize: 16.sp)),
+                                  ],
+                                ),
+                                SizedBox(height: 5.h),
+                                CustomTextField(
+                                  hint: 'To Location',
+                                  icon: Icons.location_on_outlined,
+                                  borderColor: Colors.transparent,
+                                  backgroundColor: const Color(0xffF6F8FA),
+                                  suffixIcon: Icons.map_outlined,
+                                  controller: _endController,
+                                  onTap: () {
+                                    setState(() {
+                                      _activeController = _endController;
+                                      _searchResults = [];
+                                    });
+                                  },
+                                  onChanged: _searchPlaces,
+                                ),
+                                SizedBox(height: 30.h),
+                                CustomButton(
+                                  color: AppColors.primary,
+                                  borderRadius: 30.r,
+                                  text: 'Find Now',
+                                  onPressed: () {
+                                    getRoutePoints();
+                                    setState(() {
+                                      isSearching = false;
+                                    });
+                                  },
+                                ),
+                              ],
                             ),
                           ),
-                          SizedBox(height: 16.h),
-                        ],
-                      ),
-                    ),
-                    // Search results list
-                    if (_searchResults.isNotEmpty)
-                      Container(
-                        constraints: BoxConstraints(maxHeight: 200.h),
-                        color: Colors.white,
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: _searchResults.length,
-                          itemBuilder: (context, index) {
-                            final result = _searchResults[index];
-                            return ListTile(
-                              leading: const Icon(Icons.location_on_outlined),
-                              title: Text(result['display_name']),
-                              onTap: () {
-                                final lat = double.parse(result['lat']);
-                                final lng = double.parse(result['lon']);
-                                _selectRouteLocation(lat, lng);
-                              },
-                            );
-                          },
                         ),
                       ),
-                  ],
-                ),
-              ),
-            ),
-
-          // Back button - only visible when route is expanded
-          if (_isRouteExpanded)
-            Positioned(
-              top: 48.h,
-              left: 15.w,
-              child: FloatingActionButton(
-                heroTag: "back",
-                mini: true,
-                backgroundColor: Colors.white,
-                elevation: 2,
-                onPressed: () {
-                  setState(() {
-                    _isRouteExpanded = false;
-                    _startLocation = null;
-                    _endLocation = null;
-                    _startController.clear();
-                    _endController.clear();
-                    _searchResults = [];
-                  });
-                },
-                child: const Icon(Icons.arrow_back, color: Colors.black),
-              ),
-            ),
-
-          // Action buttons - only visible when route is not expanded
-          if (!_isRouteExpanded)
-            Positioned(
-              bottom: 20.h,
-              right: 20.w,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Current location button
-                  FloatingActionButton(
-                    heroTag: "location",
-                    backgroundColor: AppColors.buttonText,
-                    foregroundColor: AppColors.primary,
-                    onPressed: _showCurrentLocation,
-                    child: Icon(Icons.location_searching_rounded, size: 30.r),
-                  ),
-                  SizedBox(height: 10.h),
-                  // Route search toggle button
-                  FloatingActionButton(
-                    heroTag: "goto",
-                    backgroundColor: const Color(0xFF8BC34A),
-                    foregroundColor: Colors.white,
-                    onPressed: () {
-                      setState(() {
-                        _isRouteExpanded = !_isRouteExpanded;
-                        if (!_isRouteExpanded) {
-                          _startLocation = null;
-                          _endLocation = null;
-                          _startController.clear();
-                          _endController.clear();
-                          _searchResults = [];
-                        }
-                      });
-                    },
-                    child: Icon(
-                      _isRouteExpanded ? Icons.close : Icons.directions,
-                      size: 30.r,
+                    )
+                  : Positioned(
+                      bottom: 30.h,
+                      right: 15.w,
+                      child: FloatingActionButton(
+                        heroTag: "search",
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        onPressed: () {
+                          setState(() {
+                            isSearching = true;
+                          });
+                        },
+                        child: Icon(Icons.search, size: 25.r),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
+            ]),
     );
   }
 
@@ -546,7 +451,6 @@ class _MapScreensState extends State<MapScreens> {
     if (query.isEmpty) {
       setState(() {
         _searchResults = [];
-        _isSearching = false;
       });
       return;
     }
@@ -609,8 +513,49 @@ class _MapScreensState extends State<MapScreens> {
               .map((point) => LatLng(point.latitude, point.longitude))
               .toList();
         });
+
+        // Calculate the bounds to include both locations
+        double minLat = _startLocation!.latitude < _endLocation!.latitude
+            ? _startLocation!.latitude
+            : _endLocation!.latitude;
+        double maxLat = _startLocation!.latitude > _endLocation!.latitude
+            ? _startLocation!.latitude
+            : _endLocation!.latitude;
+        double minLng = _startLocation!.longitude < _endLocation!.longitude
+            ? _startLocation!.longitude
+            : _endLocation!.longitude;
+        double maxLng = _startLocation!.longitude > _endLocation!.longitude
+            ? _startLocation!.longitude
+            : _endLocation!.longitude;
+
+        // Create LatLngBounds
+        final LatLngBounds bounds = LatLngBounds(
+          LatLng(minLat, minLng),
+          LatLng(maxLat, maxLng),
+        );
+
+        // Calculate center and zoom level
+        _controller.move(bounds.center, _getZoomForBounds(bounds));
       }
     }
+  }
+
+// Helper method to calculate an appropriate zoom level based on the bounds
+  double _getZoomForBounds(LatLngBounds bounds) {
+    const double minZoom = 10.0;
+    const double maxZoom = 18.0;
+
+    // Calculate the distance between the two corners (diagonal of the bounds)
+    final latDiff = bounds.northEast.latitude - bounds.southWest.latitude;
+    final lngDiff = bounds.northEast.longitude - bounds.southWest.longitude;
+    // Approximate the distance (a simple Pythagorean theorem approach)
+    final distance = sqrt(latDiff * latDiff + lngDiff * lngDiff);
+
+    // Map the distance to a zoom level (this is an approximation)
+    double zoom = 16.0 - distance * 10; // Adjust multiplier for finer control
+    _currentZoom =
+        zoom.clamp(minZoom, maxZoom); // Clamp between min and max zoom levels
+    return _currentZoom;
   }
 
   void _onMapEvent(MapEvent event) {

@@ -1,9 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:merobus/Screens/Sub%20Screens/users%20screens/request_driver.dart';
+import 'package:merobus/models/user_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../Components/AppColors.dart';
-import '../../Components/CustomButton.dart';
+import '../../../Components/AppColors.dart';
+import '../../../Components/CustomButton.dart';
+import '../../../providers/get_user.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key, required this.dept});
@@ -19,6 +24,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
   final TextEditingController licenseController = TextEditingController();
+  bool _isLoading = true;
+  User? userData;
+
+  @override
+  void initState() {
+    _getuser();
+    super.initState();
+  }
+
   @override
   void dispose() {
     nameController.dispose();
@@ -30,6 +44,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
     if (widget.dept == 1) {
       return Scaffold(
         appBar: AppBar(
@@ -81,20 +100,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               Column(
                 children: [
-                  LocalTextField("Full Name", nameController),
+                  LocalTextField(
+                      'Namee', "${userData!.username}", nameController),
                   SizedBox(height: 10.h),
-                  LocalTextField("Email Address", emailController),
+                  LocalTextField(
+                      'Email', "${userData!.email}", emailController),
                   SizedBox(height: 10.h),
-                  LocalTextField("Phone Number", phoneController),
+                  LocalTextField('Phone',
+                      "${userData!.phone ?? ""}", phoneController),
                   SizedBox(height: 10.h),
-                  LocalTextField("Address", addressController),
-
+                  LocalTextField('Addres', "${userData!.address ?? ""}",
+                      addressController),
                   SizedBox(height: 20.h),
                   CustomButton(
                     text: "Become a Driver",
                     color: AppColors.primary,
                     height: 50.h,
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => RequestDriver(
+                                  id: userData!.id,
+                                  status: '${userData!.status}')));
+                    },
                   ),
                   SizedBox(height: 10.h),
                   CustomButton(
@@ -171,15 +200,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               Column(
                 children: [
-                  LocalTextField("Full Name", nameController),
+                  LocalTextField(
+                      'Name', "${userData!.username}", nameController),
                   SizedBox(height: 10.h),
-                  LocalTextField("Email Address", emailController),
+                  LocalTextField(
+                      'Email', "${userData!.email}", emailController),
                   SizedBox(height: 10.h),
-                  LocalTextField("Phone Number", phoneController),
+                  LocalTextField('Phone',
+                      "${userData!.phone ?? ""}", phoneController),
                   SizedBox(height: 10.h),
-                  LocalTextField("Address", addressController),
+                  LocalTextField('Address',
+                      "${userData!.address ?? ""}", addressController),
                   SizedBox(height: 10.h),
-                  LocalTextField("License Number", licenseController),
+                  StatusTextField('Licence No.', "${userData!.licenseNo}"),
+                  SizedBox(
+                    height: 10.h,
+                  ),
+                  StatusTextField('Vehicle No.', "${userData!.vehicleNo}"),
+                  SizedBox(
+                    height: 10.h,
+                  ),
                   SizedBox(height: 20.h),
                   CustomButton(
                     text: "Update",
@@ -207,54 +247,107 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  SizedBox LocalTextField(String hint, TextEditingController controller) {
-    return SizedBox(
-                  height: 40.h,
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: hint,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.r),
-                        borderSide: const BorderSide(color: AppColors.primary, width: 1),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.r),
-                        borderSide: const BorderSide(color: AppColors.primary, width: 1),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.r),
-                        borderSide: const BorderSide(color: AppColors.primary, width: 2),
-                      ),
-                    ),
-                    controller: controller,
-                  ),
-                );
+  Row StatusTextField(String title, String hint) {
+    return Row(
+      children: [
+        Text(
+          "$title: ",
+          style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
+        ),
+        SizedBox(
+          height: 40.h,
+          width: 250.w,
+          child: TextField(
+            enabled: false,
+            decoration: InputDecoration(
+              hintText: hint,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide:
+                    const BorderSide(color: AppColors.primary, width: 1),
+              ),
+            ),
+            controller: emailController,
+          ),
+        )
+      ],
+    );
   }
 
-  SizedBox StatusTextField(String hint, TextEditingController controller) {
-    return SizedBox(
-      height: 40.h,
-      child: TextField(
-        enabled: false,
-        decoration: InputDecoration(
-          hintText: hint,
-          filled: true,
-          fillColor: Colors.grey[200],
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.r),
-            borderSide: const BorderSide(color: AppColors.primary, width: 1),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.r),
-            borderSide: const BorderSide(color: AppColors.primary, width: 1),
-          ),
-          disabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.r),
-            borderSide: const BorderSide(color: AppColors.primary, width: 1),
-          ),
+  Row LocalTextField(
+      String title, String hint, TextEditingController controller) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          "$title: ",
+          style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
         ),
-        controller: controller,
-      ),
+        SizedBox(
+          height: 40.h,
+          width: 250.w,
+          child: TextField(
+            decoration: InputDecoration(
+              hintText: hint,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide:
+                    const BorderSide(color: AppColors.primary, width: 1),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide:
+                    const BorderSide(color: AppColors.primary, width: 1),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide:
+                    const BorderSide(color: AppColors.primary, width: 2),
+              ),
+            ),
+            controller: controller,
+          ),
+        )
+      ],
     );
+  }
+
+  Future<void> _getuser() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      if (token == null || token.isEmpty) {
+        print("No token found");
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      final userId = decodedToken['userId'];
+      final data = await getUser(userId);
+
+      if (data != null) {
+        setState(() {
+          userData = data;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print(e); // Handle error appropriately
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _updateUser() async {
+    try {} catch (e) {}
   }
 }
