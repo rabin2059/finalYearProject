@@ -83,7 +83,6 @@ class _PassState extends State<PassChange> {
               },
               color: AppColors.primary,
               fontSize: 16.sp,
-              borderRadius: 30.r,
             ),
           ],
         ),

@@ -68,7 +68,6 @@ class _ForgotState extends State<Forgot> {
                 },
                 color: AppColors.primary,
                 fontSize: 16.sp,
-                borderRadius: 30.r,
               ),
             ],
           ),

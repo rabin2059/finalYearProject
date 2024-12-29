@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:merobus/Screens/Main%20Screens/admin_screen.dart';
+import 'package:merobus/Screens/Main%20Screens/bus_screen.dart';
+import 'package:merobus/Screens/Main%20Screens/profile_screen.dart';
 import '../Components/AppColors.dart';
 import '../Screens/Main Screens/setting_screen.dart';
 import '../Screens/Main Screens/home_screen.dart';
 
 class Navigation extends StatefulWidget {
   const Navigation({super.key, required this.dept});
-  final int dept; // dept represents role: 0 -> Admin, 1 -> Passenger, 2 -> Driver
+  final int
+      dept; // dept represents role: 0 -> Admin, 1 -> Passenger, 2 -> Driver
 
   @override
   State<Navigation> createState() => _NavigationState();
@@ -14,7 +17,7 @@ class Navigation extends StatefulWidget {
 
 class _NavigationState extends State<Navigation> {
   int _selectedIndex = 0;
-  PageController _pageController = PageController(initialPage: 1);
+  final PageController _pageController = PageController(initialPage: 1);
 
   @override
   void initState() {
@@ -26,7 +29,8 @@ class _NavigationState extends State<Navigation> {
     setState(() {
       _selectedIndex = index;
     });
-    _pageController.jumpToPage(index); // Handle page transitions using PageController
+    _pageController
+        .jumpToPage(index); // Handle page transitions using PageController
   }
 
   Widget _buildBottomNavigationBar() {
@@ -151,9 +155,10 @@ class _NavigationState extends State<Navigation> {
             });
           },
           children: <Widget>[
-            const Center(child: Text('Alerts Screen')),
-            HomeScreen(dept: widget.dept), // Shared HomeScreen for Passenger/Driver
-            SettingScreen(dept: widget.dept),
+            BusScreen(dept: widget.dept),
+            HomeScreen(dept: widget.dept),
+            // SettingScreen(dept: widget.dept),
+            ProfileScreen()
           ],
         ),
         bottomNavigationBar: _buildBottomNavigationBar(),

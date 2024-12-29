@@ -198,7 +198,6 @@ class _OTPState extends State<OTP> {
                 },
                 color: AppColors.primary,
                 fontSize: 16.sp,
-                borderRadius: 30.r,
               ),
             ],
           ),
