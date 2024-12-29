@@ -9,7 +9,6 @@ class CustomButton extends StatelessWidget {
   final double? width;
   final double? height;
   final double? fontSize;
-  final double? borderRadius;
   final List<BoxShadow>? boxShadow;
   final Color? borderColor;
 
@@ -22,7 +21,6 @@ class CustomButton extends StatelessWidget {
     this.width,
     this.height,
     this.fontSize,
-    this.borderRadius,
     this.boxShadow,
     this.borderColor,
   });
@@ -35,7 +33,7 @@ class CustomButton extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: color ?? Theme.of(context).primaryColor,
-          borderRadius: BorderRadius.circular(borderRadius ?? 8.r),
+          borderRadius: BorderRadius.circular(6.r),
           border: Border.all(color: borderColor ?? Colors.transparent),
           boxShadow: boxShadow ??
               [
@@ -51,7 +49,7 @@ class CustomButton extends StatelessWidget {
             backgroundColor: Colors.transparent,
             shadowColor: Colors.transparent, // Disable default shadow
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(borderRadius ?? 8.r),
+              borderRadius: BorderRadius.circular(6.r),
             ),
           ),
           onPressed: onPressed,

@@ -1,81 +1,69 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:merobus/Screens/Authentication/get_started.dart';
-import 'package:merobus/Screens/Authentication/signup.dart';
-import 'package:merobus/Screens/test.dart';
-import 'package:merobus/models/loginModel.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../Components/AppColors.dart';
 import '../../Components/CustomButton.dart';
 import '../../Components/CustomTextField.dart';
-import '../../navigation/navigation.dart';
-import '../../routes/routes.dart';
-import 'package:http/http.dart' as http;
-
+import '../../providers/auth_provider.dart';
 import 'forgot.dart';
 
-class SignIn extends StatefulWidget {
+class SignIn extends ConsumerStatefulWidget {
   const SignIn({super.key});
 
   @override
-  State<SignIn> createState() => _SignInState();
+  _SignInState createState() => _SignInState();
 }
 
-class _SignInState extends State<SignIn> {
+class _SignInState extends ConsumerState<SignIn> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  String token = '';
+  bool isLoading = false;
 
-  @override
-  void initState() {
-    super.initState();
-  }
+  void _loginUser() async {
+    setState(() {
+      isLoading = true;
+    });
 
-  Future<void> _loginUser() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final url = Uri.parse('${Routes.route}login');
-      final body = {
-        'email': emailController.text,
-        'password': passwordController.text,
-      };
+      final authNotifier = ref.read(authNotifierProvider.notifier);
 
-      final response = await http.post(
-        url,
-        body: jsonEncode(body),
-        headers: {'Content-Type': 'application/json'}, // Set headers for JSON
+      final prefs = await SharedPreferences.getInstance();
+      final role = prefs.getInt('userRole');
+
+      // Await the result from register()
+      final success = await authNotifier.login(
+        emailController.text.trim(),
+        passwordController.text.trim(),
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final loginData = Login.fromJson(jsonDecode(response.body));
-        token = loginData.token ?? '';
-        prefs.setString('token', token);
-        setState(() {});
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => Navigation(dept: loginData.userRole)),
-        );
+      if (success) {
+        final role = ref.read(authNotifierProvider).userRole;
+        context.goNamed('navigation', extra: role);
+        // context.go('/login');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Invalid email or password")),
+          const SnackBar(
+            content: Text('All Field are Required'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } catch (e) {
-      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('An unexpected error occurred: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
-  }
-
-  @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
   }
 
   @override
@@ -191,7 +179,6 @@ class _SignInState extends State<SignIn> {
                     height: 56.h,
                     width: 3237.w,
                     color: AppColors.primary,
-                    borderRadius: 28.r,
                     fontSize: 17.sp,
                   ),
                   SizedBox(
@@ -237,11 +224,7 @@ class _SignInState extends State<SignIn> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const SignUp()),
-                          );
+                          context.push('/signup');
                         }, // Handle the sign-up tap
                         child: const Text(
                           "Sign Up",

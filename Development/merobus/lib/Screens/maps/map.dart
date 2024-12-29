@@ -330,7 +330,6 @@ class _MapScreensState extends State<MapScreens> {
                                 SizedBox(height: 30.h),
                                 CustomButton(
                                   color: AppColors.primary,
-                                  borderRadius: 30.r,
                                   text: 'Find Now',
                                   onPressed: () {
                                     getRoutePoints();

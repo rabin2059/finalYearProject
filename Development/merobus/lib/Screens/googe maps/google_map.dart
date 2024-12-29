@@ -224,7 +224,6 @@ class _MapScreenState extends State<MapScreen> {
                                 SizedBox(height: 30.h),
                                 CustomButton(
                                   color: AppColors.primary,
-                                  borderRadius: 30.r,
                                   text: 'Find Now',
                                   onPressed: () {
                                     setState(() {
