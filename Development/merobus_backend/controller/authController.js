@@ -50,7 +50,6 @@ const signUp = async (req, res) => {
         username: username,
         email: email,
         password: hashPassword,
-        role: 1,
       },
     });
 

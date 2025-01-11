@@ -4,6 +4,7 @@ const authController = require("../controller/authController.js");
 const resetPasswordController = require("../controller/resetPassword.js");
 const userRelatedController = require("../controller/user_related.js");
 const adminController = require("../controller/adminController.js");
+const driverController = require("../controller/driverController.js");
 
 // Authentication routes
 router.get("/root", authController.root);
@@ -26,3 +27,7 @@ router.put("/requestRole", adminController.requestRole);
 router.put("/validDriverRole", adminController.validDriverRole);
 router.get("/getAllUser", adminController.getAllUser);
 module.exports = router;
+
+
+//vehicles
+router.get("/getVehicles", driverController.getVehicles);

@@ -8,19 +8,67 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String
-  email     String   @unique
-  password  String
-  phone     String?
-  address   String?
-  licenseNo String?
-  vehicleNo String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  role      Int      @default(1)
-  otp       String?
+  id         Int       @id @default(autoincrement())
+  username   String
+  email      String    @unique
+  password   String
+  phone      String?
+  address    String?
+  licenseNo  String?
+  images     String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  role       Role      @default(USER)
+  otp        String?
   otp_expiry DateTime?
-  status    String?
+  status     String?
+  vehicles   Vehicle[]
 }
 
+enum Role {
+  USER
+  DRIVER
+  ADMIN
+}
+
+model Vehicle {
+  id         Int      @id @default(autoincrement())
+  vehicleNo  String   @unique
+  model      String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  owner      User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId    Int
+  route      Route?   @relation("VehicleToRoute")
+}
+
+model Route {
+  id         Int          @id @default(autoincrement())
+  name       String?      // Optional initially
+  startPoint String?      // Optional initially
+  endPoint   String?      // Optional initially
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  busStops   RouteBusStop[]
+  vehicle    Vehicle?     @relation("VehicleToRoute", fields: [vehicleID], references: [id], onDelete: Cascade)
+  vehicleID  Int?         @unique
+}
+
+model BusStop {
+  id         Int             @id @default(autoincrement())
+  name       String
+  latitude   Float
+  longitude  Float
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  routes     RouteBusStop[]   // Defines the many-to-many relationship with Route
+}
+
+model RouteBusStop {
+  id         Int       @id @default(autoincrement())
+  route      Route     @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  routeId    Int
+  busStop    BusStop   @relation(fields: [busStopId], references: [id], onDelete: Cascade)
+  busStopId  Int
+  sequence   Int       // Order of the bus stops in the route
+}
