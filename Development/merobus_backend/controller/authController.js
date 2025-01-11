@@ -9,7 +9,6 @@ const signUp = async (req, res) => {
   try {
     // Extract user details from request body
     const { username, email, password, confirmPassword } = req.body;
-    console.log(req.body);
 
     // Validate required fields
     if (!username || !email || !password || !confirmPassword) {

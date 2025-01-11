@@ -28,6 +28,7 @@ router.put("/validDriverRole", adminController.validDriverRole);
 router.get("/getAllUser", adminController.getAllUser);
 module.exports = router;
 
-
 //vehicles
+router.post("/addVehicle", driverController.addVehicle);
+router.post("/createRoute", driverController.createRoute);
 router.get("/getVehicles", driverController.getVehicles);
