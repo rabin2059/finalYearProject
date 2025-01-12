@@ -5,6 +5,7 @@ const resetPasswordController = require("../controller/resetPassword.js");
 const userRelatedController = require("../controller/user_related.js");
 const adminController = require("../controller/adminController.js");
 const driverController = require("../controller/driverController.js");
+const upload = require("../configs/storage.js");
 
 // Authentication routes
 router.get("/root", authController.root);
@@ -19,7 +20,11 @@ router.post("/verifyOTP", resetPasswordController.verifyOTP);
 router.put("/resetPassword", resetPasswordController.resetPassword);
 
 // Change role routes
-router.put("/updateUser", userRelatedController.updateUser);
+router.put(
+  "/updateUser",
+  upload.single("image"),
+  userRelatedController.updateUser
+);
 router.get("/getUser", userRelatedController.getUser);
 
 //

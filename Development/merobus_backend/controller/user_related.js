@@ -1,8 +1,11 @@
 const prisma = require("../utils/prisma.js");
+const upload = require("../configs/storage");
 
 const updateUser = async (req, res) => {
   const { id, username, email, phone, address } = req.body;
+  const imagePath = req.file ? `/uploads/${req.file.filename}` : null; // Check if a file was uploaded
 
+  // Find the user by ID
   const user = await prisma.user.findFirst({
     where: {
       id: parseInt(id),
@@ -13,14 +16,22 @@ const updateUser = async (req, res) => {
     return res.status(404).json({ message: "User not found" });
   }
 
+  // Update user information in the database
   const updatedUser = await prisma.user.update({
     where: { id: parseInt(id) },
-    data: { username, email, phone, address },
+    data: {
+      username,
+      email,
+      phone,
+      address,
+      imagePath, // Save the image path in the database
+    },
   });
 
-  return res
-    .status(200)
-    .json({ message: "User updated successfully", user: updatedUser });
+  return res.status(200).json({
+    message: "User updated successfully",
+    user: updatedUser,
+  });
 };
 
 const getUser = async (req, res) => {

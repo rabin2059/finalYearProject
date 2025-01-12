@@ -158,7 +158,7 @@ class _NavigationState extends State<Navigation> {
             BusScreen(dept: widget.dept),
             HomeScreen(dept: widget.dept),
             // SettingScreen(dept: widget.dept),
-            const ProfileScreen()
+             ProfileScreen(dept: widget.dept),
           ],
         ),
         bottomNavigationBar: _buildBottomNavigationBar(),

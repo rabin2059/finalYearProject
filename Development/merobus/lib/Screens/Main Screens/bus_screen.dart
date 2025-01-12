@@ -4,6 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:merobus/Components/AppColors.dart';
 
+import '../../Services/api_service.dart';
+import '../../models/busStop.dart';
+
 class BusScreen extends StatefulWidget {
   const BusScreen({super.key, required this.dept});
   final int dept;
@@ -13,30 +16,14 @@ class BusScreen extends StatefulWidget {
 }
 
 class _BusScreenState extends State<BusScreen> {
-  // Mock data for buses
-  final List<Map<String, String>> buses = [
-    {
-      'busName': 'TikTok',
-      'vehicleNo': 'BA 1 KHA 412',
-      'arrival': '7:00 AM - 3:00 PM',
-      'route': 'Kathmandu - Gaighat',
-      'rate': '4.5'
-    },
-    {
-      'busName': 'Messenger',
-      'vehicleNo': 'KHA 1 JA 234',
-      'arrival': '6:00 AM - 5:00 PM',
-      'route': 'Dharan - Kathmandu',
-      'rate': '4.7'
-    },
-    {
-      'busName': 'Himali',
-      'vehicleNo': 'BA 4 KHA 321',
-      'arrival': '6:00 AM - 6:00 PM',
-      'route': 'Itahari - Kathmandu',
-      'rate': '4.8'
-    },
-  ];
+  late Future<List<Vehicle>> _vehiclesFuture;
+  final ApiService apiService = ApiService();
+
+  @override
+  void initState() {
+    super.initState();
+    _vehiclesFuture = apiService.fetchVehicles(); // Fetch vehicles dynamically
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,108 +88,141 @@ class _BusScreenState extends State<BusScreen> {
               SizedBox(height: 10.h),
               // List of bus details
               Expanded(
-                child: ListView.builder(
-                  itemCount: buses.length,
-                  itemBuilder: (context, index) {
-                    final bus = buses[index];
-                    return Card(
-                      color: Colors.white,
-                      margin: EdgeInsets.symmetric(vertical: 8.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.r),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 20.w,
-                          vertical: 10.h,
+                child: FutureBuilder<List<Vehicle>>(
+                  future: _vehiclesFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    } else if (snapshot.hasError) {
+                      return Center(
+                        child: Text(
+                          'Error: ${snapshot.error}',
+                          style: TextStyle(fontSize: 16.sp),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            // Bus Icon
-                            Container(
-                              height: 50.h,
-                              width: 50.w,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: AppColors.primary,
-                              ),
-                              child: const Icon(
-                                CupertinoIcons.bus,
-                                color: Colors.white,
-                              ),
+                      );
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'No buses available',
+                          style: TextStyle(fontSize: 16.sp),
+                        ),
+                      );
+                    }
+
+                    final vehicles = snapshot.data!;
+
+                    return ListView.builder(
+                      itemCount: vehicles.length,
+                      itemBuilder: (context, index) {
+                        final vehicle = vehicles[index];
+                        return Card(
+                          color: Colors.white,
+                          margin: EdgeInsets.symmetric(vertical: 8.h),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.r),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 20.w,
+                              vertical: 10.h,
                             ),
-                            // Bus Details
-                            Expanded(
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 10.w),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                // Bus Icon
+                                Container(
+                                  height: 50.h,
+                                  width: 50.w,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: AppColors.primary,
+                                  ),
+                                  child: const Icon(
+                                    CupertinoIcons.bus,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                // Bus Details
+                                Expanded(
+                                  child: Padding(
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 10.w),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          vehicle.model ?? 'Unknown Bus',
+                                          style: TextStyle(
+                                            fontSize: 16.sp,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        SizedBox(height: 5.h),
+                                        Text(
+                                          vehicle.vehicleNo ?? 'N/A',
+                                          style: TextStyle(
+                                            fontSize: 16.sp,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.primary,
+                                          ),
+                                        ),
+                                        Text(
+                                          vehicle.route?.startPoint ??
+                                              'Unknown Route',
+                                          style: TextStyle(fontSize: 14.sp),
+                                        ),
+                                        Text(
+                                          vehicle.route?.endPoint ?? 'N/A',
+                                          style: TextStyle(
+                                            fontSize: 14.sp,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                // Placeholder for Price and Rating
+                                Column(
                                   children: [
                                     Text(
-                                      bus['busName'] ?? 'Unknown Bus',
+                                      "Rs. 1300",
                                       style: TextStyle(
-                                        fontSize: 16.sp,
+                                        fontSize: 14.sp,
                                         fontWeight: FontWeight.bold,
+                                        color: Colors.green,
                                       ),
                                     ),
                                     SizedBox(height: 5.h),
-                                    Text(
-                                      bus['vehicleNo'] ?? 'N/A',
-                                      style: TextStyle(
-                                          fontSize: 16.sp,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.primary),
-                                    ),
-                                    Text(
-                                      bus['route'] ?? 'N/A',
-                                      style: TextStyle(fontSize: 14.sp),
-                                    ),
-                                    Text(
-                                      bus['arrival'] ?? 'N/A',
-                                      style: TextStyle(
-                                          fontSize: 14.sp,
-                                          color: AppColors.textSecondary),
+                                    Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 5.w,
+                                        vertical: 2.h,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primary,
+                                        borderRadius:
+                                            BorderRadius.circular(5.r),
+                                      ),
+                                      child: Text(
+                                        '⭐️ 4.5', // Replace with actual rating if available
+                                        style: TextStyle(
+                                          fontSize: 12.sp,
+                                          color: Colors.white,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
                                     ),
                                   ],
-                                ),
-                              ),
-                            ),
-                            // Price and Rating
-                            Column(
-                              children: [
-                                Text(
-                                  "Rs. 1300",
-                                  style: TextStyle(
-                                    fontSize: 14.sp,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green,
-                                  ),
-                                ),
-                                SizedBox(height: 5.h),
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 5.w,
-                                    vertical: 2.h,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primary,
-                                    borderRadius: BorderRadius.circular(5.r),
-                                  ),
-                                  child: Text(
-                                    '⭐️ ${bus['rate'] ?? 'N/A'}',
-                                    style: TextStyle(
-                                      fontSize: 12.sp,
-                                      color: Colors.white,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
+                                )
                               ],
-                            )
-                          ],
-                        ),
-                      ),
+                            ),
+                          ),
+                        );
+                      },
                     );
                   },
                 ),

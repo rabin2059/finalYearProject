@@ -34,16 +34,36 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   Future<bool> login(String email, String password) async {
     try {
+      // Call the login API
       final result = await authService.login(email, password);
-      final prefs = await SharedPreferences.getInstance();
+
+      // Parse the JSON response
       final user = Login.fromJson(result);
+      print(user);
+
+      // Get SharedPreferences instance
+      final prefs = await SharedPreferences.getInstance();
+
+      // Map user role to integers
+      int role =
+          user.userRole == 'USER' ? 1 : (user.userRole == 'ADMIN' ? 0 : 2);
+
+      // Update application state
       state = AuthState(
-          isAuthenticated: true, token: user.token, userRole: user.userRole);
-      prefs.setString('token', state.token);
-      prefs.setInt('userRole', state.userRole);
+        isAuthenticated: true,
+        token: user.token,
+        userRole: role, // Ensure role is an int
+      );
+
+      // Save token and role to SharedPreferences
+      await prefs.setString('token', state.token);
+      await prefs.setInt('userRole', role); // Store role as an int
+
+      print("Login successful");
       return true;
     } catch (e) {
-      print(e);
+      // Log the error
+      print('Login failed: $e');
       return false;
     }
   }
@@ -64,7 +84,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
           _navigateToLogin(); // Navigate to login screen
           return false;
         }
-
       } catch (e) {
         print('Error checking token expiration: $e');
         // If there's an error (e.g., malformed token), treat it as expired
@@ -84,6 +103,5 @@ class AuthNotifier extends StateNotifier<AuthState> {
     await prefs.clear();
   }
 
-  void _navigateToLogin() {
-  }
+  void _navigateToLogin() {}
 }
