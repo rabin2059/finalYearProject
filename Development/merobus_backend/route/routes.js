@@ -8,11 +8,9 @@ const driverController = require("../controller/driverController.js");
 const upload = require("../configs/storage.js");
 
 // Authentication routes
-router.get("/root", authController.root);
 router.post("/signUp", authController.signUp);
 router.post("/login", authController.login);
-router.post("/checkTokenExpiration", authController.checkTokenExpiration);
-router.post("/logout", authController.logout);
+router.post("/refreshToken", authController.refreshToken);
 
 // Reset password routes
 router.post("/reqOTP", resetPasswordController.reqOTP);
