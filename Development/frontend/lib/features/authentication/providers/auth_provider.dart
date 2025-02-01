@@ -20,7 +20,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final refreshToken = response['refreshToken'];
 
       final newState = AuthState.fromLoginResponse(response);
-      print(newState.currentRole);
 
       // Save tokens to shared preferences
       await SharedPrefsUtil.saveToken(token, newState.tokenExpiry!);

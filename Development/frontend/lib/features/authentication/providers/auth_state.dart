@@ -2,16 +2,16 @@ import '../../../core/role.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
 class AuthState {
-  final String? token; // Access token for API requests
-  final String? refreshToken; // Token for renewing the access token
-  final String? userId; // User identifier
-  final DateTime? tokenExpiry; // Expiration time of the access token
-  final DateTime? sessionExpiry; // Expiration time of the session
-  final UserRole? currentRole; // Currently active role
-  final List<UserRole> roles; // All roles assigned to the user
-  final bool isLoading; // Tracks if an authentication operation is ongoing
-  final String? error; // Stores error messages
-  final bool isLoggedIn; // Indicates if the user is authenticated
+  final String? token;
+  final String? refreshToken;
+  final int? userId;
+  final DateTime? tokenExpiry;
+  final DateTime? sessionExpiry;
+  final UserRole? currentRole;
+  final List<UserRole> roles;
+  final bool isLoading;
+  final String? error;
+  final bool isLoggedIn;
 
   const AuthState({
     this.token,
@@ -42,7 +42,7 @@ class AuthState {
   AuthState copyWith({
     String? token,
     String? refreshToken,
-    String? userId,
+    int? userId,
     DateTime? tokenExpiry,
     DateTime? sessionExpiry,
     UserRole? currentRole,
@@ -72,7 +72,7 @@ class AuthState {
 
     // Decode the token to extract userId and expiration
     final decodedToken = JwtDecoder.decode(token);
-    final userId = decodedToken['userId']?.toString();
+    final userId = decodedToken['userId'] as int;
     final tokenExpiry = JwtDecoder.getExpirationDate(token);
 
     return AuthState(
@@ -82,7 +82,7 @@ class AuthState {
       tokenExpiry: tokenExpiry,
       sessionExpiry:
           DateTime.now().add(Duration(hours: 12)), // Example session duration
-      currentRole: UserRole.USER, // Default role; customize as needed
+      currentRole: response['role'], // Default role; customize as needed
       roles: [
         UserRole.USER,
         UserRole.DRIVER

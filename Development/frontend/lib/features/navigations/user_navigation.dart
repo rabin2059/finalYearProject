@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/features/home/presentation/home_screen.dart';
+import 'package:frontend/features/setting/presentation/setting_screen.dart';
 
 class UserNavigation extends ConsumerStatefulWidget {
   const UserNavigation({super.key});
@@ -38,7 +39,9 @@ class _UserNavigationState extends ConsumerState<UserNavigation> {
             });
           },
           children: <Widget>[
-            HomeScreen()
+            Container(),
+            HomeScreen(),
+            SettingScreen()
           ],
         ),
         bottomNavigationBar: _buildBottomNavigationBar(),
