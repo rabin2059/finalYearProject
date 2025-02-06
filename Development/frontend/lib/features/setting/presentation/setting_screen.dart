@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:frontend/features/profile/presentation/profile_screen.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../components/AppColors.dart';
 import '../../../components/CustomButton.dart';
@@ -120,7 +122,7 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
                 CustomButton(
                   text: 'Edit Profile',
                   onPressed: () {
-                    // Add your edit profile logic here
+                    context.push('/profile');
                   },
                   width: 110.w,
                   height: 30.h,

@@ -17,7 +17,6 @@
 //   console.log(`Server is running on http://localhost:${port}`);
 // });
 
-
 // Entry Point: index.js
 const express = require("express");
 const routes = require("./route/routes");
@@ -41,7 +40,7 @@ app.use("/uploads", express.static("uploads"));
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
-  message: "Too many requests, please try again later."
+  message: "Too many requests, please try again later.",
 });
 app.use(limiter);
 

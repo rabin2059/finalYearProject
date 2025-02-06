@@ -34,8 +34,8 @@ class User {
       id: json['id'] ?? 0, // Defaults to 0 if null
       username: json['username'] ?? 'Unknown User', // Default username
       email: json['email'] ?? 'No Email',
-      phone: json['phone'], // Allow null values
-      address: json['address'],
+      phone: json['phone'] ?? 'No Phone',
+      address: json['address'] ?? 'No Address',
       licenseNo: json['licenseNo'],
       images: json['images'],
       role: json['role'] ?? 'USER', // Default to USER

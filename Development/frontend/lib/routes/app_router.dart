@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/features/profile/presentation/profile_screen.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/authentication/providers/auth_provider.dart';
@@ -23,4 +24,8 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
     name: '/navigation',
     path: '/navigation',
     builder: (context, state) => Navigation()),
+  GoRoute(
+    name: '/profile',
+    path: '/profile',
+    builder: (context, state) => ProfileScreen()),
 ]);
