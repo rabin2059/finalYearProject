@@ -3,7 +3,8 @@ const upload = require("../configs/storage");
 
 const updateUser = async (req, res) => {
   const { id, username, email, phone, address } = req.body;
-  const imagePath = req.file ? `/uploads/${req.file.filename}` : null; // Check if a file was uploaded
+  console.log(req.body);
+  const images = req.file ? `/uploads/${req.file.filename}` : null; // Check if a file was uploaded
 
   // Find the user by ID
   const user = await prisma.user.findFirst({
@@ -20,11 +21,11 @@ const updateUser = async (req, res) => {
   const updatedUser = await prisma.user.update({
     where: { id: parseInt(id) },
     data: {
-      username,
-      email,
-      phone,
-      address,
-      imagePath, // Save the image path in the database
+      username: username ? username : user.username,
+      email: email ? email : user.email,
+      phone: phone ? phone : user.phone,
+      address: address ? address : user.address,
+      images: images ? images : user.images, // Save the image path in the database
     },
   });
 

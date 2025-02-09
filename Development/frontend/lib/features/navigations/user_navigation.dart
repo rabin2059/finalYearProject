@@ -27,25 +27,20 @@ class _UserNavigationState extends ConsumerState<UserNavigation> {
         .jumpToPage(index); // Handle page transitions using PageController
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: PageView(
-          controller: _pageController,
-          onPageChanged: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          children: <Widget>[
-            Container(),
-            HomeScreen(),
-            SettingScreen()
-          ],
-        ),
-        bottomNavigationBar: _buildBottomNavigationBar(),
-      );
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        children: <Widget>[Container(), HomeScreen(), SettingScreen()],
+      ),
+      bottomNavigationBar: _buildBottomNavigationBar(),
+    );
   }
 
   Widget _buildBottomNavigationBar() {

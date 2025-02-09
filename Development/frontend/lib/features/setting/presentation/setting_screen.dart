@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../components/AppColors.dart';
 import '../../../components/CustomButton.dart';
+import '../../../core/constants.dart';
 import '../../authentication/presentation/login_screen.dart';
 import '../../authentication/providers/auth_provider.dart';
 import '../providers/setting_provider.dart';
@@ -35,11 +36,13 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
     }
 
     return Scaffold(
-      body: Column(
-        children: [
-          _buildProfileHeader(settingState),
-          _buildMenuOptions(),
-        ],
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildProfileHeader(settingState),
+            _buildMenuOptions(),
+          ],
+        ),
       ),
     );
   }
@@ -78,10 +81,37 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
           children: [
             Row(
               children: [
-                Container(
-                  height: 106.h,
-                  decoration: const BoxDecoration(shape: BoxShape.circle),
-                  child: Image.asset('assets/profile.png'),
+                CircleAvatar(
+                  radius: 53.h, // Adjust the radius as needed
+                  backgroundColor:
+                      Colors.grey[200], // Fallback background color
+                  child: settingState.users.isNotEmpty &&
+                          settingState.users[0].images != null
+                      ? ClipOval(
+                          child: Image.network(
+                            imageUrl + settingState.users[0].images!,
+                            fit: BoxFit
+                                .cover, // Ensures the image fills the circular area
+                            width: 106.h, // Match the CircleAvatar diameter
+                            height: 106.h,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Image.asset(
+                                "assets/profile.png",
+                                fit: BoxFit.cover,
+                                width: 106.h,
+                                height: 106.h,
+                              );
+                            },
+                          ),
+                        )
+                      : ClipOval(
+                          child: Image.asset(
+                            "assets/profile.png", // Default profile image
+                            fit: BoxFit.cover,
+                            width: 106.h,
+                            height: 106.h,
+                          ),
+                        ),
                 ),
                 SizedBox(width: 20.w),
                 Column(

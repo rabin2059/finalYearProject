@@ -31,7 +31,7 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'] ?? 0, // Defaults to 0 if null
+      id: json['id'],
       username: json['username'] ?? 'Unknown User', // Default username
       email: json['email'] ?? 'No Email',
       phone: json['phone'] ?? 'No Phone',

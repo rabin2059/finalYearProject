@@ -20,7 +20,7 @@ router.put("/resetPassword", resetPasswordController.resetPassword);
 // Change role routes
 router.put(
   "/updateUser",
-  upload.single("image"),
+  upload.single("images"),
   userRelatedController.updateUser
 );
 router.get("/getUser", userRelatedController.getUser);

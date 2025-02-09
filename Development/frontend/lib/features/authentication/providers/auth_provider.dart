@@ -40,7 +40,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// Refresh Token Function
   Future<void> refreshToken() async {
     if (state.refreshToken == null) {
-      state = AuthState(error: "No refresh token available. Please log in again.");
+      state =
+          AuthState(error: "No refresh token available. Please log in again.");
       return;
     }
 
@@ -79,13 +80,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
           tokenExpiry: expiry,
           isLoggedIn: true,
         );
-      } else if (refreshToken != null) {
-        // Attempt to refresh token if access token has expired
+      } else // Attempt to refresh token if access token has expired
         await refreshToken();
-      } else {
-        // If no valid tokens, log out
-        await logout();
-      }
     }
   }
 }
