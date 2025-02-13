@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/features/profile/presentation/profile_screen.dart';
+import 'package:frontend/features/role%20change/presentation/role_change_screen.dart';
 import 'package:frontend/routes/app_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -19,21 +20,24 @@ class MyApp extends StatelessWidget {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (_, child) {
-        return MaterialApp.router(
-          debugShowCheckedModeBanner: false,
+        // return MaterialApp.router(
+        //   debugShowCheckedModeBanner: false,
+        //   theme: ThemeData(
+        //     fontFamily: GoogleFonts.roboto().fontFamily,
+        //     useMaterial3: true,
+        //     scaffoldBackgroundColor: Colors.white, // Set background to white
+        //   ),
+        //   routerDelegate: goRouter.routerDelegate,
+        //   routeInformationParser: goRouter.routeInformationParser,
+        //   routeInformationProvider: goRouter.routeInformationProvider,
+        // );
+        return MaterialApp(
           theme: ThemeData(
-            fontFamily: GoogleFonts.roboto().fontFamily,
-            useMaterial3: true,
             scaffoldBackgroundColor: Colors.white, // Set background to white
           ),
-          routerDelegate: goRouter.routerDelegate,
-          routeInformationParser: goRouter.routeInformationParser,
-          routeInformationProvider: goRouter.routeInformationProvider,
+          debugShowCheckedModeBanner: false,
+          home: RoleChangeScreen(),
         );
-        // return MaterialApp(
-        //   debugShowCheckedModeBanner: false,
-        //   home: ProfileScreen(),
-        // );
       },
     );
   }

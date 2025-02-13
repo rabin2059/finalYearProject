@@ -16,6 +16,8 @@ model User {
   address    String?
   licenseNo  String?
   images     String?
+  vehicleType VehicleType @default(CAR)
+  licenceImage String?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   role       Role      @default(USER)
@@ -23,6 +25,13 @@ model User {
   otp_expiry DateTime?
   status     String?
   vehicles   Vehicle[]
+
+  BookSeat BookSeat[]
+}
+
+enum VehicleType {
+  CAR
+  BUS
 }
 
 enum Role {
@@ -40,6 +49,8 @@ model Vehicle {
   owner      User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId    Int
   route      Route?   @relation("VehicleToRoute")
+
+  BookSeat BookSeat[]
 }
 
 model Route {
@@ -52,6 +63,8 @@ model Route {
   busStops   RouteBusStop[]
   vehicle    Vehicle?     @relation("VehicleToRoute", fields: [vehicleID], references: [id], onDelete: Cascade)
   vehicleID  Int?         @unique
+
+  BookSeat BookSeat[]
 }
 
 model BusStop {
@@ -71,4 +84,19 @@ model RouteBusStop {
   busStop    BusStop   @relation(fields: [busStopId], references: [id], onDelete: Cascade)
   busStopId  Int
   sequence   Int       // Order of the bus stops in the route
+}
+
+model BookSeat {
+  id             Int       @id @default(autoincrement())
+  vehicle        Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  vehicleId     Int
+  route          Route    @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  routeId       Int
+  user          User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        Int
+  seatNo        String
+  amount        Float
+  departureDate DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
