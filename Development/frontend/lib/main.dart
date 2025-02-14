@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:frontend/features/profile/presentation/profile_screen.dart';
-import 'package:frontend/features/role%20change/presentation/role_change_screen.dart';
+import 'package:frontend/features/Driver/vehicle%20details/presentation/add_vehicle.dart';
 import 'package:frontend/routes/app_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -36,7 +35,7 @@ class MyApp extends StatelessWidget {
             scaffoldBackgroundColor: Colors.white, // Set background to white
           ),
           debugShowCheckedModeBanner: false,
-          home: RoleChangeScreen(),
+          home: AddVehicle(),
         );
       },
     );

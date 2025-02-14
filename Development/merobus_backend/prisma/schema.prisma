@@ -16,7 +16,6 @@ model User {
   address    String?
   licenseNo  String?
   images     String?
-  vehicleType VehicleType @default(CAR)
   licenceImage String?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
@@ -25,13 +24,6 @@ model User {
   otp_expiry DateTime?
   status     String?
   vehicles   Vehicle[]
-
-  BookSeat BookSeat[]
-}
-
-enum VehicleType {
-  CAR
-  BUS
 }
 
 enum Role {
@@ -44,13 +36,17 @@ model Vehicle {
   id         Int      @id @default(autoincrement())
   vehicleNo  String   @unique
   model      String
+  vehicleType String
+  registerAs String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   owner      User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId    Int
-  route      Route?   @relation("VehicleToRoute")
+  
 
-  BookSeat BookSeat[]
+  VehicleSeat VehicleSeat[]
+
+  Route Route[] @relation("VehicleToRoute")
 }
 
 model Route {
@@ -64,7 +60,6 @@ model Route {
   vehicle    Vehicle?     @relation("VehicleToRoute", fields: [vehicleID], references: [id], onDelete: Cascade)
   vehicleID  Int?         @unique
 
-  BookSeat BookSeat[]
 }
 
 model BusStop {
@@ -86,17 +81,11 @@ model RouteBusStop {
   sequence   Int       // Order of the bus stops in the route
 }
 
-model BookSeat {
-  id             Int       @id @default(autoincrement())
-  vehicle        Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-  vehicleId     Int
-  route          Route    @relation(fields: [routeId], references: [id], onDelete: Cascade)
-  routeId       Int
-  user          User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId        Int
-  seatNo        String
-  amount        Float
-  departureDate DateTime
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+model VehicleSeat {
+  id        Int        @id @default(autoincrement())
+  vehicle   Vehicle     @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  vehicleId Int
+  seatNo    Int
+  createdAt DateTime   @default(now())
+  updatedAt DateTime    @updatedAt
 }

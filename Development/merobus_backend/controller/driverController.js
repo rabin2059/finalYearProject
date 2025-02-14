@@ -2,31 +2,51 @@ const prisma = require("../utils/prisma.js");
 
 const addVehicle = async (req, res) => {
   try {
-    const { vehicleNo, model, ownerId } = req.body;
+    const { vehicleNo, model, vehicleType, registerAs, ownerId, seatNo } =
+      req.body;
+
+    // Check if the vehicle already exists
     const existingVehicle = await prisma.vehicle.findFirst({
-      where: {
-        vehicleNo: vehicleNo,
-      },
+      where: { vehicleNo },
     });
 
     if (existingVehicle) {
       return res.status(400).json({ message: "Vehicle already exists" });
     }
 
+    // Create the vehicle
     const newVehicle = await prisma.vehicle.create({
       data: {
-        vehicleNo: vehicleNo,
-        model: model,
-        ownerId: ownerId,
+        vehicleNo,
+        model,
+        vehicleType,
+        registerAs,
+        ownerId,
       },
     });
 
-    res
-      .status(201)
-      .json({ message: "Vehicle added successfully", vehicle: newVehicle });
+    let newSeats = [];
+
+    // Insert seats only if provided
+    if (seatNo && seatNo.length > 0) {
+      newSeats = await prisma.vehicleSeat.createMany({
+        data: seatNo.map((seat) => ({
+          vehicleId: newVehicle.id,
+          seatNo: seat, // Ensure correct field name
+        })),
+      });
+    }
+
+    res.status(201).json({
+      message: "Vehicle and seats added successfully",
+      vehicle: newVehicle,
+      seats: seatNo || [],
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error adding vehicle" });
+    console.error("Error adding vehicle:", error);
+    res
+      .status(500)
+      .json({ message: "Error adding vehicle", error: error.message });
   }
 };
 
