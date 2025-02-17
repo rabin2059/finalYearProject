@@ -55,52 +55,60 @@ class _AddVehicleState extends ConsumerState<AddVehicle> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Register As:", style: TextStyle(fontWeight: FontWeight.bold)),
+              Text("Register As:",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               Row(
                 children: [
                   _buildUserTypeButton('Single'),
-                  SizedBox(width: 20),
+                  SizedBox(width: 20.w),
                   _buildUserTypeButton('Organization'),
                 ],
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 10.h),
               if (_userType == 'Organization')
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Organization Name", style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text("Organization Name",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     CustomTextField(
                       controller: _organizationController,
                       hint: 'Enter Organization Name',
                     ),
-                    SizedBox(height: 10),
+                    SizedBox(height: 10.h),
                   ],
                 ),
-              Text("Vehicle Type", style: TextStyle(fontWeight: FontWeight.bold)),
+              Text("Vehicle Type",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               Row(
                 children: [
                   _buildVehicleTypeButton('Taxi'),
-                  SizedBox(width: 20),
+                  SizedBox(width: 20.w),
                   _buildVehicleTypeButton('Bus'),
                 ],
               ),
-              SizedBox(height: 10),
-              Text("Vehicle Model", style: TextStyle(fontWeight: FontWeight.bold)),
+              SizedBox(height: 10.h),
+              Text("Vehicle Model",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               CustomTextField(hint: 'Model'),
-              SizedBox(height: 10),
-              Text("Vehicle No.", style: TextStyle(fontWeight: FontWeight.bold)),
+              SizedBox(height: 10.h),
+              Text("Vehicle No.",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               CustomTextField(hint: 'Vehicle No.'),
-              SizedBox(height: 20),
+              SizedBox(height: 20.h),
 
               // **Select Seats Button**
               CustomButton(
-                text: _selectedSeats.isEmpty ? "Select Seats" : "Seats Selected",
+                text:
+                    _selectedSeats.isEmpty ? "Select Seats" : "Seats Selected",
                 width: 200.w,
                 onPressed: _navigateToSeatSelection,
-                color: _selectedSeats.isEmpty ? Colors.grey : Colors.blue, // Dynamic color
+                color: _selectedSeats.isEmpty
+                    ? Colors.grey
+                    : Colors.blue, // Dynamic color
               ),
 
-              SizedBox(height: 20),
+              SizedBox(height: 20.h),
 
               Center(
                 child: CustomButton(
@@ -108,7 +116,9 @@ class _AddVehicleState extends ConsumerState<AddVehicle> {
                   width: 200.w,
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Vehicle Registered! Seats Selected: ${_selectedSeats.length}")),
+                      SnackBar(
+                          content: Text(
+                              "Vehicle Registered! Seats Selected: ${_selectedSeats.length}")),
                     );
                   },
                   color: Colors.green,
@@ -129,7 +139,8 @@ class _AddVehicleState extends ConsumerState<AddVehicle> {
         onPressed: () {
           setState(() {
             _selectedVehicleType = type;
-            _selectedSeats.clear(); // Reset selected seats when changing vehicle type
+            _selectedSeats
+                .clear(); // Reset selected seats when changing vehicle type
           });
         },
         color: _selectedVehicleType == type ? Colors.green : Colors.grey[300],

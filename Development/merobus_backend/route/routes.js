@@ -5,6 +5,7 @@ const resetPasswordController = require("../controller/resetPassword.js");
 const userRelatedController = require("../controller/user_related.js");
 const adminController = require("../controller/adminController.js");
 const driverController = require("../controller/driverController.js");
+const bookController = require("../controller/bookController.js");
 const upload = require("../configs/storage.js");
 
 // Authentication routes
@@ -35,3 +36,9 @@ module.exports = router;
 router.post("/addVehicle", driverController.addVehicle);
 router.post("/createRoute", driverController.createRoute);
 router.get("/getVehicles", driverController.getVehicles);
+router.get("/getSingleVehicle", driverController.getSingleVehicle);
+
+// bookings
+router.post("/booking", bookController.booking);
+router.get("/getBookings", bookController.getBookings);
+router.get("/getSingleBooking", bookController.getSingleBooking);

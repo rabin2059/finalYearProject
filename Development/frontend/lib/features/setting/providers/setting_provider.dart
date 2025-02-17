@@ -11,7 +11,6 @@ class SettingNotifier extends StateNotifier<SettingState> {
 
   /// Fetch users from the API
   Future<void> fetchUsers(int userId) async {
-    print('Calling fetchUsers() with userId: $userId'); // Debug userId
 
     try {
       final users = await userService.fetchUsers(userId);

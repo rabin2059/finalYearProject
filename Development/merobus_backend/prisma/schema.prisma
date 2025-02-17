@@ -10,7 +10,7 @@ datasource db {
 model User {
   id         Int       @id @default(autoincrement())
   username   String
-  email      String    @unique
+  email      String    @unique @db.VarChar(255)
   password   String
   phone      String?
   address    String?
@@ -24,6 +24,10 @@ model User {
   otp_expiry DateTime?
   status     String?
   vehicles   Vehicle[]
+
+  Booking Booking[]
+
+  Payment Payment[]
 }
 
 enum Role {
@@ -38,27 +42,29 @@ model Vehicle {
   model      String
   vehicleType String
   registerAs String
+  departure  String
+  arrivalTime String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   owner      User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId    Int
-  
 
   VehicleSeat VehicleSeat[]
-
-  Route Route[] @relation("VehicleToRoute")
+  Booking Booking[]
+  Route Route[]
 }
 
 model Route {
   id         Int          @id @default(autoincrement())
   name       String?      // Optional initially
-  startPoint String?      // Optional initially
-  endPoint   String?      // Optional initially
+  startPoint String      
+  endPoint   String      
+  fare       Float
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
   busStops   RouteBusStop[]
-  vehicle    Vehicle?     @relation("VehicleToRoute", fields: [vehicleID], references: [id], onDelete: Cascade)
-  vehicleID  Int?         @unique
+  vehicle    Vehicle?     @relation(fields: [vehicleID], references: [id], onDelete: Cascade)
+  vehicleID  Int?         
 
 }
 
@@ -88,4 +94,54 @@ model VehicleSeat {
   seatNo    Int
   createdAt DateTime   @default(now())
   updatedAt DateTime    @updatedAt
+}
+
+model Booking {
+  id            Int       @id @default(autoincrement())
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        Int 
+  vehicle       Vehicle     @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  vehicleId     Int
+  bookingDate   DateTime
+  pickUpPoint   String
+  dropOffPoint  String
+  status        BookingStatus  @default(PENDING)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  bookingSeats  BookSeat[]
+
+  Payment Payment[]
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+model BookSeat {
+  id        Int        @id @default(autoincrement())
+  booking   Booking     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId Int
+  seatNo    Int
+  createdAt DateTime   @default(now())
+}
+
+model Payment {
+  id          Int       @id @default(autoincrement())
+  booking     Booking     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId   Int
+  amount      Decimal @default(0.00)
+  paymentType String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+  status      PaymentStatus     @default(PENDING)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
 }

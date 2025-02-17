@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:frontend/components/CustomButton.dart';
 
 class SelectSeatsScreen extends StatefulWidget {
   final String vehicleType;
   final Set<String> selectedSeats;
 
-  const SelectSeatsScreen(
-      {super.key, required this.vehicleType, required this.selectedSeats});
+  const SelectSeatsScreen({
+    super.key,
+    required this.vehicleType,
+    required this.selectedSeats,
+  });
 
   @override
   _SelectSeatsScreenState createState() => _SelectSeatsScreenState();
@@ -17,8 +22,7 @@ class _SelectSeatsScreenState extends State<SelectSeatsScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedSeats =
-        Set.from(widget.selectedSeats); // Initialize with previous selection
+    _selectedSeats = Set.from(widget.selectedSeats); // Initialize previous selection
   }
 
   /// **Determines Seat Layout Based on Vehicle Type**
@@ -59,23 +63,59 @@ class _SelectSeatsScreenState extends State<SelectSeatsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Select Seats")),
-      body: Column(
-        children: [
-          SizedBox(height: 10),
-          Text("Tap on a seat to select or deselect",
-              style: TextStyle(fontWeight: FontWeight.bold)),
-          SizedBox(height: 20),
-          _buildSeatLayout(),
-          SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context, _selectedSeats); // Return selected seats
-            },
-            child: Text("OK"),
-          ),
-        ],
+      appBar: AppBar(title: const Text("Select Seats")),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            SizedBox(height: 10.h),
+
+            // **Header**
+            Text(
+              "Tap on a seat to select or deselect",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
+            ),
+            SizedBox(height: 15.h),
+
+            
+
+            SizedBox(height: 20.h),
+
+            // **Seat Layout**
+            _buildSeatLayout(),
+
+            SizedBox(height: 20.h),
+
+            // ✅ **Updated OK Button**
+            CustomButton(
+              text: _selectedSeats.isEmpty
+                  ? "OK"
+                  : "OK (${_selectedSeats.length} Selected)",
+              width: 220.w,
+              onPressed: () {
+                Navigator.pop(context, _selectedSeats); // ✅ Return selected seats
+              },
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  /// **Builds Individual Legend Item**
+  Widget _buildLegendItem(Color color, String label) {
+    return Row(
+      children: [
+        Container(
+          width: 20.w,
+          height: 20.h,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(4.r),
+          ),
+        ),
+        SizedBox(width: 5.w),
+        Text(label, style: TextStyle(fontSize: 14.sp)),
+      ],
     );
   }
 
@@ -91,9 +131,10 @@ class _SelectSeatsScreenState extends State<SelectSeatsScreen> {
                     padding: const EdgeInsets.all(5.0),
                     child: GestureDetector(
                       onTap: () => _toggleSeatSelection(seat),
-                      child: Container(
-                        width: 50,
-                        height: 50,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: 50.w,
+                        height: 50.h,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: _selectedSeats.contains(seat)
@@ -113,7 +154,7 @@ class _SelectSeatsScreenState extends State<SelectSeatsScreen> {
                       ),
                     ),
                   )
-                : SizedBox(width: 40); // Empty space for aisle
+                : SizedBox(width: 40.w); // Empty space for aisle
           }).toList(),
         );
       }).toList(),

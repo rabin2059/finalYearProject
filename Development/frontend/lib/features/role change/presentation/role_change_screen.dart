@@ -112,7 +112,7 @@ class _RoleChangeScreenState extends ConsumerState<RoleChangeScreen> {
                 backgroundColor: Color(0xFFF1F1F1),
                 borderColor: Colors.transparent,
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 20.h),
 
               Align(
                   alignment: Alignment.topLeft,
@@ -127,7 +127,7 @@ class _RoleChangeScreenState extends ConsumerState<RoleChangeScreen> {
                   _buildVehicleButton("Car"),
                 ],
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 20.h),
 
               Align(
                   alignment: Alignment.topLeft,
@@ -141,7 +141,7 @@ class _RoleChangeScreenState extends ConsumerState<RoleChangeScreen> {
                 onTap: _pickFile,
                 child: DottedBorder(
                   color: Colors.black,
-                  strokeWidth: 1,
+                  strokeWidth: 1.w,
                   borderType: BorderType.RRect,
                   radius: Radius.circular(9.r),
                   dashPattern: [6, 3],
@@ -167,19 +167,19 @@ class _RoleChangeScreenState extends ConsumerState<RoleChangeScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(Icons.insert_drive_file,
-                                      size: 40, color: Colors.black54),
-                                  SizedBox(height: 10),
+                                      size: 40.h, color: Colors.black54),
+                                  SizedBox(height: 10.h),
                                   Text(
                                     "Selected: $_fileName",
                                     style: TextStyle(
-                                        fontSize: 12,
+                                        fontSize: 12.sp,
                                         fontWeight: FontWeight.w500),
                                   ),
-                                  SizedBox(height: 5),
+                                  SizedBox(height: 5.h),
                                   Text(
                                     "Tap to change file",
                                     style: TextStyle(
-                                        color: Colors.black54, fontSize: 12),
+                                        color: Colors.black54, fontSize: 12.sp),
                                   ),
                                 ],
                               )
@@ -187,8 +187,8 @@ class _RoleChangeScreenState extends ConsumerState<RoleChangeScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(Icons.file_upload_outlined,
-                                  size: 40, color: Colors.black54),
-                              SizedBox(height: 10),
+                                  size: 40.h, color: Colors.black54),
+                              SizedBox(height: 10.h),
                               Text.rich(
                                 TextSpan(
                                   text: "Choose ",
@@ -205,29 +205,30 @@ class _RoleChangeScreenState extends ConsumerState<RoleChangeScreen> {
                                   ],
                                 ),
                               ),
-                              SizedBox(height: 5),
+                              SizedBox(height: 5.h),
                               Text(
                                 "File size must be 250KB",
                                 style: TextStyle(
-                                    color: Colors.green.shade700, fontSize: 12),
+                                    color: Colors.green.shade700,
+                                    fontSize: 12.sp),
                               ),
                             ],
                           ),
                   ),
                 ),
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 20.h),
 
               if (_errorMessage != null) // Display error message
                 Padding(
                   padding: const EdgeInsets.only(top: 5.0),
                   child: Text(
                     _errorMessage!,
-                    style: TextStyle(color: Colors.red, fontSize: 12),
+                    style: TextStyle(color: Colors.red, fontSize: 12.sp),
                   ),
                 ),
 
-              SizedBox(height: 30),
+              SizedBox(height: 30.h),
 
               /// **Submit & Cancel Buttons**
               Row(
