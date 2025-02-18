@@ -69,7 +69,7 @@ class _AdminScreenState extends State<AdminScreen> {
                             children: [
                               tableCell(user.id.toString()),
                               tableCell(user.username ?? "N/A"),
-                              tableCell(getUserRole(user.role ?? 0)),
+                              tableCell(getUserRole(user.role ?? 'N/A')),
                             ],
                           ),
                       ],
@@ -115,7 +115,7 @@ class _AdminScreenState extends State<AdminScreen> {
                             children: [
                               tableCell(user.id.toString()),
                               tableCell(user.username ?? "N/A"),
-                              tableCell(getUserRole(user.role ?? 0)),
+                              tableCell(getUserRole(user.role ?? 'N/A')),
                               tableCell(user.status ?? "N/A"),
                               Padding(
                                 padding: EdgeInsets.all(4.h),
@@ -157,12 +157,12 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   // Helper method to display role based on user.role value
-  String getUserRole(int role) {
+  String getUserRole(String role) {
     switch (role) {
       case 0:
         return "Admin";
       case 1:
-        return "Passenger";
+        return "USER";
       case 2:
         return "Driver";
       default:

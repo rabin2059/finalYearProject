@@ -31,7 +31,7 @@ class User {
   final String? licenseNo;
   final String? createdAt;
   final String? updatedAt;
-  final int? role;
+  final String? role;
   final dynamic otp;
   final dynamic otpExpiry;
   final String? status;

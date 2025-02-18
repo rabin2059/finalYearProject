@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:merobus/Components/AppColors.dart';
 import 'package:merobus/Components/CustomButton.dart';
-import 'package:merobus/Screens/Authentication/signin.dart';
-import 'package:merobus/Screens/Authentication/signup.dart';
 
 class GetStarted extends StatefulWidget {
   const GetStarted({super.key});
@@ -65,17 +64,13 @@ class _GetStartedState extends State<GetStarted> {
           CustomButton(
             text: "Sign In",
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SignIn()),
-              );
+              context.push('/login');
             },
             color: AppColors.primary,
             textColor: Colors.white,
             width: 366.w,
             height: 48.h,
             fontSize: 20.sp,
-            borderRadius: 12.r,
           ),
           SizedBox(
             height: 10.h,
@@ -83,17 +78,13 @@ class _GetStartedState extends State<GetStarted> {
           CustomButton(
             text: "Sign Up",
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SignUp()),
-              );
+              context.push('/signup');
             },
             color: Colors.white,
             textColor: AppColors.primary,
             width: 366.w,
             height: 48.h,
             fontSize: 20.sp,
-            borderRadius: 12.r,
           ),
         ],
       )),

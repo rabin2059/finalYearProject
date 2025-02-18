@@ -4,7 +4,7 @@ import 'dart:convert';
 class Login {
   final String message;
   final String token;
-  final int userRole;
+  final String userRole;
 
   Login({
     required this.message,

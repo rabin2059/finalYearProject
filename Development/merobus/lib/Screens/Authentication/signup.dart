@@ -1,83 +1,84 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:merobus/Components/AppColors.dart';
 import 'package:merobus/Components/CustomButton.dart';
 import 'package:merobus/Components/CustomTextField.dart';
 import 'package:merobus/Screens/Authentication/signin.dart';
-import 'package:http/http.dart' as http;
-import '../../routes/routes.dart';
+import 'package:merobus/providers/auth_provider.dart';
 
-class SignUp extends StatefulWidget {
+class SignUp extends ConsumerStatefulWidget {
   const SignUp({super.key});
 
   @override
-  State<SignUp> createState() => _SignUpState();
+  _SignUpState createState() => _SignUpState();
 }
 
-class _SignUpState extends State<SignUp> {
+class _SignUpState extends ConsumerState<SignUp> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    usernameController.dispose();
-    emailController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
-    super.dispose();
-  }
+  bool isLoading = false;
 
   void createUser() async {
-    try {
-      final url = Uri.parse('${Routes.route}signUp');
-      final body = {
-        'username': usernameController.text,
-        'email': emailController.text,
-        'password': passwordController.text,
-        'confirmPassword': confirmPasswordController.text,
-      };
+    if (passwordController.text != confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Passwords do not match"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
-      final response = await http.post(
-        url,
-        body: jsonEncode(body),
-        headers: {'Content-Type': 'application/json'}, // Set headers for JSON
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final authNotifier = ref.read(authNotifierProvider.notifier);
+
+      // Await the result from register()
+      final success = await authNotifier.register(
+        usernameController.text.trim(),
+        emailController.text.trim(),
+        passwordController.text.trim(),
+        confirmPasswordController.text.trim(),
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseData = jsonDecode(response.body);
+      if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text(responseData['message'] ?? 'User created successfully'),
+          const SnackBar(
+            content: Text('Registration successful!'),
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const SignIn()),
-        );
+        context.go('/login');
+        // context.go('/login');
       } else {
-        final errorData = jsonDecode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorData['message'] ?? 'Failed to create user'),
+          const SnackBar(
+            content: Text('User already exists'),
             backgroundColor: Colors.red,
           ),
         );
       }
     } catch (e) {
-      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('An unexpected error occurred: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -194,7 +195,6 @@ class _SignUpState extends State<SignUp> {
                     height: 56.h,
                     width: 327.w,
                     color: AppColors.primary,
-                    borderRadius: 28.r,
                     fontSize: 17.sp,
                   ),
                   SizedBox(
