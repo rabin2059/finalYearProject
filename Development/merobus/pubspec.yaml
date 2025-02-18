@@ -43,9 +43,11 @@ dependencies:
   latlong2: ^0.9.1
   flutter_polyline_points: ^2.0.0
   geolocator: ^13.0.2
-  provider: ^6.1.2
   google_maps_flutter: ^2.10.0
   geocoding: ^3.0.0
+  flutter_riverpod: ^2.6.1
+  go_router: ^14.6.2
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:

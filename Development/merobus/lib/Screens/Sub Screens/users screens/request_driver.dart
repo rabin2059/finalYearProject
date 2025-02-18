@@ -88,7 +88,6 @@ class _RequestDriverState extends State<RequestDriver> {
           width: 300.w,
           color: AppColors.primary,
           fontSize: 20.sp,
-          borderRadius: 30.r,
         ),
       ],
     );

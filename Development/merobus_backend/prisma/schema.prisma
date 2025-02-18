@@ -8,19 +8,140 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String
-  email     String   @unique
-  password  String
-  phone     String?
-  address   String?
-  licenseNo String?
-  vehicleNo String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  role      Int      @default(1)
-  otp       String?
+  id         Int       @id @default(autoincrement())
+  username   String
+  email      String    @unique @db.VarChar(255)
+  password   String
+  phone      String?
+  address    String?
+  licenseNo  String?
+  images     String?
+  licenceImage String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  role       Role      @default(USER)
+  otp        String?
   otp_expiry DateTime?
-  status    String?
+  status     String?
+  vehicles   Vehicle[]
+
+  Booking Booking[]
+
+  Payment Payment[]
 }
 
+enum Role {
+  USER
+  DRIVER
+  ADMIN
+}
+
+model Vehicle {
+  id         Int      @id @default(autoincrement())
+  vehicleNo  String   @unique
+  model      String
+  vehicleType String
+  registerAs String
+  departure  String
+  arrivalTime String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  owner      User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId    Int
+
+  VehicleSeat VehicleSeat[]
+  Booking Booking[]
+  Route Route[]
+}
+
+model Route {
+  id         Int          @id @default(autoincrement())
+  name       String?      // Optional initially
+  startPoint String      
+  endPoint   String      
+  fare       Float
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  busStops   RouteBusStop[]
+  vehicle    Vehicle?     @relation(fields: [vehicleID], references: [id], onDelete: Cascade)
+  vehicleID  Int?         
+
+}
+
+model BusStop {
+  id         Int             @id @default(autoincrement())
+  name       String
+  latitude   Float
+  longitude  Float
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  routes     RouteBusStop[]   // Defines the many-to-many relationship with Route
+}
+
+model RouteBusStop {
+  id         Int       @id @default(autoincrement())
+  route      Route     @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  routeId    Int
+  busStop    BusStop   @relation(fields: [busStopId], references: [id], onDelete: Cascade)
+  busStopId  Int
+  sequence   Int       // Order of the bus stops in the route
+}
+
+model VehicleSeat {
+  id        Int        @id @default(autoincrement())
+  vehicle   Vehicle     @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  vehicleId Int
+  seatNo    Int
+  createdAt DateTime   @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model Booking {
+  id            Int       @id @default(autoincrement())
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        Int 
+  vehicle       Vehicle     @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  vehicleId     Int
+  bookingDate   DateTime
+  pickUpPoint   String
+  dropOffPoint  String
+  status        BookingStatus  @default(PENDING)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  bookingSeats  BookSeat[]
+
+  Payment Payment[]
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+model BookSeat {
+  id        Int        @id @default(autoincrement())
+  booking   Booking     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId Int
+  seatNo    Int
+  createdAt DateTime   @default(now())
+}
+
+model Payment {
+  id          Int       @id @default(autoincrement())
+  booking     Booking     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId   Int
+  amount      Decimal @default(0.00)
+  paymentType String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+  status      PaymentStatus     @default(PENDING)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
