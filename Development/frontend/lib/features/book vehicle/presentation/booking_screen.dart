@@ -1,14 +1,23 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/components/CustomButton.dart';
 import 'package:frontend/components/CustomTextField.dart';
+import 'package:frontend/core/constants.dart';
+import 'package:frontend/features/authentication/providers/auth_provider.dart';
 import 'package:frontend/features/bus%20details/providers/bus_details_provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../bus list/providers/bus_list_provider.dart';
 import 'select_seat_screen.dart';
+import 'package:http/http.dart' as http;
 
 class BookingScreen extends ConsumerStatefulWidget {
-  const BookingScreen({super.key});
+  const BookingScreen({super.key, required this.busId});
+  final int busId;
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _BookingScreenState();
@@ -19,6 +28,86 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   final TextEditingController _dropoffController = TextEditingController();
   final TextEditingController _dateTimeController = TextEditingController();
   Set<String> _selectedSeats = {}; // Store selected seats
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _pickupController.dispose();
+    _dropoffController.dispose();
+    _dateTimeController.dispose();
+    setState(() {
+      _selectedSeats = {};
+    });
+    super.dispose();
+  }
+
+  Future<void> _bookSeat() async {
+    try {
+      final authState = ref.watch(authProvider);
+      final userId = authState.userId;
+      print(userId);
+      final url = apiBaseUrl;
+      final formattedDate = DateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(
+        DateFormat("yyyy-MM-dd HH:mm").parse(_dateTimeController.text),
+      );
+      final body = {
+        "userId": userId,
+        "vehicleId": widget.busId,
+        "bookingDate": formattedDate,
+        "pickUpPoint": _pickupController.text,
+        "dropOffPoint": _dropoffController.text,
+        "seatNo": _selectedSeats.toList()
+      };
+
+      print(body);
+
+      final response = await http.post(
+        Uri.parse("$url/booking"),
+        body: json.encode(body),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = json.decode(response.body);
+        final success = data["success"];
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Booking Successful!')),
+          );
+          setState(() {
+            _pickupController.clear();
+            _dropoffController.clear();
+            _dateTimeController.clear();
+            _selectedSeats.clear();
+          });
+          ref.read(busProvider.notifier).fetchBusList(); // Refresh bus list
+          ref
+              .read(busDetailsProvider.notifier)
+              .fetchBusDetail(widget.busId); // Refresh bus list
+          final bookingId = data["result"]["newBooking"]["id"];
+          context.pushReplacementNamed('/overview',
+              pathParameters: {'id': widget.busId.toString()});
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(data["message"])),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to book seat')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to book seat: $e')),
+      );
+    }
+  }
 
   /// **Navigates to SelectSeatsScreen**
   Future<void> _navigateToSeatSelection() async {
@@ -127,8 +216,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             Center(
               child: ElevatedButton(
                 onPressed: () {
-                  // Handle booking logic
-                  print("Booking Confirmed");
+                  _bookSeat();
                 },
                 style: ElevatedButton.styleFrom(
                   padding:
