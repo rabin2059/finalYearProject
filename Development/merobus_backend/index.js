@@ -1,4 +1,3 @@
-
 const express = require("express");
 const routes = require("./route/routes");
 require("dotenv").config();
@@ -16,6 +15,8 @@ app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static("uploads"));
+// ✅ Enable trust proxy
+app.set("trust proxy", 1);
 
 // Rate Limiting
 const limiter = rateLimit({
@@ -33,5 +34,5 @@ app.use(errorHandler);
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  logger.info(`Server running on http://localhost:${port}`);
+  console.log(`Server running on http://localhost:${port}`);
 });
