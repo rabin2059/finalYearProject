@@ -21,8 +21,9 @@ class BusDetailScreen extends ConsumerStatefulWidget {
 class _BusDetailScreenState extends ConsumerState<BusDetailScreen> {
   @override
   void initState() {
-    Future.microtask(() => _fetchBusDetails());
     super.initState();
+    Future.microtask(() =>
+        ref.read(busDetailsProvider.notifier).fetchBusDetail(widget.busId));
   }
 
   /// **Fetch Bus Details**
@@ -65,7 +66,9 @@ class _BusDetailScreenState extends ConsumerState<BusDetailScreen> {
                       CustomButton(
                           text: "Book Seat",
                           onPressed: () {
-                            context.pushNamed('/book');
+                            context.pushNamed('/book', pathParameters: {
+                              'id': widget.busId.toString()
+                            });
                           }),
                     ],
                   ),
@@ -139,7 +142,7 @@ class _BusDetailScreenState extends ConsumerState<BusDetailScreen> {
               _buildTag("1:15 h"),
               SizedBox(width: 10.w),
               _buildTag(
-                  "${(vehicle.vehicleSeat?.length ?? 0) - (vehicle.booking?.isNotEmpty == true ? vehicle.booking![0].bookingSeats?.length ?? 0 : 0)} Seats"),
+                  "${(vehicle.vehicleSeat?.length ?? 0) - (vehicle.booking?.fold(0, (sum, booking) => sum + (booking.bookingSeats?.length ?? 0)) ?? 0)} Seats"),
               const Spacer(),
               _buildRatingTag("4.5"),
             ],

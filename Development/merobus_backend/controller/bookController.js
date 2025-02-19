@@ -11,49 +11,59 @@ const booking = async (req, res) => {
       seatNo,
     } = req.body;
 
-    // ✅ Use Prisma Transaction
+    console.log(req.body);
+
+    if (!seatNo || seatNo.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "At least one seat must be selected" });
+    }
+
+    // 🔥 Convert seatNo array to an array of integers
+    const seatNumbers = seatNo.map((seat) => parseInt(seat, 10));
+
     const result = await prisma.$transaction(async (tx) => {
-      // ✅ Check if booking already exists
-      const existingBooking = await tx.booking.findFirst({
+      // ✅ Check for existing booked seats
+      const existingBookings = await tx.bookSeat.findMany({
         where: {
-          vehicleId: vehicleId,
-          bookingDate: bookingDate, // Ensure correct format
+          seatNo: { in: seatNumbers }, // Now correctly passing as an array of integers
+          booking: {
+            vehicleId: vehicleId,
+            bookingDate: bookingDate,
+          },
         },
       });
 
-      if (existingBooking) {
-        throw new Error("Booking already exists"); // Transaction will automatically roll back
+      if (existingBookings.length > 0) {
+        const bookedSeats = existingBookings.map((seat) => seat.seatNo);
+        throw new Error(`Seats already booked: ${bookedSeats.join(", ")}`);
       }
 
       // ✅ Create new booking
       const newBooking = await tx.booking.create({
         data: {
-          userId: userId,
-          vehicleId: vehicleId,
-          bookingDate: bookingDate,
-          pickUpPoint: pickUpPoint,
-          dropOffPoint: dropOffPoint,
+          userId,
+          vehicleId,
+          bookingDate,
+          pickUpPoint,
+          dropOffPoint,
         },
       });
 
       // ✅ Insert seats only if provided
-      let bookingSeats = [];
-      if (seatNo.length) {
-        bookingSeats = await tx.bookSeat.createMany({
-          data: seatNo.map((seat) => ({
-            bookingId: newBooking.id,
-            seatNo: seat, // ✅ Ensure correct field mapping
-          })),
-        });
-      }
+      const bookingSeats = await tx.bookSeat.createMany({
+        data: seatNumbers.map((seat) => ({
+          bookingId: newBooking.id,
+          seatNo: seat,
+        })),
+      });
 
-      return { newBooking, bookingSeats };
+      return { newBooking, bookedSeats: seatNumbers };
     });
-
+    console.log("yes booked", result);
     return res.status(201).json({
-      message: "Booking created successfully",
-      booking: result.newBooking,
-      seats: seatNo || [],
+      success: true,
+      result,
     });
   } catch (error) {
     console.error("Error creating booking:", error);
@@ -66,7 +76,10 @@ const getBookings = async (req, res) => {
     const { id } = req.query;
     const bookings = await prisma.booking.findMany({
       where: {
-        vehicleIdId: parseInt(id),
+        vehicleId: parseInt(id),
+      },
+      include: {
+        bookingSeats: true,
       },
     });
     return res.status(200).json({ booking: bookings });
@@ -82,6 +95,9 @@ const getSingleBooking = async (req, res) => {
     const booking = await prisma.booking.findFirst({
       where: {
         userId: parseInt(id),
+      },
+      include: {
+        bookingSeats: true,
       },
     });
     return res.status(200).json({ booking: booking });

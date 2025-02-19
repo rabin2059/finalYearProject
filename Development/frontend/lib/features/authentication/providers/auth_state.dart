@@ -73,7 +73,11 @@ class AuthState {
     // Decode the token to extract userId and expiration
     final decodedToken = JwtDecoder.decode(token);
     final userId = decodedToken['userId'] as int;
+    final userRoleString = decodedToken['role'] as String;
     final tokenExpiry = JwtDecoder.getExpirationDate(token);
+
+    // ✅ Convert role from String to Enum
+    final UserRole userRole = _parseUserRole(userRoleString);
 
     return AuthState(
       token: token,
@@ -82,12 +86,27 @@ class AuthState {
       tokenExpiry: tokenExpiry,
       sessionExpiry:
           DateTime.now().add(Duration(hours: 12)), // Example session duration
-      currentRole: response['role'], // Default role; customize as needed
+      currentRole: userRole,
       roles: [
         UserRole.USER,
-        UserRole.DRIVER
+        UserRole.DRIVER,
+        UserRole.ADMIN,
       ], // Example roles; fetch from response
       isLoggedIn: true,
     );
+  }
+
+  /// **Helper function to convert string to `UserRole` enum**
+  static UserRole _parseUserRole(String role) {
+    switch (role.toUpperCase()) {
+      case 'USER':
+        return UserRole.USER;
+      case 'DRIVER':
+        return UserRole.DRIVER;
+      case 'ADMIN':
+        return UserRole.ADMIN;
+      default:
+        throw Exception("Invalid role: $role");
+    }
   }
 }

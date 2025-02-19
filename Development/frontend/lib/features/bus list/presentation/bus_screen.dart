@@ -17,7 +17,7 @@ class _BusScreenState extends ConsumerState<BusScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => _fetchBusData());
+    Future.microtask(() => ref.read(busProvider.notifier).fetchBusList());
   }
 
   /// Fetch Bus Data
@@ -230,7 +230,8 @@ class _BusScreenState extends ConsumerState<BusScreen> {
                         border: Border.all(color: Colors.blue),
                         borderRadius: BorderRadius.circular(5.r),
                       ),
-                      child: Text("Seats Available: $seatCount",
+                      child: Text(
+                          "Seats Available: ${(bus.vehicleSeat?.length ?? 0) - (bus.booking?.fold(0, (sum, booking) => sum + (booking.bookingSeats?.length ?? 0)) ?? 0)} Seats",
                           style: TextStyle(
                               fontSize: 14.sp,
                               fontWeight: FontWeight.bold,
