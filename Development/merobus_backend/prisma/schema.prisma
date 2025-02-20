@@ -56,16 +56,16 @@ model Vehicle {
 
 model Route {
   id         Int          @id @default(autoincrement())
-  name       String?      // Optional initially
+  name       String?      
   startPoint String      
   endPoint   String      
   fare       Float
+  polyline   String      @default("") // ✅ Stores encoded route path
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
   busStops   RouteBusStop[]
   vehicle    Vehicle?     @relation(fields: [vehicleID], references: [id], onDelete: Cascade)
   vehicleID  Int?         
-
 }
 
 model BusStop {
@@ -131,8 +131,8 @@ model Payment {
   id          Int       @id @default(autoincrement())
   booking     Booking     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   bookingId   Int
-  amount      Decimal @default(0.00)
-  paymentType String
+  amount      Float
+  paymentMethod String
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      Int
   status      PaymentStatus     @default(PENDING)
@@ -143,5 +143,5 @@ model Payment {
 enum PaymentStatus {
   PENDING
   COMPLETED
-  FAILED
+  CANCELLED
 }
