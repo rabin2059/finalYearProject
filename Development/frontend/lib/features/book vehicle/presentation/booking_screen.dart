@@ -39,15 +39,14 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     _pickupController.dispose();
     _dropoffController.dispose();
     _dateTimeController.dispose();
-    setState(() {
-      _selectedSeats = {};
-    });
+    _selectedSeats.clear();
     super.dispose();
   }
 
   Future<void> _bookSeat() async {
     try {
       final authState = ref.watch(authProvider);
+      final state = ref.watch(busDetailsProvider);
       final userId = authState.userId;
       print(userId);
       final url = apiBaseUrl;
@@ -60,6 +59,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         "bookingDate": formattedDate,
         "pickUpPoint": _pickupController.text,
         "dropOffPoint": _dropoffController.text,
+        "totalFare": (state.vehicle?.route?.isNotEmpty ?? false)
+            ? (state.vehicle!.route![0].fare! * _selectedSeats.length)
+            : 0,
         "seatNo": _selectedSeats.toList()
       };
 
@@ -76,9 +78,6 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         final data = json.decode(response.body);
         final success = data["success"];
         if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Booking Successful!')),
-          );
           setState(() {
             _pickupController.clear();
             _dropoffController.clear();
@@ -91,7 +90,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
               .fetchBusDetail(widget.busId); // Refresh bus list
           final bookingId = data["result"]["newBooking"]["id"];
           context.pushReplacementNamed('/overview',
-              pathParameters: {'id': widget.busId.toString()});
+              pathParameters: {'id': bookingId.toString()});
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(data["message"])),

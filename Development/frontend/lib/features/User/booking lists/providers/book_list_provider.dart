@@ -9,7 +9,7 @@ class BookListNotifier extends StateNotifier<BookListState> {
 
   BookListNotifier({required this.bookService}) : super(BookListState());
 
-  Future<void> fetchSingleBook(int userId) async {
+  Future<void> fetchBookings(int userId) async {
     try {
       state = state.copyWith(loading: true, books: null, errorMessage: '');
       final book = await bookService.fetchBookings(userId);

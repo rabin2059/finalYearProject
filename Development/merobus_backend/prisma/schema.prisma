@@ -28,6 +28,8 @@ model User {
   Booking Booking[]
 
   Payment Payment[]
+
+  Message Message[]
 }
 
 enum Role {
@@ -52,6 +54,8 @@ model Vehicle {
   VehicleSeat VehicleSeat[]
   Booking Booking[]
   Route Route[]
+
+  ChatGroup ChatGroup[]
 }
 
 model Route {
@@ -105,6 +109,7 @@ model Booking {
   bookingDate   DateTime
   pickUpPoint   String
   dropOffPoint  String
+  totalFare     Float
   status        BookingStatus  @default(PENDING)
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
@@ -144,4 +149,25 @@ enum PaymentStatus {
   PENDING
   COMPLETED
   CANCELLED
+}
+
+model ChatGroup {
+  id         Int      @id @default(autoincrement())
+  vehicle    Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  vehicleId  Int 
+  name       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  messages  Message[]
+}
+
+model Message {
+  id         Int       @id @default(autoincrement())
+  text       String
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  sender     User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderId   Int
+  chatGroup ChatGroup  @relation(fields: [chatGroupId], references: [id], onDelete: Cascade)
+  chatGroupId Int
 }

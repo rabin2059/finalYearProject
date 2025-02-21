@@ -18,15 +18,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       body: Center(
-        child: CustomButton(
-          text: "Open Map",
-          onPressed: () {
-            if (authState.isLoggedIn) {
-              context.push("/map"); // ✅ Navigate if authenticated
-            } else {
-              context.push("/login"); // ❌ Redirect to login if not authenticated
-            }
-          },
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CustomButton(
+              text: "Open Map",
+              onPressed: () {
+                if (authState.isLoggedIn) {
+                  context.push("/map"); // ✅ Navigate if authenticated
+                } else {
+                  context.push(
+                      "/login"); // ❌ Redirect to login if not authenticated
+                }
+              },
+            ),
+            CustomButton(
+                text: "Chat",
+                onPressed: () {
+                  context.push("/chat");
+                })
+          ],
         ),
       ),
     );

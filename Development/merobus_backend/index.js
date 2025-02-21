@@ -6,8 +6,20 @@ const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const { logger } = require("./utils/logger");
 const errorHandler = require("./middleware/errorHandler");
+const http = require("http");
+const { Server } = require("socket.io");
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+// Socket.io connection
+io.on("connection", (socket) => {
+  console.log("a user connected", socket.id);
+  socket.on("message", (message) => {
+    console.log(message);
+  });
+});
 
 // Middleware
 app.use(cors());
@@ -33,6 +45,6 @@ app.use("/api/v1", routes);
 app.use(errorHandler);
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+server.listen(port, () => {
+  logger.info(`Server running on http://localhost:${port}`);
 });

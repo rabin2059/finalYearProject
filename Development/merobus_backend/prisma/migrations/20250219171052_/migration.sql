@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE `Route` ADD COLUMN `polyline` VARCHAR(191) NOT NULL DEFAULT '';

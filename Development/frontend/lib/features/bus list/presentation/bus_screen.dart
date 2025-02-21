@@ -50,6 +50,9 @@ class _BusScreenState extends ConsumerState<BusScreen> {
                         TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w700),
                   ),
                   GestureDetector(
+                    onTap: () {
+                      context.pushNamed('/bookings');
+                    },
                     child: Container(
                       height: 30.h,
                       // width: 40.w,

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 class BookList {
-  final Booking? booking;
+  final List<Booking>? booking;
 
   BookList({
     this.booking,
@@ -13,12 +13,16 @@ class BookList {
   String toRawJson() => json.encode(toJson());
 
   factory BookList.fromJson(Map<String, dynamic> json) => BookList(
-        booking:
-            json["booking"] == null ? null : Booking.fromJson(json["booking"]),
+        booking: json["booking"] == null
+            ? []
+            : List<Booking>.from(
+                json["booking"]!.map((x) => Booking.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {
-        "booking": booking?.toJson(),
+        "booking": booking == null
+            ? []
+            : List<dynamic>.from(booking!.map((x) => x.toJson())),
       };
 }
 
@@ -29,6 +33,7 @@ class Booking {
   final String? bookingDate;
   final String? pickUpPoint;
   final String? dropOffPoint;
+  final int? totalFare;
   final String? status;
   final String? createdAt;
   final String? updatedAt;
@@ -41,6 +46,7 @@ class Booking {
     this.bookingDate,
     this.pickUpPoint,
     this.dropOffPoint,
+    this.totalFare,
     this.status,
     this.createdAt,
     this.updatedAt,
@@ -58,6 +64,7 @@ class Booking {
         bookingDate: json["bookingDate"],
         pickUpPoint: json["pickUpPoint"],
         dropOffPoint: json["dropOffPoint"],
+        totalFare: json["totalFare"],
         status: json["status"],
         createdAt: json["createdAt"],
         updatedAt: json["updatedAt"],
@@ -74,6 +81,7 @@ class Booking {
         "bookingDate": bookingDate,
         "pickUpPoint": pickUpPoint,
         "dropOffPoint": dropOffPoint,
+        "totalFare": totalFare,
         "status": status,
         "createdAt": createdAt,
         "updatedAt": updatedAt,

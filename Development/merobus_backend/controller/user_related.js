@@ -3,7 +3,6 @@ const upload = require("../configs/storage");
 
 const updateUser = async (req, res) => {
   const { id, username, email, phone, address } = req.body;
-  console.log(req.body);
   const images = req.file ? `/uploads/${req.file.filename}` : null; // Check if a file was uploaded
 
   // Find the user by ID

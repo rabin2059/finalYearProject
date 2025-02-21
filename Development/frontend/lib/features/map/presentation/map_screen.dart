@@ -148,12 +148,13 @@ class _MapScreensState extends ConsumerState<MapScreens> {
                               final start =
                                   await mapNotifier.getCoordinatesFromAddress(
                                       _startController.text);
-                              final end = await mapNotifier
-                                  .getCoordinatesFromAddress(_endController.text);
-                          
+                              final end =
+                                  await mapNotifier.getCoordinatesFromAddress(
+                                      _endController.text);
+
                               if (start != null && end != null) {
                                 mapNotifier.fetchRoute(start, end);
-                          
+
                                 // Convert LocationModel to LatLng before passing it
                                 _controller.move(
                                   LatLng(
@@ -166,7 +167,7 @@ class _MapScreensState extends ConsumerState<MapScreens> {
                                   )),
                                 );
                               }
-                          
+
                               // ✅ Keep the text fields filled
                               setState(() {
                                 isSearching = false;

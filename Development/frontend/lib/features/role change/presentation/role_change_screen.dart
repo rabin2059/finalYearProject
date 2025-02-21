@@ -20,7 +20,7 @@ class _RoleChangeScreenState extends ConsumerState<RoleChangeScreen> {
   File? _selectedFile;
   String? _fileName;
   String? _errorMessage;
-  String _selectedVehicle = "Bus"; // Default selected vehicle
+  final String _selectedVehicle = "Bus"; // Default selected vehicle
   final int maxFileSize = 250 * 1024; // 250KB in bytes
   final TextEditingController _licenseController = TextEditingController();
 
@@ -114,19 +114,6 @@ class _RoleChangeScreenState extends ConsumerState<RoleChangeScreen> {
               ),
               SizedBox(height: 20.h),
 
-              Align(
-                  alignment: Alignment.topLeft,
-                  child: Text(
-                    "Vehicle Type",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  )),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildVehicleButton("Bus"),
-                  _buildVehicleButton("Car"),
-                ],
-              ),
               SizedBox(height: 20.h),
 
               Align(
@@ -254,35 +241,5 @@ class _RoleChangeScreenState extends ConsumerState<RoleChangeScreen> {
             ],
           ),
         ));
-  }
-
-  /// **Helper function to build Vehicle Selection Buttons**
-  Widget _buildVehicleButton(String type) {
-    bool isSelected = _selectedVehicle == type;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedVehicle = type;
-        });
-      },
-      child: Container(
-        width: 168.w,
-        padding: EdgeInsets.symmetric(vertical: 12.h),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Color(0xFFF1F1F1),
-          borderRadius: BorderRadius.circular(8.r),
-        ),
-        child: Center(
-          child: Text(
-            type,
-            style: TextStyle(
-              color: isSelected ? Colors.white : Colors.black,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }

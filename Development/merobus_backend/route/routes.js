@@ -29,7 +29,11 @@ router.put(
 router.get("/getUser", userRelatedController.getUser);
 
 //
-router.put("/requestRole", adminController.requestRole);
+router.put(
+  "/requestRole",
+  upload.single("images"),
+  adminController.requestRole
+);
 router.put("/validDriverRole", adminController.validDriverRole);
 router.get("/getAllUser", adminController.getAllUser);
 module.exports = router;
