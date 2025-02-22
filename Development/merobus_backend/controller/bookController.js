@@ -78,7 +78,7 @@ const getBookings = async (req, res) => {
     const { id } = req.query;
     const bookings = await prisma.booking.findMany({
       where: {
-        vehicleId: parseInt(id),
+        userId: parseInt(id),
       },
       include: {
         bookingSeats: true,
@@ -110,4 +110,27 @@ const getSingleBooking = async (req, res) => {
   }
 };
 
-module.exports = { booking, getBookings, getSingleBooking };
+const getBookingsByVehicle = async (req, res) => {
+  try {
+    const { id } = req.query;
+    const bookings = await prisma.booking.findMany({
+      where: {
+        vehicleId: parseInt(id),
+      },
+      include: {
+        bookingSeats: true,
+      },
+    });
+
+    return res.status(200).json({ booking: bookings });
+  } catch (error) {
+    console.error("Error fetching bookings:", error);
+    res.status(500).json({ message: error.message || "Server error" });
+  }
+};
+module.exports = {
+  booking,
+  getBookings,
+  getSingleBooking,
+  getBookingsByVehicle,
+};

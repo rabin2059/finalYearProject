@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:frontend/features/Driver/vehicle%20details/presentation/add_vehicle.dart';
-import 'package:frontend/features/Driver/vehicle%20details/presentation/select_seats_screen.dart';
-import 'package:frontend/features/bus%20details/presentation/bus_detail_screen.dart';
-import 'package:frontend/features/bus%20list/presentation/bus_screen.dart';
+import 'package:frontend/user/Driver/add%20vehicle/presentation/add_vehicle.dart';
+import 'package:frontend/user/Driver/add%20vehicle/presentation/select_seats_screen.dart';
+import 'package:frontend/user/Passenger/bus%20details/presentation/bus_detail_screen.dart';
+import 'package:frontend/user/Passenger/bus%20list/presentation/bus_screen.dart';
 import 'package:frontend/routes/app_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 

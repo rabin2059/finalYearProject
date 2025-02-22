@@ -9,7 +9,7 @@ class UserService {
 
   UserService({required this.baseurl});
 
-  Future<List<User>> fetchUsers(int userId) async {
+  Future<List<UserData>> fetchUsers(int userId) async {
     final url = Uri.parse('$baseurl/getUser?id=$userId');
 
     try {
@@ -20,9 +20,9 @@ class UserService {
 
         // ✅ Ensure response contains "user"
         if (decodedResponse is Map<String, dynamic> &&
-            decodedResponse.containsKey('user')) {
-          final userJson = decodedResponse['user'];
-          return [User.fromJson(userJson)]; // Convert single user into List
+            decodedResponse.containsKey('userData')) {
+          final userJson = decodedResponse['userData'];
+          return [UserData.fromJson(userJson)]; // Convert single user into List
         } else {
           throw Exception('Unexpected API response format');
         }
@@ -40,37 +40,32 @@ class UserService {
     final url = Uri.parse('$baseurl/updateUser');
 
     try {
-      // Create a multipart request
       var request = http.MultipartRequest('PUT', url);
 
-      // Add text fields
       request.fields['id'] = userId.toString();
       request.fields['username'] = username;
       request.fields['email'] = email;
       request.fields['address'] = address;
       request.fields['phone'] = phone;
 
-      // Add image file
-      request.files.add(await http.MultipartFile.fromPath(
-        'images', // This key must match the backend's field name
-        imagePath!.path,
-        contentType:
-            MediaType('image', 'jpeg'), // Adjust content type if needed
-      ));
+      // ✅ Only attach an image if provided
+      if (imagePath != null) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'images',
+          imagePath.path,
+          contentType: MediaType('image', 'jpeg'),
+        ));
+      }
 
-      // Send the request
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200) {
-        print('User updated successfully');
         return json.decode(response.body);
       } else {
-        print('Failed to update user: ${response.statusCode}');
         return {'error': 'Failed to update user'};
       }
     } catch (e) {
-      print('Error updating user: $e');
       throw Exception('Error updating user: $e');
     }
   }

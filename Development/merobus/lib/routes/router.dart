@@ -1,7 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:merobus/Screens/Authentication/get_started.dart';
 import 'package:merobus/Screens/Authentication/signin.dart';
-import 'package:merobus/Screens/Authentication/signup.dart';
+import '../../../frontend/lib/user/authentication/sign up/presentation/signup.dart';
 import 'package:merobus/navigation/navigation.dart';
 
 // final prefs = SharedPreferences;

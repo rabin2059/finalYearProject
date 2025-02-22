@@ -69,19 +69,11 @@ const validDriverRole = async (req, res) => {
       },
       data: {
         role: status === "approved" ? "DRIVER" : "USER",
+        licenseNo: status === "approved" ? user.licenseNo : null,
         licenceImage: status === "approved" ? user.licenceImage : null,
         status: status,
       },
     });
-
-    if (status === "approved") {
-      const chat = await prisma.chatGroup.create({
-        data: {
-          name: `Driver ${id}`,
-          vehicleId: parseInt(id),
-        },
-      });
-    }
 
     return res.status(200).json({
       message: "User role update request successfully submitted.",

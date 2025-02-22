@@ -13,6 +13,7 @@ const addVehicle = async (req, res) => {
       departure,
       arrivalTime,
     } = req.body;
+    console.log(req.body);
 
     const result = await prisma.$transaction(async (tx) => {
       // ✅ Check if vehicle already exists
@@ -49,6 +50,13 @@ const addVehicle = async (req, res) => {
       }
 
       return { newVehicle, newSeats };
+    });
+
+    const chatGroup = await prisma.chatGroup.create({
+      data: {
+        name: `ChatGroup for ${result.newVehicle.vehicleNo}`,
+        vehicleId: result.newVehicle.id,
+      },
     });
 
     res.status(201).json({
