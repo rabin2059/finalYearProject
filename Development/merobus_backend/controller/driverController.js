@@ -1,4 +1,5 @@
 const prisma = require("../utils/prisma.js");
+const polyline = require("@mapbox/polyline");
 
 const addVehicle = async (req, res) => {
   try {
@@ -68,24 +69,46 @@ const createRoute = async (req, res) => {
     const { name, startPoint, endPoint, busStops, vehicleID, fare } = req.body;
     console.log(req.body);
 
-    const result = await prisma.$transaction(async (prisma) => {
-      // Create the Route
-      const route = await prisma.route.create({
-        data: {
-          name,
-          startPoint,
-          endPoint,
-          vehicleID,
-          fare,
-        },
+    const result = await prisma.$transaction(async (tx) => {
+      // ✅ Check if a route already exists for this vehicle
+      let existingRoute = await tx.route.findFirst({
+        where: { vehicleID },
       });
 
-      // Process each bus stop
+      let route;
+      if (existingRoute) {
+        console.log("Updating existing route...");
+        route = existingRoute; // Use the existing route
+      } else {
+        console.log("Creating new route...");
+        // Create the Route
+        route = await tx.route.create({
+          data: {
+            name,
+            startPoint,
+            endPoint,
+            vehicleID,
+            fare,
+          },
+        });
+      }
+
+      let coordinates = [];
+
+      // ✅ Delete existing bus stops if updating a route
+      if (existingRoute) {
+        await tx.routeBusStop.deleteMany({
+          where: { routeId: route.id },
+        });
+      }
+
+      // ✅ Process each bus stop
       for (let i = 0; i < busStops.length; i++) {
         const stopName = busStops[i];
+
         console.log(stopName);
         // Check if bus stop exists
-        let busStop = await prisma.busStop.findFirst({
+        let busStop = await tx.busStop.findFirst({
           where: {
             name: stopName.name,
           },
@@ -93,7 +116,7 @@ const createRoute = async (req, res) => {
 
         // If bus stop doesn't exist, create it
         if (!busStop) {
-          busStop = await prisma.busStop.create({
+          busStop = await tx.busStop.create({
             data: {
               name: stopName.name,
               latitude: stopName.latitude,
@@ -103,25 +126,42 @@ const createRoute = async (req, res) => {
         }
 
         console.log("bus", busStop);
+
         // Associate the bus stop with the route
-        await prisma.routeBusStop.create({
+        await tx.routeBusStop.create({
           data: {
             routeId: route.id,
             busStopId: busStop.id,
             sequence: stopName.sequence,
           },
         });
+
+        // Store the coordinates for polyline encoding
+        coordinates.push([busStop.latitude, busStop.longitude]);
       }
+
+      // ✅ Encode the polyline
+      const encodedPolyline = polyline.encode(coordinates);
+      console.log("Encoded Polyline:", encodedPolyline);
+
+      // ✅ Update or create the route with the polyline
+      await tx.route.update({
+        where: { id: route.id },
+        data: { polyline: encodedPolyline, name, startPoint, endPoint, fare },
+      });
 
       return route;
     });
 
-    res.status(201).json({ message: "Route created successfully", result });
+    res.status(201).json({
+      message: "Route created or updated successfully",
+      result,
+    });
   } catch (error) {
     console.error(error);
     res
       .status(500)
-      .json({ error: "An error occurred while creating the route" });
+      .json({ error: "An error occurred while creating/updating the route" });
   }
 };
 

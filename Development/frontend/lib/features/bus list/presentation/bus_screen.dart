@@ -41,13 +41,45 @@ class _BusScreenState extends ConsumerState<BusScreen> {
             children: [
               _buildSearchFields(),
               SizedBox(height: 10.h),
-              Align(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  'Buses',
-                  style:
-                      TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w700),
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Buses',
+                    style:
+                        TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w700),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      context.pushNamed('/bookings');
+                    },
+                    child: Container(
+                      height: 30.h,
+                      // width: 40.w,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(5.r),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 10.w, vertical: 2.h),
+                        child: Row(
+                          children: [
+                            Icon(
+                              CupertinoIcons.doc_checkmark_fill,
+                              size: 16.h,
+                            ),
+                            Text(
+                              "Booking",
+                              style: TextStyle(
+                                  fontSize: 16.sp, fontWeight: FontWeight.bold),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                ],
               ),
               SizedBox(height: 10.h),
               Expanded(

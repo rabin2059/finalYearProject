@@ -1,27 +1,32 @@
 import 'dart:convert';
 
-class BookModel {
-  final Book? book;
+class BookList {
+  final List<Booking>? booking;
 
-  BookModel({
-    this.book,
+  BookList({
+    this.booking,
   });
 
-  factory BookModel.fromRawJson(String str) =>
-      BookModel.fromJson(json.decode(str));
+  factory BookList.fromRawJson(String str) =>
+      BookList.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
-  factory BookModel.fromJson(Map<String, dynamic> json) => BookModel(
-        book: json["book"] == null ? null : Book.fromJson(json["book"]),
+  factory BookList.fromJson(Map<String, dynamic> json) => BookList(
+        booking: json["booking"] == null
+            ? []
+            : List<Booking>.from(
+                json["booking"]!.map((x) => Booking.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {
-        "book": book?.toJson(),
+        "booking": booking == null
+            ? []
+            : List<dynamic>.from(booking!.map((x) => x.toJson())),
       };
 }
 
-class Book {
+class Booking {
   final int? id;
   final int? userId;
   final int? vehicleId;
@@ -34,7 +39,7 @@ class Book {
   final String? updatedAt;
   final List<BookingSeat>? bookingSeats;
 
-  Book({
+  Booking({
     this.id,
     this.userId,
     this.vehicleId,
@@ -48,11 +53,11 @@ class Book {
     this.bookingSeats,
   });
 
-  factory Book.fromRawJson(String str) => Book.fromJson(json.decode(str));
+  factory Booking.fromRawJson(String str) => Booking.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
-  factory Book.fromJson(Map<String, dynamic> json) => Book(
+  factory Booking.fromJson(Map<String, dynamic> json) => Booking(
         id: json["id"],
         userId: json["userId"],
         vehicleId: json["vehicleId"],

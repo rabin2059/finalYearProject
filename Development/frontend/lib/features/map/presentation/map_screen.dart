@@ -139,37 +139,41 @@ class _MapScreensState extends ConsumerState<MapScreens> {
                             mapState.searchResults!.isNotEmpty)
                           _buildSearchResults(mapNotifier),
                         SizedBox(height: 20.h),
-                        CustomButton(
-                          text: "Find Now",
-                          color: AppColors.primary,
-                          onPressed: () async {
-                            final start =
-                                await mapNotifier.getCoordinatesFromAddress(
-                                    _startController.text);
-                            final end = await mapNotifier
-                                .getCoordinatesFromAddress(_endController.text);
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: 10.h),
+                          child: CustomButton(
+                            text: "Find Now",
+                            color: AppColors.primary,
+                            onPressed: () async {
+                              final start =
+                                  await mapNotifier.getCoordinatesFromAddress(
+                                      _startController.text);
+                              final end =
+                                  await mapNotifier.getCoordinatesFromAddress(
+                                      _endController.text);
 
-                            if (start != null && end != null) {
-                              mapNotifier.fetchRoute(start, end);
+                              if (start != null && end != null) {
+                                mapNotifier.fetchRoute(start, end);
 
-                              // Convert LocationModel to LatLng before passing it
-                              _controller.move(
-                                LatLng(
-                                  (start.latitude + end.latitude) / 2,
-                                  (start.longitude + end.longitude) / 2,
-                                ),
-                                _getZoomForBounds(LatLngBounds(
-                                  LatLng(start.latitude, start.longitude),
-                                  LatLng(end.latitude, end.longitude),
-                                )),
-                              );
-                            }
+                                // Convert LocationModel to LatLng before passing it
+                                _controller.move(
+                                  LatLng(
+                                    (start.latitude + end.latitude) / 2,
+                                    (start.longitude + end.longitude) / 2,
+                                  ),
+                                  _getZoomForBounds(LatLngBounds(
+                                    LatLng(start.latitude, start.longitude),
+                                    LatLng(end.latitude, end.longitude),
+                                  )),
+                                );
+                              }
 
-                            // ✅ Keep the text fields filled
-                            setState(() {
-                              isSearching = false;
-                            });
-                          },
+                              // ✅ Keep the text fields filled
+                              setState(() {
+                                isSearching = false;
+                              });
+                            },
+                          ),
                         ),
                       ],
                     ),

@@ -8,6 +8,7 @@ const booking = async (req, res) => {
       bookingDate,
       pickUpPoint,
       dropOffPoint,
+      totalFare,
       seatNo,
     } = req.body;
 
@@ -47,6 +48,7 @@ const booking = async (req, res) => {
           bookingDate,
           pickUpPoint,
           dropOffPoint,
+          totalFare,
         },
       });
 
@@ -82,6 +84,7 @@ const getBookings = async (req, res) => {
         bookingSeats: true,
       },
     });
+
     return res.status(200).json({ booking: bookings });
   } catch (error) {
     console.error("Error fetching bookings:", error);
@@ -94,13 +97,13 @@ const getSingleBooking = async (req, res) => {
     const { id } = req.query;
     const booking = await prisma.booking.findFirst({
       where: {
-        userId: parseInt(id),
+        id: parseInt(id),
       },
       include: {
         bookingSeats: true,
       },
     });
-    return res.status(200).json({ booking: booking });
+    return res.status(200).json({ book: booking });
   } catch (error) {
     console.error("Error fetching booking:", error);
     res.status(500).json({ message: error.message || "Server error" });

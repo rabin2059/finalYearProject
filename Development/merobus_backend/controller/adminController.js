@@ -1,39 +1,40 @@
 const prisma = require("../utils/prisma.js");
 const requestRole = async (req, res) => {
   try {
-    const { id, licenseNo, vehicleNo } = req.body;
-
+    const { userId, licenseNo } = req.body;
+    console.log(req.body);
+    const images = req.file ? `/uploads/${req.file.filename}` : null; // Check if a file was uploaded
+    console.log(images);
     // Validate request body
-    if (!id || !licenseNo || !vehicleNo) {
+    if (!userId || !licenseNo || !images) {
       return res
         .status(400)
-        .json({ message: "Vehicle Number and License Number are required." });
+        .json({ message: "Invalid request body. Missing required fields." });
     }
 
     // Fetch user
     const user = await prisma.user.findFirst({
       where: {
-        id: parseInt(id),
+        id: parseInt(userId),
       },
     });
+    console.log(user.role);
     // Check if user exists
     if (!user) {
       return res.status(404).json({ message: "User not found." });
     }
 
     // Check if user is already a driver
-    if (user.role !== 1) {
+    if (user.role === "DRIVER") {
       return res.status(400).json({ message: "User is already a driver!" });
     }
 
     // Update user details
     const userDriver = await prisma.user.update({
-      where: {
-        id: parseInt(id),
-      },
+      where: { id: parseInt(userId) },
       data: {
         licenseNo,
-        vehicleNo,
+        licenceImage: images,
         status: "onHold",
       },
     });
@@ -67,10 +68,21 @@ const validDriverRole = async (req, res) => {
         id: parseInt(id),
       },
       data: {
-        role: status === "approved" ? 2 : 1,
+        role: status === "approved" ? "DRIVER" : "USER",
+        licenceImage: status === "approved" ? user.licenceImage : null,
         status: status,
       },
     });
+
+    if (status === "approved") {
+      const chat = await prisma.chatGroup.create({
+        data: {
+          name: `Driver ${id}`,
+          vehicleId: parseInt(id),
+        },
+      });
+    }
+
     return res.status(200).json({
       message: "User role update request successfully submitted.",
       user: updateRole,
