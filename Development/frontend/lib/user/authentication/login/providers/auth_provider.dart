@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/core/role.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import '../../../../core/constants.dart';
 import '../../../../core/shared_prefs_utils.dart';
@@ -83,6 +84,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
       } else // Attempt to refresh token if access token has expired
         await refreshToken();
     }
+  }
+
+  void setTemporaryRole(UserRole newRole) {
+    state = state.copyWith(currentRole: newRole);
   }
 }
 

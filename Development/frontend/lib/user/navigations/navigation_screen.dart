@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/user/navigations/admin_navigation.dart';
 import 'package:frontend/user/navigations/driver_navigation.dart';
+import 'package:frontend/user/navigations/user_driver_navigation.dart';
 import 'package:frontend/user/navigations/user_navigation.dart';
 
 import '../../core/role.dart';
@@ -18,6 +19,8 @@ class Navigation extends ConsumerWidget {
       return const AdminNavigation();
     } else if (authState.currentRole == UserRole.DRIVER) {
       return const DriverNavigation();
+    } else if (authState.currentRole == UserRole.DRIVERUSER) {
+      return const UserDriverNavigation();
     } else {
       return const UserNavigation();
     }

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:socket_io_client/socket_io_client.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../../data/models/map_model.dart';
 import '../../../../data/services/map_service.dart';
 import 'map_state.dart';
@@ -12,23 +12,85 @@ class MapNotifier extends StateNotifier<MapState> {
 
   MapNotifier(this._mapService) : super(MapState());
 
-  /// Fetch User Location
-  Future<void> fetchUserLocation(double lat, double lng) async {
+  /// **1️⃣ Fetch User Location**
+  Future<void> fetchUserLocation() async {
     try {
       state = state.copyWith(isLoading: true);
-      LocationModel location = await _mapService.getReverseGeocode(lat, lng);
-      state = state.copyWith(userLocation: location, isLoading: false);
+      Position position = await _mapService.getCurrentLocation();
+      LatLng userLatLng = LatLng(position.latitude, position.longitude);
+
+      state = state.copyWith(userLocation: userLatLng, isLoading: false);
     } catch (e, stackTrace) {
-      state = state.copyWith(error: "Failed to fetch location", isLoading: false);
+      state = state.copyWith(
+          error: "Failed to fetch user location", isLoading: false);
       print("Error in fetchUserLocation: $e\n$stackTrace");
     }
   }
 
-  /// Fetch Route
-  Future<void> fetchRoute(LocationModel start, LocationModel end) async {
+  /// **2️⃣ Search Places using OpenStreetMap (Only Nepal)**
+  Future<void> searchPlaces(String query) async {
     try {
       state = state.copyWith(isLoading: true);
-      RouteModel route = await _mapService.getRoute(start, end);
+      List<Map<String, dynamic>> results =
+          await _mapService.searchPlaces(query);
+
+      List<LocationModel> searchResults = results.map((place) {
+        return LocationModel(
+          latitude: double.parse(place['lat']),
+          longitude: double.parse(place['lon']),
+          address: place['display_name'],
+        );
+      }).toList();
+
+      state = state.copyWith(searchResults: searchResults, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(error: "Search failed", isLoading: false);
+      print("Error in searchPlaces: $e");
+    }
+  }
+
+  /// **3️⃣ Get Coordinates from Address**
+  Future<LocationModel?> getCoordinatesFromAddress(String address) async {
+    try {
+      List<Map<String, dynamic>> results =
+          await _mapService.searchPlaces(address);
+      if (results.isNotEmpty) {
+        return LocationModel(
+          latitude: double.parse(results[0]['lat']),
+          longitude: double.parse(results[0]['lon']),
+          address: results[0]['display_name'],
+        );
+      }
+      return null;
+    } catch (e) {
+      state = state.copyWith(error: "Address lookup failed");
+      return null;
+    }
+  }
+
+  /// **4️⃣ Fetch Route Between Two Locations**
+  Future<void> fetchRoute(LatLng start, LatLng end) async {
+    try {
+      state = state.copyWith(isLoading: true);
+
+      // Fetch route points from MapService
+      List<LatLng> routePoints = await _mapService.getRoutePoints(start, end);
+
+      // ✅ Convert List<LatLng> to List<LocationModel>
+      List<LocationModel> locationPoints = routePoints.map((latLng) {
+        return LocationModel(
+          latitude: latLng.latitude,
+          longitude: latLng.longitude,
+        );
+      }).toList();
+
+      if (locationPoints.isEmpty) {
+        state = state.copyWith(error: "No route found", isLoading: false);
+        return;
+      }
+
+      // ✅ Use the converted List<LocationModel>
+      RouteModel route = RouteModel(routePoints: locationPoints);
       state = state.copyWith(route: route, isLoading: false);
     } catch (e, stackTrace) {
       state = state.copyWith(error: "Failed to fetch route", isLoading: false);
@@ -36,30 +98,12 @@ class MapNotifier extends StateNotifier<MapState> {
     }
   }
 
-  /// Search Places
-  Future<void> searchPlaces(String query) async {
-    try {
-      state = state.copyWith(isLoading: true);
-      List<LocationModel> results = await _mapService.searchPlaces(query);
-      state = state.copyWith(searchResults: results, isLoading: false);
-    } catch (e) {
-      state = state.copyWith(error: "Search failed", isLoading: false);
-    }
-  }
-
-  Future<LocationModel?> getCoordinatesFromAddress(String address) async {
-    try {
-      return await _mapService.getCoordinatesFromAddress(address);
-    } catch (e) {
-      state = state.copyWith(error: "Address lookup failed");
-      return null;
-    }
-  }
-
+  /// **5️⃣ Set Selected Location**
   void setSelectedLocation(LocationModel location) {
     state = state.copyWith(selectedLocation: location);
   }
 
+  /// **6️⃣ Handle Location Permissions**
   Future<bool> _handleLocationPermission() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) return false;
@@ -74,26 +118,9 @@ class MapNotifier extends StateNotifier<MapState> {
 
     return true;
   }
-
-  Future<void> getLocationUpdates(Socket socket) async {
-    if (!await _handleLocationPermission()) return;
-
-    final locationSettings = LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 100);
-    _positionStream = Geolocator.getPositionStream(locationSettings: locationSettings)
-        .listen((Position position) {
-      socket.emit('sendLocation', {
-        'latitude': position.latitude,
-        'longitude': position.longitude,
-      });
-    });
-  }
-
-  void stopLocationUpdates() {
-    _positionStream?.cancel();
-  }
 }
 
-/// Dependency Injection
+/// **🔹 Dependency Injection for Riverpod**
 final mapServiceProvider = Provider<MapService>((ref) => MapService());
 
 final mapProvider = StateNotifierProvider<MapNotifier, MapState>((ref) {

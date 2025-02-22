@@ -3,17 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/user/Driver/booking%20lists/presentation/book_vehicle_list_screen.dart';
 import 'package:frontend/user/Driver/home/presentation/driver_home_screen.dart';
 import 'package:frontend/user/Driver/setting/presentation/driver_setting_screen.dart';
+import 'package:frontend/user/Passenger/bus%20list/presentation/bus_screen.dart';
+import 'package:frontend/user/Passenger/home/presentation/home_screen.dart';
 import 'package:frontend/user/authentication/login/providers/auth_provider.dart';
 
-class DriverNavigation extends ConsumerStatefulWidget {
-  const DriverNavigation({super.key});
+class UserDriverNavigation extends ConsumerStatefulWidget {
+  const UserDriverNavigation({super.key});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
-      _DriverNavigationState();
+      _UserDriverNavigationState();
 }
 
-class _DriverNavigationState extends ConsumerState<DriverNavigation> {
+class _UserDriverNavigationState extends ConsumerState<UserDriverNavigation> {
   int _selectedIndex = 1; // Default to Home
   final PageController _pageController = PageController(initialPage: 1);
 
@@ -35,8 +37,8 @@ class _DriverNavigationState extends ConsumerState<DriverNavigation> {
           });
         },
         children: [
-          BookVehicleListScreen(),
-          DriverHomeScreen(),
+          BusScreen(),
+          HomeScreen(),
           DriverSettingScreen()
         ],
       ),

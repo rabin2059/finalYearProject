@@ -1,10 +1,11 @@
+import 'package:latlong2/latlong.dart';
 import '../../../../data/models/map_model.dart';
 
 class MapState {
-  final LocationModel? userLocation;
+  final LatLng? userLocation; // ✅ Uses LatLng instead of LocationModel
   final LocationModel? selectedLocation;
   final RouteModel? route;
-  final List<LocationModel>? searchResults;
+  final List<LocationModel> searchResults;
   final bool isLoading;
   final String? error;
 
@@ -12,13 +13,14 @@ class MapState {
     this.userLocation,
     this.selectedLocation,
     this.route,
-    this.searchResults,
+    this.searchResults = const [], // ✅ Default to an empty list
     this.isLoading = false,
     this.error,
   });
 
+  /// **Copy Method for State Updates**
   MapState copyWith({
-    LocationModel? userLocation,
+    LatLng? userLocation,
     LocationModel? selectedLocation,
     RouteModel? route,
     List<LocationModel>? searchResults,

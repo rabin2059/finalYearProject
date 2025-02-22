@@ -25,7 +25,6 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
     final userId = ref.read(authProvider).userId;
     super.initState();
     Future.microtask(() => ref.watch(settingProvider.notifier).fetchUsers(userId!));
-    _fetchUserData();
   }
 
   @override
@@ -50,23 +49,7 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
   }
 
   /// **Fetch user data**
-  Future<void> _fetchUserData() async {
-    try {
-      final settingNotifier = ref.read(settingProvider.notifier);
-      final authState = ref.read(authProvider);
-      final userId = authState.userId;
-
-      debugPrint('Fetching user data for userId: $userId'); // Debug print
-
-      if (userId != null) {
-        await settingNotifier.fetchUsers(userId);
-      } else {
-        debugPrint('User ID is null. Cannot fetch user data.');
-      }
-    } catch (e) {
-      debugPrint('Error fetching user data: $e');
-    }
-  }
+  
 
   /// **Builds the profile header**
   Widget _buildProfileHeader(settingState) {

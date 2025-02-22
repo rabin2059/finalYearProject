@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/components/CustomButton.dart';
 import 'package:frontend/user/Passenger/map/presentation/map_screen.dart';
 import 'package:frontend/user/authentication/login/providers/auth_provider.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../setting/providers/setting_provider.dart';
+import '../../../Passenger/setting/providers/setting_provider.dart';
 
-class HomeScreen extends ConsumerStatefulWidget {
-  const HomeScreen({super.key});
+class DriverHomeScreen extends ConsumerStatefulWidget {
+  const DriverHomeScreen({super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _HomeScreenState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _DriverHomeScreenState();
 }
 
-class _HomeScreenState extends ConsumerState<HomeScreen> {
+class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
   @override
   void initState() {
     super.initState();
@@ -44,38 +42,38 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final authState = ref.watch(authProvider); // Watch the authentication state
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Passenger Dashboard")),
+      appBar: AppBar(title: const Text("Driver Dashboard")),
       body: Column(
         children: [
           Expanded(child: MapScreens()), // Map at the top
-          _buildUserOptions(context), // Passenger-specific actions
+          _buildDriverOptions(context), // Driver-specific actions
         ],
       ),
     );
   }
 
-  Widget _buildUserOptions(BuildContext context) {
+  Widget _buildDriverOptions(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
           ElevatedButton(
             onPressed: () {
-              // Implement ride request feature
+              // Implement accepting ride requests
             },
-            child: const Text("Request a Ride"),
+            child: const Text("View Ride Requests"),
           ),
           const SizedBox(height: 10),
           ElevatedButton(
             onPressed: () {
-              // Implement ride history feature
+              // Implement earnings feature
             },
-            child: const Text("View Ride History"),
+            child: const Text("View Earnings"),
           ),
           const SizedBox(height: 10),
           ElevatedButton(
             onPressed: () {
-              // Implement passenger profile editing
+              // Implement driver profile editing
             },
             child: const Text("Edit Profile"),
           ),

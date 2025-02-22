@@ -112,17 +112,17 @@ const getSingleBooking = async (req, res) => {
 
 const getBookingsByVehicle = async (req, res) => {
   try {
-    const { id } = req.query;
+    const { vehicleId } = req.query;
     const bookings = await prisma.booking.findMany({
       where: {
-        vehicleId: parseInt(id),
+        vehicleId: parseInt(vehicleId),
       },
       include: {
         bookingSeats: true,
       },
     });
 
-    return res.status(200).json({ booking: bookings });
+    return res.status(200).json({ bookingByVehicle: bookings });
   } catch (error) {
     console.error("Error fetching bookings:", error);
     res.status(500).json({ message: error.message || "Server error" });

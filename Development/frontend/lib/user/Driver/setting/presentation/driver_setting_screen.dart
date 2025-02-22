@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:frontend/core/role.dart';
 import 'package:frontend/user/Passenger/profile/presentation/profile_screen.dart';
 import 'package:go_router/go_router.dart';
 
@@ -21,10 +22,19 @@ class DriverSettingScreen extends ConsumerStatefulWidget {
 }
 
 class _DriverSettingScreenState extends ConsumerState<DriverSettingScreen> {
+  late UserRole _userType;
+
   @override
   void initState() {
     super.initState();
+    _initializeUserRole();
     _fetchUserData();
+  }
+
+  void _initializeUserRole() {
+    final authState = ref.read(authProvider); // Get stored role
+    _userType =
+        authState.currentRole ?? UserRole.DRIVER; // Default to DRIVER if null
   }
 
   @override
@@ -179,22 +189,8 @@ class _DriverSettingScreenState extends ConsumerState<DriverSettingScreen> {
         children: [
           Row(
             children: [
-              CustomButton(
-                text: 'Passenger',
-                onPressed: () {},
-                color: const Color(0xfff0f0f0f0),
-                textColor: Colors.black,
-                boxShadow: const [],
-                width: half,
-              ),
-              CustomButton(
-                text: 'Driver',
-                onPressed: () {},
-                color: AppColors.primary,
-                textColor: Colors.white,
-                boxShadow: const [],
-                width: half,
-              ),
+              _buildUserTypeButton(UserRole.DRIVER),
+              _buildUserTypeButton(UserRole.DRIVERUSER),
             ],
           ),
           Padding(
@@ -260,6 +256,25 @@ class _DriverSettingScreenState extends ConsumerState<DriverSettingScreen> {
           ),
           const Icon(CupertinoIcons.forward),
         ],
+      ),
+    );
+  }
+
+  /// **Reusable user type button**
+  Widget _buildUserTypeButton(UserRole type) {
+    return Expanded(
+      child: CustomButton(
+        text: type == UserRole.DRIVER ? 'Driver' : 'Passenger',
+        onPressed: () {
+          setState(() {
+            _userType = type;
+          });
+
+          // Update role temporarily (only in memory, not in database)
+          ref.read(authProvider.notifier).setTemporaryRole(type);
+        },
+        color: _userType == type ? AppColors.primary : Colors.grey[300],
+        textColor: _userType == type ? Colors.white : Colors.black,
       ),
     );
   }

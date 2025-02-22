@@ -91,6 +91,7 @@ class AuthState {
         UserRole.USER,
         UserRole.DRIVER,
         UserRole.ADMIN,
+        UserRole.DRIVERUSER
       ], // Example roles; fetch from response
       isLoggedIn: true,
     );
@@ -105,6 +106,8 @@ class AuthState {
         return UserRole.DRIVER;
       case 'ADMIN':
         return UserRole.ADMIN;
+      case 'DRIVERUSER':
+        return UserRole.DRIVERUSER;
       default:
         throw Exception("Invalid role: $role");
     }
