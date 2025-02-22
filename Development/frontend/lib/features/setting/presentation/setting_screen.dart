@@ -187,17 +187,17 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
             child: Column(
               children: [
                 SizedBox(height: 16.h),
-                _menuButton(CupertinoIcons.bus, 'Be a Driver'),
+                _menuButton(CupertinoIcons.bus, 'Be a Driver', '/roleChange'),
                 SizedBox(height: 16.h),
-                _menuButton(CupertinoIcons.person_3, 'About Us'),
+                _menuButton(CupertinoIcons.person_3, 'About Us', '/about'),
                 SizedBox(height: 16.h),
-                _menuButton(CupertinoIcons.exclamationmark_circle, 'Help'),
+                _menuButton(CupertinoIcons.exclamationmark_circle, 'Help', '/help'),
                 SizedBox(height: 16.h),
-                _menuButton(Icons.settings, 'Settings'),
+                _menuButton(Icons.settings, 'Settings', '/settings'),
                 SizedBox(height: 16.h),
-                _menuButton(Icons.key, 'Change Password'),
+                _menuButton(Icons.key, 'Change Password', '/change_password'),
                 SizedBox(height: 16.h),
-                _menuButton(Icons.logout, 'Log Out', isLogout: true),
+                _menuButton(Icons.logout, 'Log Out', '/logout'),
                 SizedBox(height: 16.h),
               ],
             ),
@@ -208,11 +208,14 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
   }
 
   /// **Reusable menu button**
-  Widget _menuButton(IconData icon, String title, {bool isLogout = false}) {
+  Widget _menuButton(IconData icon, String title, String action) {
     return GestureDetector(
       onTap: () {
-        if (isLogout) {
+        if (action == '/logout') {
           ref.read(authProvider.notifier).logout();
+          context.pushNamed(action);
+        } else {
+          context.pushNamed(action);
         }
       },
       child: Row(

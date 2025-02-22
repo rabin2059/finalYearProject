@@ -46,8 +46,10 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>NSPhotoLibraryUsageDescription</key>
-<string>We need access to your files for upload.</string>
-<key>NSPhotoLibraryAddUsageDescription</key>
-<string>Allows selecting files.</string>
+	<string>We need access to your files for upload.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Allows selecting files.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We need access to your location to track drivers.</string>
 </dict>
 </plist>
