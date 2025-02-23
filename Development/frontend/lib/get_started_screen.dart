@@ -61,7 +61,7 @@ class GetStartedScreen extends StatelessWidget {
             CustomButton(
               text: "Sign In",
               onPressed: () {
-                context.push('/login');
+                context.go('/login');
               },
               color: AppColors.primary,
               textColor: Colors.white,
@@ -75,7 +75,7 @@ class GetStartedScreen extends StatelessWidget {
             CustomButton(
               text: "Sign Up",
               onPressed: () {
-                context.push('/signup');
+                context.go('/signup');
               },
               color: Colors.white,
               textColor: AppColors.primary,

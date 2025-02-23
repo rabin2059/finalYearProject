@@ -7,9 +7,7 @@ const getRoute = async (req, res) => {
     const { startLat, startLng, endLat, endLng } = req.query;
 
     if (!startLat || !startLng || !endLat || !endLng) {
-      return res
-        .status(400)
-        .json({ message: "Start and End coordinates are required" });
+      return res.status(400).json({ message: "Start and End coordinates are required" });
     }
 
     const startPoint = [parseFloat(startLng), parseFloat(startLat)];
@@ -34,44 +32,42 @@ const getRoute = async (req, res) => {
       },
     });
 
-    console.log(routes)
+    console.log("Fetched Routes:", routes);
 
     const validRoutes = routes.filter((route) => {
       if (!route.polyline) return false;
 
       const decodedPolyline = polyline.decode(route.polyline);
-      console.log("Decoded Polyline:", decodedPolyline);
+      console.log(`Decoded Polyline for route ${route.name}:`, decodedPolyline);
 
       const routeLine = turf.lineString(
-        decodedPolyline.map(([lat, lng]) => [lng, lat]) // Ensure correct [lng, lat] format
+        decodedPolyline.map(([lat, lng]) => [lng, lat]) // ✅ Ensure correct format
       );
 
-      // 🔥 Use `nearestPointOnLine()` instead of boolean checks
-      const closestStart = turf.nearestPointOnLine(
-        routeLine,
-        turf.point(startPoint)
-      );
-      const closestEnd = turf.nearestPointOnLine(
-        routeLine,
-        turf.point(endPoint)
-      );
+      // 🔥 Use `nearestPointOnLine()` to find closest points
+      const closestStart = turf.nearestPointOnLine(routeLine, turf.point(startPoint));
+      const closestEnd = turf.nearestPointOnLine(routeLine, turf.point(endPoint));
 
-      // ✅ Define a threshold distance (in kilometers)
-      const thresholdDistance = 0.1; // 100 meters
-      const isStartNearRoute =
-        turf.distance(turf.point(startPoint), closestStart) <=
-        thresholdDistance;
-      const isEndNearRoute =
-        turf.distance(turf.point(endPoint), closestEnd) <= thresholdDistance;
+      // ✅ Debug distances
+      const startDistance = turf.distance(turf.point(startPoint), closestStart) * 1000; // Convert to meters
+      const endDistance = turf.distance(turf.point(endPoint), closestEnd) * 1000; // Convert to meters
+
+      console.log(`Route: ${route.name}`);
+      console.log(`Start Distance: ${startDistance.toFixed(2)} meters`);
+      console.log(`End Distance: ${endDistance.toFixed(2)} meters`);
+
+      // ✅ Increase threshold distance
+      const thresholdDistance = 100000; // 100 km
+      const isStartNearRoute = startDistance <= thresholdDistance;
+      const isEndNearRoute = endDistance <= thresholdDistance;
 
       return isStartNearRoute && isEndNearRoute;
     });
-    console.log(validRoutes)
+
+    console.log("Valid Routes:", validRoutes);
 
     if (validRoutes.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No vehicles pass through both locations" });
+      return res.status(404).json({ message: "No vehicles pass through both locations" });
     }
 
     // ✅ Return matched vehicles
