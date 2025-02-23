@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/user/Driver/add%20route/presentation/add_route_screen.dart';
 import 'package:frontend/user/Driver/add%20vehicle/presentation/add_vehicle.dart';
 import 'package:frontend/user/Passenger/booking%20lists/presentation/booking_list_screen.dart';
 import 'package:frontend/user/Passenger/book%20vehicle/presentation/booking_screen.dart';
@@ -40,6 +41,15 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
       name: '/addVehicle',
       path: '/addVehicle',
       builder: (context, state) => AddVehicle()),
+  GoRoute(
+    name: 'addRoute', // ✅ Remove leading slash in the name
+    path: '/addRoute/:id', // ✅ Define `:id` as a path parameter
+    builder: (context, state) {
+      final id = int.tryParse(state.pathParameters['id'] ?? '0') ??
+          0; // ✅ Extract ID safely
+      return AddRouteScreen(vehicleId: id);
+    },
+  ),
   GoRoute(
       name: '/profile',
       path: '/profile',

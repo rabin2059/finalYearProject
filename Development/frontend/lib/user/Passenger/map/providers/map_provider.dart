@@ -98,12 +98,17 @@ class MapNotifier extends StateNotifier<MapState> {
     }
   }
 
-  /// **5️⃣ Set Selected Location**
+  /// **5️⃣ Get Latitude & Longitude from Location Name**
+  Future<LatLng?> getLatLngFromLocation(String locationName) async {
+    return await _mapService.getLatLngFromLocation(locationName);
+  }
+
+  /// **6️⃣ Set Selected Location**
   void setSelectedLocation(LocationModel location) {
     state = state.copyWith(selectedLocation: location);
   }
 
-  /// **6️⃣ Handle Location Permissions**
+  /// **7️⃣ Handle Location Permissions**
   Future<bool> _handleLocationPermission() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) return false;

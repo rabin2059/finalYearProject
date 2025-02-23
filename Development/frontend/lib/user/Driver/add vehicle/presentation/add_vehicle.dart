@@ -63,13 +63,14 @@ class _AddVehicleState extends ConsumerState<AddVehicle> {
         },
       );
 
-      print('Response status code: ${response.statusCode}');
-
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body); // ✅ Decode response JSON
         print('Vehicle added successfully: $data');
+        final vehicleId =
+            data['vehicle']['id'].toString(); // ✅ Convert int to string
 
-        context.go('/navigation'); // ✅ Navigate after success
+        context.pushReplacementNamed('addRoute',
+            pathParameters: {'id': vehicleId});
       } else {
         print('Failed to add vehicle: ${response.body}');
       }

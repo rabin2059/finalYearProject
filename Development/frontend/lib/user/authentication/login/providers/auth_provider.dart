@@ -36,6 +36,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> logout() async {
     state = AuthState(); // Clear state
     await SharedPrefsUtil.clearAll(); // Clear shared preferences
+
+    state = state.copyWith(isLoggedIn: false);
   }
 
   /// Refresh Token Function

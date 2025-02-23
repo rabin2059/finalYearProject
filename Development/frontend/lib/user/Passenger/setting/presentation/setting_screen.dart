@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/user/Passenger/profile/presentation/profile_screen.dart';
+import 'package:frontend/user/Passenger/setting/providers/setting_state.dart';
+import 'package:frontend/user/authentication/login/providers/auth_state.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../components/AppColors.dart';
@@ -198,6 +200,8 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
       onTap: () {
         if (action == '/login') {
           ref.read(authProvider.notifier).logout();
+          SettingState(users: []);
+          AuthState(userId: null, currentRole: null, isLoggedIn: false);
           context.go(action);
         } else {
           context.pushNamed(action);

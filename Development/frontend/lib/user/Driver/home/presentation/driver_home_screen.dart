@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/user/Passenger/map/presentation/map_screen.dart';
 import 'package:frontend/user/authentication/login/providers/auth_provider.dart';
 
+import '../../../../components/AppColors.dart';
+import '../../../../components/CustomButton.dart';
 import '../../../Passenger/setting/providers/setting_provider.dart';
 
 class DriverHomeScreen extends ConsumerStatefulWidget {
@@ -39,43 +42,120 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider); // Watch the authentication state
+    final authState = ref.watch(authProvider);
+    final settingState = ref.watch(settingProvider);
+
+    // Fetch the first user data (if available)
+    final hasUser = settingState.users.isNotEmpty;
+    final user = hasUser ? settingState.users[0] : null;
+    final userName = hasUser ? user!.username : "Guest";
+    final userEmail = hasUser ? user!.email ?? "No Email" : "guest@example.com";
+    final userImage = hasUser && user!.images != null
+        ? user.images!
+        : "assets/profile.png"; // Default image if none available
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Driver Dashboard")),
       body: Column(
         children: [
-          Expanded(child: MapScreens()), // Map at the top
-          _buildDriverOptions(context), // Driver-specific actions
+          
+          _buildHeader(userName!, userEmail, userImage), // User Profile Section
+          _buildUserOptions(context), // Quick Actions Section
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const MapScreens()),
+          );
+        },
+        label: const Text("Open Map"),
+        icon: const Icon(Icons.map),
+        backgroundColor: AppColors.primary,
+      ),
+    );
+  }
+
+  /// **🔹 Header: Shows User Info (Profile, Name, Email)**
+  Widget _buildHeader(String name, String email, String imageUrl) {
+    return Container(
+      height: 200.h,
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(20.r),
+          bottomRight: Radius.circular(20.r),
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                radius: 40.r,
+                backgroundImage: AssetImage(imageUrl),
+                onBackgroundImageError: (_, __) =>
+                    const Icon(Icons.person, size: 40),
+              ),
+              SizedBox(width: 16.w),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Hello, $name!",
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    email,
+                    style: TextStyle(fontSize: 14.sp, color: Colors.white70),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildDriverOptions(BuildContext context) {
+  /// **🔹 Quick Action Buttons**
+  Widget _buildUserOptions(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: EdgeInsets.all(16.w),
       child: Column(
         children: [
-          ElevatedButton(
+          CustomButton(
+            text: "Request a Ride",
+            width: double.infinity,
             onPressed: () {
-              // Implement accepting ride requests
+              // Implement ride request feature
             },
-            child: const Text("View Ride Requests"),
+            color: AppColors.secondary,
           ),
-          const SizedBox(height: 10),
-          ElevatedButton(
+          SizedBox(height: 10.h),
+          CustomButton(
+            text: "View Ride History",
+            width: double.infinity,
             onPressed: () {
-              // Implement earnings feature
+              // Implement ride history feature
             },
-            child: const Text("View Earnings"),
+            color: AppColors.secondary,
           ),
-          const SizedBox(height: 10),
-          ElevatedButton(
+          SizedBox(height: 10.h),
+          CustomButton(
+            text: "Edit Profile",
+            width: double.infinity,
             onPressed: () {
-              // Implement driver profile editing
+              // Implement profile editing
             },
-            child: const Text("Edit Profile"),
+            color: AppColors.secondary,
           ),
         ],
       ),

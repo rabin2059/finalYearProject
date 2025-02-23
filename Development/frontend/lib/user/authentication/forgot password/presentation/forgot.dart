@@ -6,6 +6,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../components/AppColors.dart';
 import '../../../../components/CustomButton.dart';
 import '../../../../components/CustomTextField.dart';
+import '../../../../data/services/request_otp.dart';
+import '../../otp/presentation/otp.dart';
 
 // Import custom components and utilities
 
@@ -75,11 +77,6 @@ class _ForgotState extends State<Forgot> {
     );
   }
 
-  /// Sends a request to the server to generate and send OTP to user's email
-  ///
-  /// Makes a POST request to the reqOTP endpoint with the user's email.
-  /// On success, navigates to OTP verification screen.
-  /// On failure, prints error message to console.
   Future<void> _reqOTP() async {
     if (emailController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -92,22 +89,22 @@ class _ForgotState extends State<Forgot> {
       isLoading = true;
     });
 
-  //   try {
-  //     await OTPService.requestOTP(emailController.text);
+    try {
+      await OTPService.requestOTP(emailController.text);
       
-  //     Navigator.push(
-  //       context,
-  //       MaterialPageRoute(
-  //           builder: (context) => OTP(email: emailController.text)),
-  //     );
-  //   } catch (e) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text(e.toString())),
-  //     );
-  //   } finally {
-  //     setState(() {
-  //       isLoading = false;
-  //     });
-  //   }
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => OTP(email: emailController.text)),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 }

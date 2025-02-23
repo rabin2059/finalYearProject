@@ -78,81 +78,66 @@ const createRoute = async (req, res) => {
     console.log(req.body);
 
     const result = await prisma.$transaction(async (tx) => {
-      // ✅ Check if a route already exists for this vehicle
-      let existingRoute = await tx.route.findFirst({
-        where: { vehicleID },
-      });
+      let existingRoute = await tx.route.findFirst({ where: { vehicleID } });
 
       let route;
       if (existingRoute) {
         console.log("Updating existing route...");
-        route = existingRoute; // Use the existing route
+        route = existingRoute;
       } else {
         console.log("Creating new route...");
-        // Create the Route
         route = await tx.route.create({
-          data: {
-            name,
-            startPoint,
-            endPoint,
-            vehicleID,
-            fare,
-          },
+          data: { name, startPoint, endPoint, vehicleID, fare },
         });
       }
 
       let coordinates = [];
 
-      // ✅ Delete existing bus stops if updating a route
       if (existingRoute) {
-        await tx.routeBusStop.deleteMany({
-          where: { routeId: route.id },
-        });
+        await tx.routeBusStop.deleteMany({ where: { routeId: route.id } });
       }
 
-      // ✅ Process each bus stop
       for (let i = 0; i < busStops.length; i++) {
-        const stopName = busStops[i];
+        const stop = busStops[i];
 
-        console.log(stopName);
-        // Check if bus stop exists
         let busStop = await tx.busStop.findFirst({
-          where: {
-            name: stopName.name,
-          },
+          where: { name: stop.name },
         });
-
-        // If bus stop doesn't exist, create it
         if (!busStop) {
           busStop = await tx.busStop.create({
             data: {
-              name: stopName.name,
-              latitude: stopName.latitude,
-              longitude: stopName.longitude,
+              name: stop.name,
+              latitude: stop.latitude,
+              longitude: stop.longitude,
             },
           });
         }
 
-        console.log("bus", busStop);
-
-        // Associate the bus stop with the route
         await tx.routeBusStop.create({
           data: {
             routeId: route.id,
             busStopId: busStop.id,
-            sequence: stopName.sequence,
+            sequence: stop.sequence,
           },
         });
 
-        // Store the coordinates for polyline encoding
         coordinates.push([busStop.latitude, busStop.longitude]);
+
+        // ✅ Fetch intermediate route points (except for last stop)
+        if (i < busStops.length - 1) {
+          const nextStop = busStops[i + 1];
+          const routePoints = await getRoutePoints(
+            [stop.latitude, stop.longitude],
+            [nextStop.latitude, nextStop.longitude]
+          );
+          coordinates.push(...routePoints); // Append road path
+        }
       }
 
-      // ✅ Encode the polyline
+      // ✅ Encode the polyline with intermediate points
       const encodedPolyline = polyline.encode(coordinates);
       console.log("Encoded Polyline:", encodedPolyline);
 
-      // ✅ Update or create the route with the polyline
       await tx.route.update({
         where: { id: route.id },
         data: { polyline: encodedPolyline, name, startPoint, endPoint, fare },

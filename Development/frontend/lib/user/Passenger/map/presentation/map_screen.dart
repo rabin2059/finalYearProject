@@ -89,6 +89,22 @@ class _MapScreensState extends ConsumerState<MapScreens> {
             ],
           ),
 
+          // **Back Button**
+          Positioned(
+            top: 50.h,
+            left: 15.w,
+            child: FloatingActionButton(
+              heroTag: "back",
+              mini: true,
+              backgroundColor: Colors.white,
+              elevation: 2,
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Icon(Icons.arrow_back, size: 25.r),
+            ),
+          ),
+
           // **Search UI**
           isSearching
               ? Positioned(

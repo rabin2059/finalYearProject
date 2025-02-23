@@ -74,4 +74,33 @@ class MapService {
     }
     throw Exception("Failed to fetch route");
   }
+
+  Future<LatLng?> getLatLngFromLocation(String locationName) async {
+    final String baseUrl = 'https://nominatim.openstreetmap.org/search';
+    final Uri url = Uri.parse(
+        '$baseUrl?q=${Uri.encodeComponent(locationName)}&format=json&limit=1');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+
+        if (data.isNotEmpty) {
+          final double latitude = double.parse(data[0]['lat']);
+          final double longitude = double.parse(data[0]['lon']);
+          return LatLng(latitude, longitude);
+        } else {
+          print('Location not found');
+          return null;
+        }
+      } else {
+        print('Failed to fetch location: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Error fetching location: $e');
+      return null;
+    }
+  }
 }
