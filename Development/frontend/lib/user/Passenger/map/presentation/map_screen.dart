@@ -33,6 +33,10 @@ class _MapScreensState extends ConsumerState<MapScreens> {
   bool _showStartSuggestions = false;
   bool _showEndSuggestions = false;
 
+  final List<Marker> _vehicleMarkers = [];
+  bool _showDriverInfo = false;
+  Map<String, dynamic>? _selectedDriver;
+
   @override
   void dispose() {
     _startController.dispose();
@@ -86,6 +90,35 @@ class _MapScreensState extends ConsumerState<MapScreens> {
                     ),
                   ],
                 ),
+              MarkerLayer(
+                markers: [
+                  ..._vehicleMarkers,
+                  if (mapState.route != null) ...[
+                    // Start point marker
+                    Marker(
+                      width: 40.w,
+                      height: 40.h,
+                      point: LatLng(
+                        mapState.route!.routePoints.first.latitude,
+                        mapState.route!.routePoints.first.longitude,
+                      ),
+                      child: const Icon(Icons.location_on,
+                          color: Colors.green, size: 30),
+                    ),
+                    // End point marker
+                    Marker(
+                      width: 40.w,
+                      height: 40.h,
+                      point: LatLng(
+                        mapState.route!.routePoints.last.latitude,
+                        mapState.route!.routePoints.last.longitude,
+                      ),
+                      child: const Icon(Icons.location_on,
+                          color: Colors.red, size: 30),
+                    ),
+                  ],
+                ],
+              ),
             ],
           ),
 
@@ -128,6 +161,25 @@ class _MapScreensState extends ConsumerState<MapScreens> {
                     child: Icon(Icons.search, size: 25.r),
                   ),
                 ),
+
+          // Add Driver Info Sheet
+          if (_showDriverInfo && _selectedDriver != null)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: GestureDetector(
+                onVerticalDragUpdate: (details) {
+                  // Add drag to dismiss functionality if needed
+                  if (details.primaryDelta! > 10) {
+                    setState(() {
+                      _showDriverInfo = false;
+                    });
+                  }
+                },
+                child: _buildDriverInfoSheet(),
+              ),
+            ),
         ],
       ),
     );
@@ -172,27 +224,7 @@ class _MapScreensState extends ConsumerState<MapScreens> {
               text: "Find Now",
               color: AppColors.primary,
               onPressed: () async {
-                final start = await mapNotifier
-                    .getCoordinatesFromAddress(_startController.text);
-                final end = await mapNotifier
-                    .getCoordinatesFromAddress(_endController.text);
-
-                if (start != null && end != null) {
-                  LatLng startLatLng = LatLng(start.latitude, start.longitude);
-                  LatLng endLatLng = LatLng(end.latitude, end.longitude);
-
-                  await mapNotifier.fetchRoute(startLatLng, endLatLng);
-
-                  _controller.move(
-                    LatLng((start.latitude + end.latitude) / 2,
-                        (start.longitude + end.longitude) / 2),
-                    _getZoomForBounds(LatLngBounds(startLatLng, endLatLng)),
-                  );
-                }
-
-                setState(() {
-                  isSearching = false;
-                });
+                await _handleFindNowPress(mapNotifier);
               },
             ),
           ),
@@ -314,5 +346,212 @@ class _MapScreensState extends ConsumerState<MapScreens> {
             _currentZoom >= 12; // Show markers when zoom level is 12 or higher
       });
     }
+  }
+
+  Future<void> _handleFindNowPress(MapNotifier mapNotifier) async {
+    final start =
+        await mapNotifier.getCoordinatesFromAddress(_startController.text);
+    final end =
+        await mapNotifier.getCoordinatesFromAddress(_endController.text);
+
+    if (start != null && end != null) {
+      LatLng startLatLng = LatLng(start.latitude, start.longitude);
+      LatLng endLatLng = LatLng(end.latitude, end.longitude);
+
+      await mapNotifier.fetchRoute(startLatLng, endLatLng);
+
+      // Convert route points to LatLng before adding mock vehicles
+      final routePoints = ref
+          .read(mapProvider)
+          .route!
+          .routePoints
+          .map((point) => LatLng(point.latitude, point.longitude))
+          .toList();
+      _addMockVehicles(routePoints);
+
+      // Center the map between start and end points
+      final centerLat = (startLatLng.latitude + endLatLng.latitude) / 2;
+      final centerLng = (startLatLng.longitude + endLatLng.longitude) / 2;
+
+      // Calculate appropriate zoom level
+      final bounds = LatLngBounds(startLatLng, endLatLng);
+      final zoom = _getZoomForBounds(bounds);
+
+      _controller.move(LatLng(centerLat, centerLng), zoom);
+
+      setState(() {
+        isSearching = false;
+      });
+    }
+  }
+
+  void _addMockVehicles(List<LatLng> routePoints) {
+    _vehicleMarkers.clear();
+
+    for (int i = 0; i < 3; i++) {
+      int randomIndex = Random().nextInt(routePoints.length);
+      _vehicleMarkers.add(
+        Marker(
+          width: 40.w,
+          height: 40.h,
+          point: routePoints[randomIndex],
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _selectedDriver = {
+                    'name': 'Driver ${i + 1}',
+                    'image': 'https://picsum.photos/150',
+                    'vehicleInfo': 'Vehicle ${i + 1} - ABC${1000 + i}',
+                    'rating': 4.5,
+                    'distance': '${Random().nextInt(5) + 1} km away',
+                  };
+                  _showDriverInfo = true;
+                });
+              },
+              child: Container(
+                width: 40.w,
+                height: 40.h,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.primary, width: 2),
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.directions_bus,
+                    color: AppColors.primary,
+                    size: 25,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    setState(() {});
+  }
+
+  Widget _buildDriverInfoSheet() {
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.7,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag Handle
+          Container(
+            width: 40.w,
+            height: 5.h,
+            margin: EdgeInsets.symmetric(vertical: 10.h),
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(2.5.r),
+            ),
+          ),
+          // Content
+          Flexible(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, -5),
+                  ),
+                ],
+              ),
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(16.w),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 30.r,
+                          backgroundColor: Colors.grey[200],
+                          child: ClipOval(
+                            child: Image.network(
+                              _selectedDriver!['image'] ?? '',
+                              width: 60.w,
+                              height: 60.h,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Icon(
+                                  Icons.person,
+                                  size: 30.r,
+                                  color: Colors.grey[400],
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 16.w),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _selectedDriver!['name'] ?? '',
+                                style: TextStyle(
+                                  fontSize: 18.sp,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 4.h),
+                              Text(
+                                _selectedDriver!['vehicleInfo'] ?? '',
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              SizedBox(height: 4.h),
+                              Row(
+                                children: [
+                                  Icon(Icons.star,
+                                      color: Colors.amber, size: 16.r),
+                                  SizedBox(width: 4.w),
+                                  Text(
+                                    '${_selectedDriver!['rating']}',
+                                    style: TextStyle(fontSize: 14.sp),
+                                  ),
+                                  SizedBox(width: 16.w),
+                                  Icon(Icons.location_on,
+                                      color: Colors.grey, size: 16.r),
+                                  SizedBox(width: 4.w),
+                                  Text(
+                                    _selectedDriver!['distance'] ?? '',
+                                    style: TextStyle(fontSize: 14.sp),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20.h),
+                    CustomButton(
+                      text: "Book Now",
+                      color: AppColors.primary,
+                      onPressed: () {
+                        // Add booking functionality here
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

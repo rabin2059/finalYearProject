@@ -7,19 +7,7 @@ const rateLimit = require("express-rate-limit");
 const { logger } = require("./utils/logger");
 const errorHandler = require("./middleware/errorHandler");
 const http = require("http");
-const { Server } = require("socket.io");
-
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
-
-// Socket.io connection
-io.on("connection", (socket) => {
-  console.log("a user connected", socket.id);
-  socket.on("message", (message) => {
-    console.log(message);
-  });
-});
+const { app, server } = require("./controller/socketController");
 
 // Middleware
 app.use(cors());

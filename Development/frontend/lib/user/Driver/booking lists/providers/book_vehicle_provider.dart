@@ -11,11 +11,13 @@ class BookVehicleNotifier extends StateNotifier<BookVehicleState> {
       : super(BookVehicleState());
 
   Future<void> fetchBookingsByVehicle(int vehicleId) async {
+    print(vehicleId.toString());
     try {
       state = state
           .copyWith(isLoading: true, errorMessage: '', bookingByVehicle: []);
       final bookVehicle =
           await bookVehicleService.fetchBookingsByVehicle(vehicleId);
+      print( bookVehicle);
       state = state.copyWith(isLoading: false, bookingByVehicle: bookVehicle);
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());

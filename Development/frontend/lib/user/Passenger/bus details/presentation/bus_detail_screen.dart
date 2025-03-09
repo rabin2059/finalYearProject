@@ -70,6 +70,12 @@ class _BusDetailScreenState extends ConsumerState<BusDetailScreen> {
                               'id': widget.busId.toString()
                             });
                           }),
+                      SizedBox(height: 10.h),
+                      CustomButton(
+                          text: "Chat",
+                          onPressed: () {
+                            context.pushNamed('/chat');
+                          }),
                     ],
                   ),
                 ),

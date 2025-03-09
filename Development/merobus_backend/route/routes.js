@@ -8,6 +8,7 @@ const driverController = require("../controller/driverController.js");
 const bookController = require("../controller/bookController.js");
 const vehicleController = require("../controller/vehicleController.js");
 const paymentController = require("../controller/paymentController.js");
+const chatController = require("../controller/chatController.js");
 const upload = require("../configs/storage.js");
 
 // Authentication routes
@@ -56,3 +57,7 @@ router.get("/getVehiclesRoute", vehicleController.getRoute);
 // payment related
 router.post("/initialize", paymentController.initialzeKhalti);
 router.get("/makePayment", paymentController.makePayment);
+
+// Chat related
+router.post("/sendMessage", chatController.sendMessage);
+router.get("/getMessage/:roomId", chatController.getMessages);

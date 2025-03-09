@@ -55,6 +55,8 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
       path: '/profile',
       builder: (context, state) => ProfileScreen()),
   GoRoute(
+      name: '/chat', path: '/chat', builder: (context, state) => ChatScreen(roomId: 1, roomName: 'Group Chat',)),
+  GoRoute(
       name: '/roleChange',
       path: '/roleChange',
       builder: (context, state) => RoleChangeScreen()),
@@ -62,8 +64,6 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
       name: '/bookings',
       path: '/bookings',
       builder: (context, state) => BookingListScreen()),
-  GoRoute(
-      name: '/chat', path: '/chat', builder: (context, state) => ChatScreen()),
   GoRoute(
       name: '/map', path: '/map', builder: (context, state) => MapScreens()),
   GoRoute(
