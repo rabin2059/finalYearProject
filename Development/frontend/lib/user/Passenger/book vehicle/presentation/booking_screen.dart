@@ -117,7 +117,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       MaterialPageRoute(
         builder: (context) => SelectSeatScreen(
           vehicleType: state.vehicle?.vehicleType ?? "Unknown",
-          selectedSeats: _selectedSeats,
+          selectedSeats: _selectedSeats, bookedSeats: {},
+          
         ),
       ),
     );

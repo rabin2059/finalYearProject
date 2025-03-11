@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:frontend/user/Driver/booking%20lists/providers/book_vehicle_provider.dart';
 import 'package:frontend/user/Passenger/setting/providers/setting_provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import '../../../Passenger/booking lists/providers/book_list_provider.dart';
 
 class BookVehicleListScreen extends ConsumerStatefulWidget {
   const BookVehicleListScreen({super.key});
@@ -26,15 +27,15 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
     final vehicleId = ref.read(settingProvider).users[0].vehicleId;
     print('Vehicle ID: $vehicleId');
     if (vehicleId != null) {
-      ref.read(bookListProvider.notifier).fetchBookings(vehicleId);
+      ref.read(bookVehicleProvider.notifier).fetchBookingsByVehicle(vehicleId);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final bookState = ref.watch(bookListProvider);
+    final bookingByVehicletate = ref.watch(bookVehicleProvider);
 
-    if (bookState.loading) {
+    if (bookingByVehicletate.isLoading) {
       fetchBookings();
     }
 
@@ -46,12 +47,6 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
       body: Column(
         children: [
           _buildDateSelector(),
-          Text(
-            bookState.books!.isNotEmpty
-                ? bookState.books![0].id.toString()
-                : 'No bookings found',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
           Expanded(
             child: Container(
               decoration: const BoxDecoration(
@@ -59,11 +54,13 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
               ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: bookState.loading
+                child: bookingByVehicletate.isLoading
                     ? _buildLoadingUI()
-                    : (bookState.books == null || bookState.books!.isEmpty)
+                    : (bookingByVehicletate.bookingByVehicle == null ||
+                            bookingByVehicletate.bookingByVehicle!.isEmpty)
                         ? _buildNoBookingsUI()
-                        : _buildFilteredBookings(bookState.books!),
+                        : _buildFilteredBookings(
+                            bookingByVehicletate.bookingByVehicle!),
               ),
             ),
           ),
@@ -153,64 +150,70 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
     DateTime bookingDate = DateTime.parse(booking.bookingDate);
     String formattedDate = DateFormat('yyyy-MM-dd').format(bookingDate);
 
-    return Card(
-      elevation: 1,
-      color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10.r),
-      ),
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Pick-up & Drop-off Points with Bus Icon
-            Row(
-              children: [
-                const Icon(Icons.directions_bus, color: Colors.blue, size: 28),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildLocationRow(
-                          Icons.location_on, 'From:', booking.pickUpPoint),
-                      _buildLocationRow(
-                          Icons.flag, 'To:', booking.dropOffPoint),
-                    ],
+    return GestureDetector(
+      onTap: () {
+        context.pushNamed('/bookingDetails', pathParameters: {
+          'bookId': booking.id.toString(),
+          'userId': booking.userId.toString(),
+        });
+      },
+      child: Card(
+        elevation: 1,
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.r),
+        ),
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.directions_bus,
+                      color: Colors.blue, size: 28),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildLocationRow(
+                            Icons.location_on, 'From:', booking.pickUpPoint),
+                        _buildLocationRow(
+                            Icons.flag, 'To:', booking.dropOffPoint),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const Divider(),
-            _buildLocationRow(Icons.calendar_today, 'Date:', formattedDate),
-            const SizedBox(height: 8),
-            // Fare & Status Badge
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Fare: Rs.${booking.totalFare}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  ),
-                ),
-                _buildStatusBadge(booking.status),
-              ],
-            ),
-            const SizedBox(height: 8),
-            // Delete Button
-            Align(
-              alignment: Alignment.centerRight,
-              child: IconButton(
-                onPressed: () => _showDeleteConfirmation(booking.id),
-                icon: const Icon(Icons.delete, color: Colors.redAccent),
+                ],
               ),
-            ),
-          ],
+              const Divider(),
+              _buildLocationRow(Icons.calendar_today, 'Date:', formattedDate),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Fare: Rs.${booking.totalFare}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
+                    ),
+                  ),
+                  _buildStatusBadge(booking.status),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: IconButton(
+                  onPressed: () => _showDeleteConfirmation(booking.id),
+                  icon: const Icon(Icons.delete, color: Colors.redAccent),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

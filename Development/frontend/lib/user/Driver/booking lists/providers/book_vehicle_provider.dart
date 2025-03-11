@@ -15,9 +15,10 @@ class BookVehicleNotifier extends StateNotifier<BookVehicleState> {
     try {
       state = state
           .copyWith(isLoading: true, errorMessage: '', bookingByVehicle: []);
+      print(state);
       final bookVehicle =
           await bookVehicleService.fetchBookingsByVehicle(vehicleId);
-      print( bookVehicle);
+      print(" gvgvvy $bookVehicle");
       state = state.copyWith(isLoading: false, bookingByVehicle: bookVehicle);
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());

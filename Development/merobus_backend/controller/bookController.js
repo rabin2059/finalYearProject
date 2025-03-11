@@ -113,6 +113,7 @@ const getSingleBooking = async (req, res) => {
 const getBookingsByVehicle = async (req, res) => {
   try {
     const { vehicleId } = req.query;
+    console.log(vehicleId)
     const bookings = await prisma.booking.findMany({
       where: {
         vehicleId: parseInt(vehicleId),

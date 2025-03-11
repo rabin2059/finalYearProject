@@ -186,70 +186,76 @@ class _BusScreenState extends ConsumerState<BusScreen> {
     );
   }
 
-  /// Builds Individual Bus Card
-  /// **Builds Individual Bus Card**
-Widget _buildBusCard(bus) {
-  final route = bus.route;
-  final seatCount = bus.vehicleSeat?.length ?? 0;
-  final owner = bus.owner;
-  final booking = (bus.booking != null && bus.booking!.isNotEmpty)
-      ? bus.booking![0]
-      : null;
+  Widget _buildBusCard(bus) {
+    final route = bus.route;
+    final booking = bus.booking;
 
-  // Extract first word from start and end locations
-  String getFirstWord(String? location) {
-    if (location == null || location.isEmpty) return 'Unknown';
-    return location.split(',').first.trim(); // Get first word before comma
-  }
+    int bookedSeatsCount = bus.booking
+            ?.where(
+                (b) => DateTime.parse(b.bookingDate).isAfter(DateTime.now()))
+            .fold(0,
+                (sum, booking) => sum + (booking.bookingSeats?.length ?? 0)) ??
+        0;
 
-  return Card(
-    color: Colors.white,
-    margin: EdgeInsets.symmetric(vertical: 8.h),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10.r),
-    ),
-    child: Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _buildBusIcon(),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(children: [
-                    Text(bus.model ?? 'Unknown Bus',
-                        style: TextStyle(
-                            fontSize: 15.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textSecondary)),
-                    Text('-'),
-                    Text(bus.vehicleNo ?? 'N/A',
-                        style: TextStyle(
-                            fontSize: 15.sp,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary)),
-                  ]),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(bus.departure ?? 'N/A',
+    final seatCount = (bus.vehicleSeat?.length ?? 0) - bookedSeatsCount;
+
+    String getFirstWord(String? location) {
+      if (location == null || location.isEmpty) return 'Unknown';
+      return location.split(',').first.trim();
+    }
+
+    return GestureDetector(
+      onTap: () {
+        context
+            .pushNamed('/busDetail', pathParameters: {'id': bus.id.toString()});
+      },
+      child: Card(
+        color: Colors.white,
+        margin: EdgeInsets.symmetric(vertical: 8.h),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.r),
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+          child:
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            _buildBusIcon(),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      Text(bus.model ?? 'Unknown Bus',
                           style: TextStyle(
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary)),
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textSecondary)),
                       Text('-'),
-                      Text(bus.arrivalTime ?? 'N/A',
+                      Text(bus.vehicleNo ?? 'N/A',
                           style: TextStyle(
-                              fontSize: 14.sp,
+                              fontSize: 15.sp,
                               fontWeight: FontWeight.w600,
                               color: AppColors.textSecondary)),
-                    ],
-                  ),
-                  Row(
+                    ]),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(bus.departure ?? 'N/A',
+                            style: TextStyle(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary)),
+                        Text('-'),
+                        Text(bus.arrivalTime ?? 'N/A',
+                            style: TextStyle(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textSecondary)),
+                      ],
+                    ),
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(getFirstWord(route?.startPoint),
@@ -257,34 +263,35 @@ Widget _buildBusCard(bus) {
                         Text('-'),
                         Text(getFirstWord(route?.endPoint),
                             style: TextStyle(fontSize: 14.sp)),
-                      ]),
-                  SizedBox(
-                    height: 5.h,
-                  ),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 5.w),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.blue),
-                      borderRadius: BorderRadius.circular(5.r),
+                      ],
                     ),
-                    child: Text(
-                        "Seats Available: ${(bus.vehicleSeat?.length ?? 0) - (bus.booking?.fold(0, (sum, booking) => sum + (booking.bookingSeats?.length ?? 0)) ?? 0)} Seats",
+                    SizedBox(height: 5.h),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 5.w),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.blue),
+                        borderRadius: BorderRadius.circular(5.r),
+                      ),
+                      child: Text(
+                        "Booked Seats for Tomorrow: $bookedSeatsCount / $seatCount",
                         style: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue)),
-                  ),
-                ],
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          _buildPriceAndRating(route?.fare ?? 0),
-        ],
+            _buildPriceAndRating(route?.fare ?? 0),
+          ]),
+        ),
       ),
-    ),
-  );
-}
-  /// Bus Icon Widget
+    );
+  }
+
   Widget _buildBusIcon() {
     return Container(
       height: 50.h,

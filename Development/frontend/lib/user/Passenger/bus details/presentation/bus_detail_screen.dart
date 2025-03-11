@@ -1,94 +1,104 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:frontend/components/CustomButton.dart';
-import 'package:frontend/user/Passenger/bus%20details/providers/bus_details_provider.dart';
-import 'package:frontend/user/Passenger/bus%20details/providers/single_bus_state.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../components/AppColors.dart';
+import '../../../../components/CustomButton.dart';
 import '../../../../core/constants.dart';
+import '../providers/bus_details_provider.dart';
 
 class BusDetailScreen extends ConsumerStatefulWidget {
   const BusDetailScreen({super.key, required this.busId});
+
   final int busId;
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() =>
-      _BusDetailScreenState();
+  ConsumerState<BusDetailScreen> createState() => _BusDetailScreenState();
 }
 
 class _BusDetailScreenState extends ConsumerState<BusDetailScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() =>
-        ref.read(busDetailsProvider.notifier).fetchBusDetail(widget.busId));
-  }
-
-  /// **Fetch Bus Details**
-  Future<void> _fetchBusDetails() async {
-    try {
-      await ref.read(busDetailsProvider.notifier).fetchBusDetail(widget.busId);
-    } catch (e) {
-      debugPrint("Error fetching bus details: $e");
-    }
+    Future.microtask(
+      () => ref.read(busDetailsProvider.notifier).fetchBusDetail(widget.busId),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final busDetailState = ref.watch(busDetailsProvider);
+
+    final vehicle = busDetailState.vehicle;
+
+    int bookedSeatsCount = vehicle?.booking?.where((b) {
+          final bookingDate = DateTime.parse(b.bookingDate ?? '');
+          final tomorrow = DateTime.now().add(const Duration(days: 1));
+          return bookingDate.year == tomorrow.year &&
+              bookingDate.month == tomorrow.month &&
+              bookingDate.day == tomorrow.day;
+        }).fold(
+            0, (sum, booking) => sum! + (booking.bookingSeats?.length ?? 0)) ??
+        0;
+
+    final seatCount = (vehicle!.vehicleSeat?.length ?? 0) - bookedSeatsCount;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Bus Information"),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: busDetailState.isLoading
+      body: ref.watch(busDetailsProvider).isLoading
           ? const Center(child: CircularProgressIndicator())
-          : busDetailState.error.isNotEmpty
-              ? Center(child: Text(busDetailState.error))
-              : SingleChildScrollView(
-                  padding: EdgeInsets.all(16.w),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildBusInfoCard(busDetailState),
-                      SizedBox(height: 16.h),
-                      _buildImageGallery(),
-                      SizedBox(height: 16.h),
-                      _buildDriverDetails(busDetailState),
-                      SizedBox(height: 40.h),
-                      CustomButton(
-                          text: "Book Seat",
-                          onPressed: () {
-                            context.pushNamed('/book', pathParameters: {
-                              'id': widget.busId.toString()
-                            });
-                          }),
-                      SizedBox(height: 10.h),
-                      CustomButton(
-                          text: "Chat",
-                          onPressed: () {
-                            context.pushNamed('/chat');
-                          }),
-                    ],
+          : SingleChildScrollView(
+              padding: EdgeInsets.all(16.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildBusInfoCard(),
+                  SizedBox(height: 16.h),
+                  _buildImageGallery(),
+                  SizedBox(height: 16.h),
+                  _buildDriverDetails(),
+                  SizedBox(height: 40.h),
+                  CustomButton(
+                    text: "Book Seat",
+                    onPressed: () =>
+                        context.pushNamed('/book', pathParameters: {
+                      'id': widget.busId.toString(),
+                    }),
                   ),
-                ),
+                  SizedBox(height: 10.h),
+                  CustomButton(
+                    text: "Chat",
+                    onPressed: () => context.pushNamed('/chat'),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 
-  /// **Bus Information Card**
-  Widget _buildBusInfoCard(busDetailState) {
-    final vehicle = busDetailState.vehicle;
+  Widget _buildBusInfoCard() {
+    final vehicle = ref.watch(busDetailsProvider).vehicle;
 
-    if (vehicle == null) {
-      return const SizedBox();
-    }
+    final bookedSeatsCount = vehicle?.booking?.where((b) {
+          final bookingDate = DateTime.parse(b.bookingDate ?? "");
+          final tomorrow = DateTime.now().add(const Duration(days: 1));
+          return bookingDate.year == tomorrow.year &&
+              bookingDate.month == tomorrow.month &&
+              bookingDate.day == tomorrow.day;
+        }).fold(
+            0, (sum, booking) => sum + (booking.bookingSeats?.length ?? 0)) ??
+        0;
+
+    final availableSeats =
+        (vehicle?.vehicleSeat?.length ?? 0) - bookedSeatsCount;
 
     return Container(
       padding: EdgeInsets.all(16.w),
@@ -108,11 +118,11 @@ class _BusDetailScreenState extends ConsumerState<BusDetailScreen> {
               ),
               SizedBox(width: 10.w),
               Text(
-                "Bus No ${vehicle.vehicleNo ?? 'N/A'} ",
+                "Bus No ${vehicle?.vehicleNo ?? 'N/A'}",
                 style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
-              Text("₹${vehicle.route[0].fare ?? 'N/A'}",
+              Text("₹${vehicle?.route?[0].fare ?? 'N/A'}",
                   style: TextStyle(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
@@ -121,25 +131,19 @@ class _BusDetailScreenState extends ConsumerState<BusDetailScreen> {
           ),
           SizedBox(height: 10.h),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Icon(Icons.access_time, size: 16, color: Colors.black54),
-              SizedBox(width: 5.w),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(vehicle.departure ?? 'N/A',
-                      style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary)),
-                  Text('-'),
-                  Text(vehicle.arrivalTime ?? 'N/A',
-                      style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary)),
-                ],
-              ),
+              Text(vehicle?.departure ?? 'N/A',
+                  style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary)),
+              Text('-'),
+              Text(vehicle?.arrivalTime ?? 'N/A',
+                  style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary)),
             ],
           ),
           SizedBox(height: 10.h),
@@ -147,8 +151,7 @@ class _BusDetailScreenState extends ConsumerState<BusDetailScreen> {
             children: [
               _buildTag("1:15 h"),
               SizedBox(width: 10.w),
-              _buildTag(
-                  "${(vehicle.vehicleSeat?.length ?? 0) - (vehicle.booking?.fold(0, (sum, booking) => sum + (booking.bookingSeats?.length ?? 0)) ?? 0)} Seats"),
+              _buildTag("$availableSeats Seats"),
               const Spacer(),
               _buildRatingTag("4.5"),
             ],
@@ -158,7 +161,36 @@ class _BusDetailScreenState extends ConsumerState<BusDetailScreen> {
     );
   }
 
-  /// **Image Gallery**
+  Widget _buildDriverDetails() {
+    final owner = ref.watch(busDetailsProvider).vehicle?.owner;
+
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 30.r,
+          backgroundImage: owner?.images != null
+              ? NetworkImage(imageUrl + owner!.images!)
+              : const AssetImage("assets/profile.png") as ImageProvider,
+        ),
+        SizedBox(width: 15.w),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Driver: ${owner?.username ?? 'N/A'}",
+                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+            Text(owner?.phone ?? 'N/A',
+                style: TextStyle(fontSize: 14.sp, color: Colors.black87)),
+          ],
+        ),
+        const Spacer(),
+        IconButton(
+          onPressed: () => launchUrl(Uri(scheme: 'tel', path: owner?.phone)),
+          icon: const Icon(Icons.call, color: Colors.green, size: 28),
+        ),
+      ],
+    );
+  }
+
   Widget _buildImageGallery() {
     return Row(
       children: [
@@ -181,96 +213,25 @@ class _BusDetailScreenState extends ConsumerState<BusDetailScreen> {
     );
   }
 
-  /// **Driver Details Section**
-  Widget _buildDriverDetails(busDetailState) {
-    final owner = busDetailState.vehicle?.owner;
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(10.r),
-      ),
-      child: Row(
-        children: [
-          // Driver Image
-          ClipRRect(
-            borderRadius: BorderRadius.circular(50.r),
-            child: owner?.images != null && owner!.images!.isNotEmpty
-                ? Image.network(
-                    imageUrl + owner!.images!, // Ensure it's a valid URL
-                    width: 60.w,
-                    height: 60.h,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Image.asset(
-                        "assets/profile.png", // Fallback image
-                        width: 60.w,
-                        height: 60.h,
-                        fit: BoxFit.cover,
-                      );
-                    },
-                  )
-                : Image.asset(
-                    "assets/profile.png", // Default placeholder image
-                    width: 60.w,
-                    height: 60.h,
-                    fit: BoxFit.cover,
-                  ),
-          ),
-          SizedBox(width: 15.w),
-
-          // Driver Details
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Driver: ${owner?.username ?? 'N/A'}",
-                  style:
-                      TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
-              SizedBox(height: 5.h),
-              Row(
-                children: [
-                  Icon(Icons.phone, color: Colors.green, size: 18),
-                  SizedBox(width: 5.w),
-                  Text(owner?.phone ?? 'N/A',
-                      style: TextStyle(fontSize: 14.sp, color: Colors.black87)),
-                ],
-              ),
-            ],
-          ),
-          const Spacer(),
-
-          // Call Button
-          IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.call, color: Colors.green, size: 28),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// **Small Tag Component**
   Widget _buildTag(String text) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(5.r),
         border: Border.all(color: Colors.grey.shade400),
+        borderRadius: BorderRadius.circular(5.r),
       ),
-      child: Text(text, style: TextStyle(fontSize: 12.sp, color: Colors.black)),
+      child: Text(text, style: TextStyle(fontSize: 12.sp)),
     );
   }
 
-  /// **Rating Tag**
   Widget _buildRatingTag(String rating) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
       decoration: BoxDecoration(
+        color: AppColors.primary,
         borderRadius: BorderRadius.circular(5.r),
-        color: Colors.green.shade600,
       ),
-      child: Text("⭐ $rating",
-          style: TextStyle(fontSize: 12.sp, color: Colors.white)),
+      child: Text('⭐️ $rating', style: TextStyle(fontSize: 12.sp)),
     );
   }
 }
