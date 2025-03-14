@@ -190,15 +190,6 @@ class _BusScreenState extends ConsumerState<BusScreen> {
     final route = bus.route;
     final booking = bus.booking;
 
-    int bookedSeatsCount = bus.booking
-            ?.where(
-                (b) => DateTime.parse(b.bookingDate).isAfter(DateTime.now()))
-            .fold(0,
-                (sum, booking) => sum + (booking.bookingSeats?.length ?? 0)) ??
-        0;
-
-    final seatCount = (bus.vehicleSeat?.length ?? 0) - bookedSeatsCount;
-
     String getFirstWord(String? location) {
       if (location == null || location.isEmpty) return 'Unknown';
       return location.split(',').first.trim();
@@ -264,22 +255,6 @@ class _BusScreenState extends ConsumerState<BusScreen> {
                         Text(getFirstWord(route?.endPoint),
                             style: TextStyle(fontSize: 14.sp)),
                       ],
-                    ),
-                    SizedBox(height: 5.h),
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 5.w),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.blue),
-                        borderRadius: BorderRadius.circular(5.r),
-                      ),
-                      child: Text(
-                        "Booked Seats for Tomorrow: $bookedSeatsCount / $seatCount",
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
-                        ),
-                      ),
                     ),
                   ],
                 ),

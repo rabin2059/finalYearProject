@@ -50,6 +50,7 @@ router.post("/booking", bookController.booking);
 router.get("/getBookings", bookController.getBookings);
 router.get("/getSingleBooking", bookController.getSingleBooking);
 router.get("/getBookingsByVehicle", bookController.getBookingsByVehicle);
+router.get("/getBookingByDate", bookController.getBookingByDate);
 
 // vehicle related
 router.get("/getVehiclesRoute", vehicleController.getRoute);

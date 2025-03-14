@@ -182,7 +182,9 @@ class _BookingUserDetailsState extends ConsumerState<BookingUserDetails> {
 
   Future<void> _launchPhoneCall(String phoneNumber) async {
     final Uri callUri = Uri(scheme: 'tel', path: phoneNumber);
+    print(callUri);
     if (await canLaunchUrl(callUri)) {
+      print("object");
       await launchUrl(callUri);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

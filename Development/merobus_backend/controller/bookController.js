@@ -113,7 +113,7 @@ const getSingleBooking = async (req, res) => {
 const getBookingsByVehicle = async (req, res) => {
   try {
     const { vehicleId } = req.query;
-    console.log(vehicleId)
+    console.log(vehicleId);
     const bookings = await prisma.booking.findMany({
       where: {
         vehicleId: parseInt(vehicleId),
@@ -129,9 +129,57 @@ const getBookingsByVehicle = async (req, res) => {
     res.status(500).json({ message: error.message || "Server error" });
   }
 };
+
+const getBookingByDate = async (req, res) => {
+  try {
+    const { date, vehicleId } = req.query;
+    console.log(req.query);
+
+    if (!date) {
+      return res
+        .status(400)
+        .json({ error: "Date query parameter is required" });
+    }
+    if (!vehicleId || isNaN(parseInt(vehicleId))) {
+      return res
+        .status(400)
+        .json({ error: "Valid vehicleId parameter is required" });
+    }
+
+    const inputDate = new Date(date).toISOString().split("T")[0];
+
+    const startDate = new Date(`${inputDate}T00:00:00.000Z`);
+    const endDate = new Date(`${inputDate}T23:59:59.999Z`);
+
+    console.log("Received Date Query:", date);
+    console.log("Parsed Start Date:", startDate);
+    console.log("Parsed End Date:", endDate);
+
+    // Prisma Query
+    const bookings = await prisma.booking.findMany({
+      where: {
+        bookingDate: {
+          gte: startDate,
+          lte: endDate,
+        },
+        vehicleId: parseInt(vehicleId),
+      },
+      include: {
+        bookingSeats: true,
+      },
+    });
+
+    res.status(200).json(bookings);
+  } catch (error) {
+    console.error("Error fetching bookings:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   booking,
   getBookings,
   getSingleBooking,
   getBookingsByVehicle,
+  getBookingByDate,
 };

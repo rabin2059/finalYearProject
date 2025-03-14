@@ -29,39 +29,47 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> {
     _selectedSeats = Set.from(widget.selectedSeats);
   }
 
-  List<List<String>> getSeatLayout() {
+  List<List<String>> getSeatLayout(
+      List<int?> totalSeats, Set<String> bookedSeats) {
     List<List<String>> baseLayout = widget.vehicleType == 'Bus'
         ? [
-            ['1', '2', '', '3', '4'],
-            ['5', '6', '', '7', '8'],
-            ['9', '10', '', '11', '12'],
-            ['13', '14', '', '15', '16'],
-            ['17', '18', '', '19', '20'],
-            ['21', '22', '', '23', '24'],
-            ['25', '26', '', '27', '28'],
-            ['29', '30', '', '31', '32'],
-            ['33', '34', '', '35', '36'],
-            ['37', '38', '39', '40', '41'],
+            ['X', 'X', '', 'X', 'X'],
+            ['X', 'X', '', 'X', 'X'],
+            ['X', 'X', '', 'X', 'X'],
+            ['X', 'X', '', 'X', 'X'],
+            ['X', 'X', '', 'X', 'X'],
+            ['X', 'X', '', 'X', 'X'],
+            ['X', 'X', '', 'X', 'X'],
+            ['X', 'X', '', 'X', 'X'],
+            ['X', 'X', '', 'X', 'X'],
+            ['X', 'X', 'X', 'X', 'X'],
           ]
         : [
-            ['1', '2'],
-            ['3', '4'],
-            ['5', '6'],
+            ['X', 'X'],
+            ['X', 'X'],
+            ['X', 'X']
           ];
 
+    int seatNumber = 1;
     for (int i = 0; i < baseLayout.length; i++) {
       for (int j = 0; j < baseLayout[i].length; j++) {
-        if (widget.bookedSeats.contains(baseLayout[i][j])) {
-          baseLayout[i][j] = 'B'; // Mark as booked
+        if (baseLayout[i][j] == 'X') {
+          String seatStr = seatNumber.toString();
+          if (totalSeats.contains(seatNumber)) {
+            baseLayout[i][j] = bookedSeats.contains(seatStr) ? 'B' : seatStr;
+          } else {
+            baseLayout[i][j] = ''; // Empty space (aisle)
+          }
+          seatNumber++; // Increment seat number sequentially
         }
       }
     }
-
     return baseLayout;
   }
 
   void _toggleSeatSelection(String seat) {
-    if (seat == 'B') return; // Cannot select booked seats
+    if (widget.bookedSeats.contains(seat)) return; // Cannot select booked seats
+    if (seat == 'B') return; // Prevent selecting booked seats
     setState(() {
       if (_selectedSeats.contains(seat)) {
         _selectedSeats.remove(seat);
@@ -73,6 +81,14 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final busState = ref.watch(busDetailsProvider);
+    final state = busState.vehicle;
+    final totalSeats =
+        state?.vehicleSeat?.map((seat) => seat.seatNo).toList() ?? [];
+
+    // Convert booked seats to a Set<String> to match seat numbers
+    final bookedSeats = widget.bookedSeats.map((s) => s.toString()).toSet();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Select Seats"),
@@ -89,7 +105,8 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> {
               Expanded(
                 child: SingleChildScrollView(
                   child: Center(
-                    child: _buildSeatLayout(getSeatLayout()),
+                    child: _buildSeatLayout(
+                        getSeatLayout(totalSeats, bookedSeats)),
                   ),
                 ),
               ),
@@ -97,7 +114,7 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> {
               CustomButton(
                 text: _selectedSeats.isEmpty
                     ? "OK"
-                    : "OK (\${_selectedSeats.length} Selected)",
+                    : "OK (${_selectedSeats.length} Selected)",
                 width: 220.w,
                 onPressed: () {
                   Navigator.pop(context, _selectedSeats);
@@ -152,24 +169,26 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> {
                 ? Padding(
                     padding: EdgeInsets.all(5.w),
                     child: GestureDetector(
-                      onTap: () =>
-                          seat != 'B' ? _toggleSeatSelection(seat) : null,
+                      onTap: () => widget.bookedSeats.contains(seat)
+                          ? null
+                          : _toggleSeatSelection(seat),
                       child: Container(
                         width: 60.w,
                         height: 70.h,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: seat == 'B'
-                              ? Colors.redAccent.shade700
+                              ? Colors.redAccent.shade700 // 🔥 Booked
                               : _selectedSeats.contains(seat)
-                                  ? Colors.blue
-                                  : Colors.grey.shade300,
+                                  ? Colors.blueAccent.shade700 // ✅ Selected
+                                  : Colors.grey.shade300, // Available
                           borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: Text(
                           seat,
                           style: TextStyle(
-                            color: seat == 'B' || _selectedSeats.contains(seat)
+                            color: widget.bookedSeats.contains(seat) ||
+                                    _selectedSeats.contains(seat)
                                 ? Colors.white
                                 : Colors.black,
                             fontSize: 16.sp,
