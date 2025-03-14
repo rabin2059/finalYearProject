@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/components/CustomButton.dart';
-import 'package:frontend/components/CustomTextField.dart';
 import 'package:frontend/core/constants.dart';
 import 'package:frontend/user/authentication/login/providers/auth_provider.dart';
 import 'package:frontend/user/Passenger/bus%20details/providers/bus_details_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import '../../../../components/AppColors.dart';
 import '../../bus list/providers/bus_list_provider.dart';
 import '../../map/providers/map_provider.dart';
 import 'select_seat_screen.dart';
@@ -30,11 +30,17 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   Set<String> _selectedSeats = {}; // Store selected seats
   bool isSearching = true;
   Timer? _debounce;
+  Set<String> _bookedSeats = {};
 
   List<String> _pickupSuggestions = [];
   List<String> _dropoffSuggestions = [];
   bool _showPickupSuggestions = false;
   bool _showDropoffSuggestions = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -118,6 +124,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         builder: (context) => SelectSeatScreen(
           vehicleType: state.vehicle?.vehicleType ?? "Unknown",
           selectedSeats: _selectedSeats,
+          bookedSeats: _bookedSeats,
         ),
       ),
     );
@@ -126,6 +133,45 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       setState(() {
         _selectedSeats = selectedSeats;
       });
+    }
+  }
+
+  Future<void> getBookedSeats() async {
+    try {
+      final vehicleId = widget.busId;
+      final dateTime = _dateTimeController.text;
+
+      if (dateTime.isEmpty) {
+        print("No date selected.");
+        return;
+      }
+
+      final formattedDate = DateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+          .format(DateFormat("yyyy-MM-dd HH:mm").parse(dateTime));
+
+      final response = await http.get(
+        Uri.parse(
+            "$apiBaseUrl/getBookingByDate?date=$formattedDate&vehicleId=$vehicleId"),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as List;
+        final bookedSeats = data
+            .expand((booking) => booking["bookingSeats"])
+            .map((seat) => seat["seatNo"].toString())
+            .toSet();
+        print("Booked Seats: $bookedSeats");
+
+        setState(() {
+          _bookedSeats = bookedSeats; // Update UI with booked seats
+        });
+
+        print("Booked Seats: $_bookedSeats");
+      } else {
+        print("Failed to fetch booked seats: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error fetching booked seats: $e");
     }
   }
 
@@ -166,92 +212,96 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final mapNotifier =
-        ref.read(mapProvider.notifier); // ✅ Correct mapNotifier reference
+    final mapNotifier = ref.read(mapProvider.notifier);
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text("Book Seat"),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+        title: const Text(
+          "Book Seat",
+          style: TextStyle(color: AppColors.textPrimary),
         ),
+        backgroundColor: AppColors.primary,
+        iconTheme: const IconThemeData(color: AppColors.textPrimary),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSearchField(
-              controller: _pickupController,
-              hint: "From Location",
-              onSearch: (query) => _debouncedSearch(query, mapNotifier, true),
-            ),
-            _showPickupSuggestions
-                ? _buildSuggestions(_pickupSuggestions, true)
-                : const SizedBox(),
-            SizedBox(height: 16.h),
-            _buildSearchField(
-              controller: _dropoffController,
-              hint: "To Location",
-              onSearch: (query) => _debouncedSearch(query, mapNotifier, false),
-            ),
-            _showDropoffSuggestions
-                ? _buildSuggestions(_dropoffSuggestions, false)
-                : const SizedBox(),
-            SizedBox(height: 16.h),
-            _buildLabel("Date and Time"),
-            GestureDetector(
-              onTap: _selectDateTime,
-              child: AbsorbPointer(
-                child: TextField(
-                  controller: _dateTimeController,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    hintText: 'Select date and time',
-                    suffixIcon: Icon(Icons.calendar_today, color: Colors.grey),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSearchField(
+                controller: _pickupController,
+                hint: "From Location",
+                onSearch: (query) => _debouncedSearch(query, mapNotifier, true),
+              ),
+              _showPickupSuggestions
+                  ? _buildSuggestions(_pickupSuggestions, true)
+                  : const SizedBox(),
+              SizedBox(height: 16.h),
+              _buildSearchField(
+                controller: _dropoffController,
+                hint: "To Location",
+                onSearch: (query) =>
+                    _debouncedSearch(query, mapNotifier, false),
+              ),
+              _showDropoffSuggestions
+                  ? _buildSuggestions(_dropoffSuggestions, false)
+                  : const SizedBox(),
+              SizedBox(height: 16.h),
+              _buildLabel("Date and Time"),
+              GestureDetector(
+                onTap: _selectDateTime,
+                child: AbsorbPointer(
+                  child: TextField(
+                    controller: _dateTimeController,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      hintText: 'Select date and time',
+                      suffixIcon: const Icon(Icons.calendar_today,
+                          color: AppColors.iconColor),
+                    ),
                   ),
                 ),
               ),
-            ),
-            SizedBox(height: 10.h),
-            CustomButton(
-              text: _selectedSeats.isEmpty ? "Select Seats" : "Seats Selected",
-              width: 200.w,
-              onPressed: _navigateToSeatSelection,
-              color: _selectedSeats.isEmpty ? Colors.grey : Colors.blue,
-            ),
-            SizedBox(height: 30.h),
-            Center(
-              child: ElevatedButton(
-                onPressed: _bookSeat,
-                style: ElevatedButton.styleFrom(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 40.w, vertical: 15.h),
-                  backgroundColor: Colors.green,
-                ),
-                child: Text("Confirm Booking",
-                    style: TextStyle(color: Colors.white, fontSize: 16.sp)),
+              SizedBox(height: 20.h),
+              CustomButton(
+                text: _selectedSeats.isEmpty
+                    ? "Select Seats"
+                    : "Seats Selected (${_selectedSeats.length})",
+                width: double.infinity,
+                onPressed: _navigateToSeatSelection,
+                color: _selectedSeats.isEmpty
+                    ? AppColors.secondary
+                    : AppColors.buttonColor,
               ),
-            ),
-          ],
+              SizedBox(height: 30.h),
+              Center(
+                child: ElevatedButton(
+                  onPressed: _bookSeat,
+                  style: ElevatedButton.styleFrom(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 40.w, vertical: 15.h),
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.r)),
+                  ),
+                  child: Text("Confirm Booking",
+                      style: TextStyle(
+                          color: AppColors.buttonText, fontSize: 16.sp)),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  /// **Reusable Label Widget**
-  Widget _buildLabel(String text) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 5.h),
-      child: Text(
-        text,
-        style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-
-  /// **Search Field with Auto-Suggestions**
   Widget _buildSearchField({
     required TextEditingController controller,
     required String hint,
@@ -261,14 +311,17 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       controller: controller,
       decoration: InputDecoration(
         hintText: hint,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.r)),
-        prefixIcon: const Icon(Icons.search, color: Colors.grey),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10.r),
+            borderSide: BorderSide.none),
+        prefixIcon: const Icon(Icons.search, color: AppColors.iconColor),
       ),
       onChanged: onSearch,
     );
   }
 
-  /// **Builds Suggestions for Locations**
   Widget _buildSuggestions(List<String> suggestions, bool isPickup) {
     return Container(
       height: 150.h,
@@ -289,7 +342,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         itemCount: suggestions.length,
         itemBuilder: (context, index) {
           return ListTile(
-            title: Text(suggestions[index]),
+            title: Text(suggestions[index],
+                style: const TextStyle(color: AppColors.textPrimary)),
             onTap: () {
               setState(() {
                 if (isPickup) {
@@ -303,6 +357,19 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             },
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildLabel(String text) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 5.h),
+      child: Text(
+        text,
+        style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary),
       ),
     );
   }
@@ -335,6 +402,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           _dateTimeController.text =
               DateFormat('yyyy-MM-dd HH:mm').format(fullDateTime);
         });
+        getBookedSeats();
       }
     }
   }

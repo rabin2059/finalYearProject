@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/user/Driver/add%20route/presentation/add_route_screen.dart';
 import 'package:frontend/user/Driver/add%20vehicle/presentation/add_vehicle.dart';
+import 'package:frontend/user/Driver/booking%20users%20details/presentation/booking_user_details.dart';
 import 'package:frontend/user/Passenger/booking%20lists/presentation/booking_list_screen.dart';
 import 'package:frontend/user/Passenger/book%20vehicle/presentation/booking_screen.dart';
 import 'package:frontend/user/Passenger/bus%20details/presentation/bus_detail_screen.dart';
@@ -55,6 +56,13 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
       path: '/profile',
       builder: (context, state) => ProfileScreen()),
   GoRoute(
+      name: '/chat',
+      path: '/chat',
+      builder: (context, state) => ChatScreen(
+            roomId: 1,
+            roomName: 'Group Chat',
+          )),
+  GoRoute(
       name: '/roleChange',
       path: '/roleChange',
       builder: (context, state) => RoleChangeScreen()),
@@ -62,8 +70,6 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
       name: '/bookings',
       path: '/bookings',
       builder: (context, state) => BookingListScreen()),
-  GoRoute(
-      name: '/chat', path: '/chat', builder: (context, state) => ChatScreen()),
   GoRoute(
       name: '/map', path: '/map', builder: (context, state) => MapScreens()),
   GoRoute(
@@ -89,6 +95,15 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
         final id = int.parse(state.pathParameters['id'] ?? '0');
         return OverviewScreen(bookId: id);
       }),
+  GoRoute(
+    name: '/bookingDetails',
+    path: '/bookingDetails/:bookId/:userId',
+    builder: (context, state) {
+      final bookId = int.parse(state.pathParameters['bookId'] ?? '0');
+      final userId = int.parse(state.pathParameters['userId'] ?? '0');
+      return BookingUserDetails(bookId: bookId, userId: userId);
+    },
+  ),
   GoRoute(
     name: '/payment',
     path: '/payment/:url', // ✅ Accepts URL as a parameter

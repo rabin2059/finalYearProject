@@ -9,7 +9,7 @@ class BookVehicleService {
   BookVehicleService({required this.baseUrl});
 
   Future<List<BookingByVehicle>> fetchBookingsByVehicle(int vehicleId) async {
-    final url = Uri.parse('$baseUrl/getBookingsByVehicle?id=$vehicleId');
+    final url = Uri.parse('$baseUrl/getBookingsByVehicle?vehicleId=$vehicleId');
 
     try {
       final response = await http.get(url);

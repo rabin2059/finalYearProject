@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/user/Passenger/booking%20lists/providers/book_list_provider.dart';
 import 'package:frontend/user/authentication/login/providers/auth_provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class BookingListScreen extends ConsumerStatefulWidget {
@@ -15,10 +16,13 @@ class BookingListScreen extends ConsumerStatefulWidget {
 class _BookingListScreenState extends ConsumerState<BookingListScreen> {
   @override
   void initState() {
-    final userId = ref.read(authProvider).userId;
     super.initState();
-    Future.microtask(
-        () => ref.watch(bookListProvider.notifier).fetchBookings(userId!));
+    Future.microtask(() {
+      final userId = ref.read(authProvider).userId;
+      if (userId != null) {
+        ref.read(bookListProvider.notifier).fetchBookings(userId);
+      }
+    });
   }
 
   Future<void> getBookings() async {
@@ -51,13 +55,11 @@ class _BookingListScreenState extends ConsumerState<BookingListScreen> {
                 : ListView.builder(
                     itemCount: bookState.books!.length,
                     itemBuilder: (context, index) {
-                      // 🔥 Sort bookings by ID (newest first)
-                      final sortedBookings = bookState.books!
-                        ..sort((a, b) => b.id!
-                            .compareTo(a.id!)); // ✅ Sort by ID (Descending)
+                      // 🔥 Create a sorted copy of bookings (by ID - descending)
+                      final sortedBookings = List.from(bookState.books!)
+                        ..sort((a, b) => b.id!.compareTo(a.id!));
 
-                      final booking =
-                          sortedBookings[index]; // ✅ Use sorted list
+                      final booking = sortedBookings[index]; // Use sorted list
                       return _buildBookingCard(booking);
                     },
                   ),
@@ -65,7 +67,7 @@ class _BookingListScreenState extends ConsumerState<BookingListScreen> {
     );
   }
 
-  /// 🎨 **Booking Card Design**
+  /// 🎨 **Booking Card UI**
   Widget _buildBookingCard(booking) {
     DateTime bookingDate = DateTime.parse(booking.bookingDate);
     DateTime now = DateTime.now();
@@ -82,14 +84,13 @@ class _BookingListScreenState extends ConsumerState<BookingListScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🔹 Booking ID & Status Row
+            // 🔹 Booking Status Row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  // 'Booking ID: ${booking.id}',
-                  "",
-                  style: const TextStyle(
+                const Text(
+                  "Booking Details",
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
@@ -100,46 +101,23 @@ class _BookingListScreenState extends ConsumerState<BookingListScreen> {
             const Divider(),
 
             // 🔹 Pick-up & Drop-off Points
-            Row(
-              children: [
-                const Icon(Icons.location_on, color: Colors.green),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'From: ${booking.pickUpPoint}',
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                const Icon(Icons.flag, color: Colors.red),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'To: ${booking.dropOffPoint}',
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ),
-              ],
-            ),
+            _buildLocationRow(Icons.location_on, Colors.green,
+                'From: ${booking.pickUpPoint}'),
+            _buildLocationRow(
+                Icons.flag, Colors.red, 'To: ${booking.dropOffPoint}'),
+
             const SizedBox(height: 8),
 
             // 🔹 Booking Date
-            Row(
-              children: [
-                const Icon(Icons.calendar_today, color: Colors.blue),
-                const SizedBox(width: 8),
-                Text(
-                  'Date: ${DateFormat('yyyy-MM-dd').format(bookingDate)}',
-                  style: const TextStyle(fontSize: 14),
-                ),
-              ],
+            _buildLocationRow(
+              Icons.calendar_today,
+              Colors.blue,
+              'Date: ${DateFormat('yyyy-MM-dd').format(bookingDate)}',
             ),
+
             const SizedBox(height: 8),
 
-            // 🔹 Fare & Actions Row
+            // 🔹 Fare & Actions
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -150,10 +128,8 @@ class _BookingListScreenState extends ConsumerState<BookingListScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                // 🔥 **Dynamic Button Logic**
-                isPastDate
-                    ? const SizedBox() // No Button if Date has Passed
-                    : _buildActionButton(booking.status, booking.id),
+                // 🔥 Show button only if it's **not** a past booking
+                if (!isPastDate) _buildActionButton(booking.status, booking.id),
               ],
             ),
           ],
@@ -162,13 +138,29 @@ class _BookingListScreenState extends ConsumerState<BookingListScreen> {
     );
   }
 
-  /// 🎨 **Dynamic Action Button Logic**
+  /// 🎨 **Helper Widget for Location Rows**
+  Widget _buildLocationRow(IconData icon, Color color, String text) {
+    return Row(
+      children: [
+        Icon(icon, color: color),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(fontSize: 14),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 🎨 **Action Button Logic**
   Widget _buildActionButton(String status, int bookingId) {
     if (status.toLowerCase() == 'pending') {
       return ElevatedButton(
         onPressed: () {
-          print('Pay Now for booking $bookingId');
-          // Implement Payment Logic Here
+          context.pushNamed('overview',
+              pathParameters: {'id': bookingId.toString()});
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.green,
@@ -179,7 +171,7 @@ class _BookingListScreenState extends ConsumerState<BookingListScreen> {
       return ElevatedButton(
         onPressed: () {
           print('Cancel booking $bookingId');
-          // Implement Cancellation Logic Here
+          // 🔥 Implement Cancellation Logic Here
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.red,
@@ -190,7 +182,7 @@ class _BookingListScreenState extends ConsumerState<BookingListScreen> {
     return const SizedBox(); // No button for other statuses
   }
 
-  /// 🔥 **Status Badge**
+  /// 🔥 **Status Badge Widget**
   Widget _buildStatusBadge(String status) {
     Color statusColor;
     switch (status.toLowerCase()) {
@@ -222,10 +214,10 @@ class _BookingListScreenState extends ConsumerState<BookingListScreen> {
 
   /// 🔥 **Loading UI**
   Widget _buildLoadingUI() {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children: [
           CircularProgressIndicator(),
           SizedBox(height: 10),
           Text(
