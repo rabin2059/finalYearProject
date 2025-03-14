@@ -6,7 +6,10 @@ import 'package:frontend/user/Driver/add%20vehicle/presentation/select_seats_scr
 import 'package:frontend/user/Passenger/bus%20details/presentation/bus_detail_screen.dart';
 import 'package:frontend/user/Passenger/bus%20list/presentation/bus_screen.dart';
 import 'package:frontend/routes/app_router.dart';
+import 'package:frontend/user/Passenger/map/presentation/map_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import 'user/chat/presentation/chat_screen.dart';
 
 void main() {
   runApp(const ProviderScope(child: MyApp()));
@@ -38,7 +41,7 @@ class MyApp extends StatelessWidget {
         //     scaffoldBackgroundColor: Colors.white, // Set background to white
         //   ),
         //   debugShowCheckedModeBanner: false,
-        //   home: SelectSeatsScreen(vehicleType: 'Bus', selectedSeats: {}, ),
+        //   home: MapScreens(),
         // );
       },
     );

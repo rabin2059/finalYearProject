@@ -7,11 +7,13 @@ import 'package:frontend/user/Passenger/bus%20details/providers/bus_details_prov
 class SelectSeatScreen extends ConsumerStatefulWidget {
   final String vehicleType;
   final Set<String> selectedSeats;
+  final Set<String> bookedSeats;
 
   const SelectSeatScreen({
     super.key,
     required this.vehicleType,
     required this.selectedSeats,
+    required this.bookedSeats,
   });
 
   @override
@@ -27,9 +29,8 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> {
     _selectedSeats = Set.from(widget.selectedSeats);
   }
 
-  /// **Dynamically Generates the Seat Layout Based on State**
   List<List<String>> getSeatLayout(
-      List<int?> totalSeats, List<dynamic> bookedSeats) {
+      List<int?> totalSeats, Set<String> bookedSeats) {
     List<List<String>> baseLayout = widget.vehicleType == 'Bus'
         ? [
             ['X', 'X', '', 'X', 'X'],
@@ -53,11 +54,9 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> {
     for (int i = 0; i < baseLayout.length; i++) {
       for (int j = 0; j < baseLayout[i].length; j++) {
         if (baseLayout[i][j] == 'X') {
+          String seatStr = seatNumber.toString();
           if (totalSeats.contains(seatNumber)) {
-            baseLayout[i][j] = bookedSeats.contains(seatNumber)
-                ? 'B' // Booked Seat
-                : seatNumber
-                    .toString(); // Available Seat with sequential numbering
+            baseLayout[i][j] = bookedSeats.contains(seatStr) ? 'B' : seatStr;
           } else {
             baseLayout[i][j] = ''; // Empty space (aisle)
           }
@@ -68,8 +67,8 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> {
     return baseLayout;
   }
 
-  /// **Handles Seat Selection/Deselection**
   void _toggleSeatSelection(String seat) {
+    if (widget.bookedSeats.contains(seat)) return; // Cannot select booked seats
     if (seat == 'B') return; // Prevent selecting booked seats
     setState(() {
       if (_selectedSeats.contains(seat)) {
@@ -86,10 +85,9 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> {
     final state = busState.vehicle;
     final totalSeats =
         state?.vehicleSeat?.map((seat) => seat.seatNo).toList() ?? [];
-    final bookedSeats = state?.booking
-            ?.expand((b) => b.bookingSeats?.map((s) => s.seatNo) ?? [])
-            .toList() ??
-        [];
+
+    // Convert booked seats to a Set<String> to match seat numbers
+    final bookedSeats = widget.bookedSeats.map((s) => s.toString()).toSet();
 
     return Scaffold(
       appBar: AppBar(
@@ -101,7 +99,6 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> {
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
           child: Column(
             children: [
-              // _buildTitle(),
               SizedBox(height: 15.h),
               _buildSeatLegend(),
               SizedBox(height: 20.h),
@@ -132,7 +129,6 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> {
     );
   }
 
-  /// **Seat Legend**
   Widget _buildSeatLegend() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -163,7 +159,6 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> {
     );
   }
 
-  /// **Builds the Seat Layout**
   Widget _buildSeatLayout(List<List<String>> layout) {
     return Column(
       children: layout.map((row) {
@@ -172,11 +167,12 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> {
           children: row.map((seat) {
             return seat.isNotEmpty
                 ? Padding(
-                    padding: EdgeInsets.all(5.0),
+                    padding: EdgeInsets.all(5.w),
                     child: GestureDetector(
-                      onTap: () => _toggleSeatSelection(seat),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
+                      onTap: () => widget.bookedSeats.contains(seat)
+                          ? null
+                          : _toggleSeatSelection(seat),
+                      child: Container(
                         width: 60.w,
                         height: 70.h,
                         alignment: Alignment.center,
@@ -186,23 +182,21 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> {
                               : _selectedSeats.contains(seat)
                                   ? Colors.blueAccent.shade700 // ✅ Selected
                                   : Colors.grey.shade300, // Available
-                          borderRadius: BorderRadius.circular(5.r),
+                          borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: Text(
                           seat,
                           style: TextStyle(
-                            color: seat == 'B'
+                            color: widget.bookedSeats.contains(seat) ||
+                                    _selectedSeats.contains(seat)
                                 ? Colors.white
-                                : _selectedSeats.contains(seat)
-                                    ? Colors.white
-                                    : Colors.black87,
-                            fontWeight: FontWeight.bold,
+                                : Colors.black,
                             fontSize: 16.sp,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                    ),
-                  )
+                    ))
                 : SizedBox(width: 40.w);
           }).toList(),
         );
