@@ -57,7 +57,7 @@ class _ForgotState extends State<Forgot> {
               // Email input field
               CustomTextField(
                 hint: 'rai@gmail.co',
-                icon: CupertinoIcons.mail,
+                prefixIcon: CupertinoIcons.mail,
                 controller: emailController,
               ),
               SizedBox(height: 30.h),

@@ -20,6 +20,7 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
   @override
   void initState() {
     super.initState();
+    // Use Future.microtask to avoid calling setState during build
     Future.microtask(() => fetchBookings());
   }
 
@@ -34,11 +35,7 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
   @override
   Widget build(BuildContext context) {
     final bookingByVehicletate = ref.watch(bookVehicleProvider);
-
-    if (bookingByVehicletate.isLoading) {
-      fetchBookings();
-    }
-
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Bookings List'),
@@ -49,8 +46,8 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
           _buildDateSelector(),
           Expanded(
             child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.black12,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
               ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -59,7 +56,7 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
                     : (bookingByVehicletate.bookingByVehicle == null ||
                             bookingByVehicletate.bookingByVehicle!.isEmpty)
                         ? _buildNoBookingsUI()
-                        : _buildFilteredBookings(
+                        : _buildBusLayoutWithBookings(
                             bookingByVehicletate.bookingByVehicle!),
               ),
             ),
@@ -124,8 +121,8 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
     );
   }
 
-  /// **Filters and builds the bookings list based on the selected date**
-  Widget _buildFilteredBookings(List bookings) {
+  /// **Builds bus layout with bookings**
+  Widget _buildBusLayoutWithBookings(List bookings) {
     List sortedBookings = bookings
         .where((booking) =>
             DateFormat('yyyy-MM-dd')
@@ -134,87 +131,237 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
         .toList()
       ..sort((a, b) => b.id!.compareTo(a.id!));
 
-    return sortedBookings.isEmpty
-        ? _buildNoBookingsUI()
-        : ListView.builder(
-            itemCount: sortedBookings.length,
-            itemBuilder: (context, index) {
-              final booking = sortedBookings[index];
-              return _buildBookingCard(booking);
-            },
-          );
-  }
+    if (sortedBookings.isEmpty) {
+      return _buildNoBookingsUI();
+    }
 
-  /// **Booking card UI**
-  Widget _buildBookingCard(booking) {
-    DateTime bookingDate = DateTime.parse(booking.bookingDate);
-    String formattedDate = DateFormat('yyyy-MM-dd').format(bookingDate);
-
-    return GestureDetector(
-      onTap: () {
-        context.pushNamed('/bookingDetails', pathParameters: {
-          'bookId': booking.id.toString(),
-          'userId': booking.userId.toString(),
-        });
-      },
-      child: Card(
-        elevation: 1,
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.r),
-        ),
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.directions_bus,
-                      color: Colors.blue, size: 28),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildLocationRow(
-                            Icons.location_on, 'From:', booking.pickUpPoint),
-                        _buildLocationRow(
-                            Icons.flag, 'To:', booking.dropOffPoint),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const Divider(),
-              _buildLocationRow(Icons.calendar_today, 'Date:', formattedDate),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Fare: Rs.${booking.totalFare}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
-                    ),
-                  ),
-                  _buildStatusBadge(booking.status),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerRight,
-                child: IconButton(
-                  onPressed: () => _showDeleteConfirmation(booking.id),
-                  icon: const Icon(Icons.delete, color: Colors.redAccent),
-                ),
-              ),
-            ],
+    return Column(
+      children: [
+        SizedBox(height: 16.h),
+        _buildSeatLegend(),
+        SizedBox(height: 20.h),
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildBusLayout(sortedBookings),
+                SizedBox(height: 16.h),
+              ],
+            ),
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildSeatLegend() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildLegendItem(Colors.grey.shade300, "Available"),
+        SizedBox(width: 15.w),
+        _buildLegendItem(Colors.green.shade500, "Booked"),
+        SizedBox(width: 15.w),
+        _buildLegendItem(Colors.red.shade400, "Canceled"),
+      ],
+    );
+  }
+
+  Widget _buildLegendItem(Color color, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min, // Make the row take only required space
+      children: [
+        Container(
+          width: 16.w,
+          height: 16.h,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(4.r),
+          ),
+        ),
+        SizedBox(width: 4.w),
+        Text(
+          label,
+          style: TextStyle(fontSize: 12.sp, color: Colors.black87),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBusLayout(List bookings) {
+    // Create a simplified bus layout
+    List<List<dynamic>> busLayout = [
+      ['X', 'X', '', 'X', 'X'],
+      ['X', 'X', '', 'X', 'X'],
+      ['X', 'X', '', 'X', 'X'],
+      ['X', 'X', '', 'X', 'X'],
+      ['X', 'X', '', 'X', 'X'],
+      ['X', 'X', '', 'X', 'X'],
+      ['X', 'X', '', 'X', 'X'],
+      ['X', 'X', '', 'X', 'X'],
+      ['X', 'X', '', 'X', 'X'],
+      ['X', 'X', 'X', 'X', 'X'],
+    ];
+
+    // Assign bookings to seats (this is a simplified example)
+    // In a real application, you'd use actual seat numbers from your data
+    int seatNumber = 1;
+    for (int i = 0; i < busLayout.length; i++) {
+      for (int j = 0; j < busLayout[i].length; j++) {
+        if (busLayout[i][j] == 'X') {
+          // Find a booking for this seat (simplified)
+          var booking = bookings.length >= seatNumber
+              ? bookings[seatNumber % bookings.length]
+              : null;
+          
+          if (booking != null) {
+            // Associate the seat with the booking
+            busLayout[i][j] = {'seat': seatNumber.toString(), 'booking': booking};
+          } else {
+            busLayout[i][j] = {'seat': seatNumber.toString(), 'booking': null};
+          }
+          seatNumber++;
+        }
+      }
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 5,
+            offset: Offset(0, 2),
+          )
+        ],
+      ),
+      padding: EdgeInsets.all(16.w),
+      child: Column(
+        children: [
+          // Driver seat
+          Row(
+            children: [
+              Expanded(child: SizedBox()),
+              Container(
+                width: 60.w,
+                height: 60.h,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade800,
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.airline_seat_recline_normal,
+                  color: Colors.white,
+                ),
+              ),
+              Expanded(child: SizedBox()),
+            ],
+          ),
+          SizedBox(height: 30.h),
+          // Steering wheel
+          Row(
+            children: [
+              Expanded(child: SizedBox()),
+              Container(
+                width: 40.w,
+                height: 40.h,
+                decoration: BoxDecoration(
+                  color: Colors.black87,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.bus_alert,
+                  color: Colors.white,
+                  size: 28,
+                ),
+              ),
+              Expanded(child: SizedBox()),
+            ],
+          ),
+          SizedBox(height: 30.h),
+          // Bus doors
+          Row(
+            children: [
+              Container(
+                width: 20.w,
+                height: 60.h,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade400,
+                  borderRadius: BorderRadius.horizontal(
+                    right: Radius.circular(8.r),
+                  ),
+                ),
+              ),
+              Expanded(child: SizedBox()),
+            ],
+          ),
+          SizedBox(height: 20.h),
+          // Passenger seats
+          ...busLayout.map((row) {
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: row.map((seat) {
+                if (seat == '') {
+                  // Aisle
+                  return SizedBox(width: 30.w);
+                }
+                
+                // Get booking status if available
+                var booking = seat['booking'];
+                var seatNum = seat['seat'];
+                Color seatColor = Colors.grey.shade300; // Default color
+                
+                // Simplify coloring - only show booked (confirmed/pending), available, or canceled
+                if (booking != null) {
+                  if (booking.status.toLowerCase() == 'canceled') {
+                    seatColor = Colors.red.shade400;
+                  } else {
+                    // All other statuses (confirmed, pending) are treated as "booked"
+                    seatColor = Colors.green.shade500;
+                  }
+                }
+                
+                return GestureDetector(
+                  onTap: () {
+                    if (booking != null && booking.status.toLowerCase() != 'canceled') {
+                      // Directly navigate to booking details when a booked seat is tapped
+                      context.pushNamed('/bookingDetails', pathParameters: {
+                        'bookId': booking.id.toString(),
+                        'userId': booking.userId.toString(),
+                      });
+                    }
+                  },
+                  child: Container(
+                    margin: EdgeInsets.all(4.w),
+                    width: 50.w,
+                    height: 50.h,
+                    decoration: BoxDecoration(
+                      color: seatColor,
+                      borderRadius: BorderRadius.circular(8.r),
+                      border: Border.all(
+                        color: booking != null ? Colors.black45 : Colors.transparent,
+                        width: 1.5,
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      seatNum,
+                      style: TextStyle(
+                        color: seatColor == Colors.grey.shade300 
+                            ? Colors.black87 
+                            : Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            );
+          }).toList(),
+        ],
       ),
     );
   }
@@ -236,7 +383,7 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+      padding: EdgeInsets.symmetric(vertical: 4, horizontal: 10),
       decoration: BoxDecoration(
         color: statusColor.withOpacity(0.15),
         borderRadius: BorderRadius.circular(6),
@@ -252,16 +399,16 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
     return Row(
       children: [
         Icon(icon, color: Colors.blueAccent),
-        const SizedBox(width: 8),
+        SizedBox(width: 8),
         Text(
           label,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        const SizedBox(width: 5),
+        SizedBox(width: 5),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(fontSize: 14),
+            style: TextStyle(fontSize: 14),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -315,6 +462,6 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
 
   void _deleteBooking(int bookingId) {
     print('Deleting booking $bookingId');
-    // Implement delete logic here
+    // Implement your delete logic here
   }
 }

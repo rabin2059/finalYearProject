@@ -64,7 +64,7 @@ model Route {
   startPoint String      
   endPoint   String      
   fare       Float
-  polyline   String      @default("") // ✅ Stores encoded route path
+  polyline   String?       @db.Text
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
   busStops   RouteBusStop[]
@@ -170,4 +170,5 @@ model Message {
   senderId   Int
   chatGroup ChatGroup  @relation(fields: [chatGroupId], references: [id], onDelete: Cascade)
   chatGroupId Int
+  isRead      Boolean
 }

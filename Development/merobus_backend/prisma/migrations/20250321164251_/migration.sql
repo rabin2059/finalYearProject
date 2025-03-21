@@ -44,7 +44,7 @@ CREATE TABLE `Route` (
     `startPoint` VARCHAR(191) NOT NULL,
     `endPoint` VARCHAR(191) NOT NULL,
     `fare` DOUBLE NOT NULL,
-    `polyline` VARCHAR(191) NOT NULL DEFAULT '',
+    `polyline` TEXT NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
     `vehicleID` INTEGER NULL,
@@ -144,6 +144,7 @@ CREATE TABLE `Message` (
     `updatedAt` DATETIME(3) NOT NULL,
     `senderId` INTEGER NOT NULL,
     `chatGroupId` INTEGER NOT NULL,
+    `isRead` BOOLEAN NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

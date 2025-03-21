@@ -59,10 +59,10 @@ class _SignUpState extends ConsumerState<SignUp> {
   }
 
   void showSnackBar(BuildContext context, String message) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(message)),
-  );
-}
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +128,7 @@ class _SignUpState extends ConsumerState<SignUp> {
                   ),
                   CustomTextField(
                     hint: 'Enter Username',
-                    icon: CupertinoIcons.mail,
+                    prefixIcon: CupertinoIcons.mail,
                     controller: usernameController,
                   ),
                   SizedBox(height: 20.h),
@@ -139,7 +139,7 @@ class _SignUpState extends ConsumerState<SignUp> {
                   ),
                   CustomTextField(
                     hint: 'Enter your email',
-                    icon: CupertinoIcons.mail,
+                    prefixIcon: CupertinoIcons.mail,
                     controller: emailController,
                   ),
                   SizedBox(height: 20.h),
@@ -150,7 +150,7 @@ class _SignUpState extends ConsumerState<SignUp> {
                   ),
                   CustomTextField(
                     hint: 'Enter your password',
-                    icon: CupertinoIcons.lock,
+                    prefixIcon: CupertinoIcons.lock,
                     suffixIcon: CupertinoIcons.eye_slash,
                     keyboardType: TextInputType.visiblePassword,
                     controller: passwordController,
@@ -163,7 +163,7 @@ class _SignUpState extends ConsumerState<SignUp> {
                   ),
                   CustomTextField(
                     hint: 'Confirm your password',
-                    icon: CupertinoIcons.lock,
+                    prefixIcon: CupertinoIcons.lock,
                     suffixIcon: CupertinoIcons.eye_slash,
                     keyboardType: TextInputType.visiblePassword,
                     controller: confirmPasswordController,

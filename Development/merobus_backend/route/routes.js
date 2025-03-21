@@ -9,6 +9,7 @@ const bookController = require("../controller/bookController.js");
 const vehicleController = require("../controller/vehicleController.js");
 const paymentController = require("../controller/paymentController.js");
 const chatController = require("../controller/chatController.js");
+const protectRoute = require("../middleware/authMiddleware.js");
 const upload = require("../configs/storage.js");
 
 // Authentication routes
@@ -60,5 +61,46 @@ router.post("/initialize", paymentController.initialzeKhalti);
 router.get("/makePayment", paymentController.makePayment);
 
 // Chat related
-router.post("/sendMessage", chatController.sendMessage);
-router.get("/getMessage/:roomId", chatController.getMessages);
+router.get(
+  "/groups/user/:userId",
+  protectRoute,
+  chatController.getUserChatGroups
+);
+
+// Get messages for a specific chat group
+router.get(
+  "/groups/:groupId/messages",
+  protectRoute,
+  chatController.getChatGroupMessages
+);
+
+// Create a new chat group
+router.post("/groups", protectRoute, chatController.createChatGroup);
+
+// Add a user to a chat group
+router.post(
+  "/groups/:groupId/users",
+  protectRoute,
+  chatController.addUserToChatGroup
+);
+
+// Remove a user from a chat group
+router.delete(
+  "/groups/:groupId/users/:userId",
+  protectRoute,
+  chatController.removeUserFromChatGroup
+);
+
+// Get unread message count for a user
+router.get(
+  "/messages/unread/:userId",
+  protectRoute,
+  chatController.getUnreadMessageCount
+);
+
+// Mark messages as read
+router.put(
+  "/messages/read/:userId/:groupId",
+  protectRoute,
+  chatController.markMessagesAsRead
+);

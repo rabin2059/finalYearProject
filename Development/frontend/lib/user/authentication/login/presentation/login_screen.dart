@@ -137,7 +137,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   CustomTextField(
                     hint: 'Enter your email',
-                    icon: CupertinoIcons.mail,
+                    prefixIcon: CupertinoIcons.mail,
                     controller: emailController,
                   ),
                   SizedBox(height: 20.h),
@@ -148,7 +148,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   CustomTextField(
                     hint: 'Enter your password',
-                    icon: CupertinoIcons.lock,
+                    prefixIcon: CupertinoIcons.lock,
                     suffixIcon: CupertinoIcons.eye_slash,
                     keyboardType: TextInputType.visiblePassword,
                     controller: passwordController,
