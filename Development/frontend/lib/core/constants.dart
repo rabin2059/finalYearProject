@@ -5,3 +5,4 @@ const String appTitle = "MeroBus";
 const String imageUrl = "http://localhost:3089";
 // const String imageUrl =
 //     "https://a2e2-2001-df7-be80-369c-24ab-7e89-72ae-5ba9.ngrok-free.app";
+const socketBaseUrl = "http://localhost:3089";

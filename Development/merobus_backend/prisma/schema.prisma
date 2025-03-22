@@ -30,6 +30,8 @@ model User {
   Payment Payment[]
 
   Message Message[]
+
+  ChatGroup ChatGroup[] @relation("UserChatGroups")
 }
 
 enum Role {
@@ -152,23 +154,25 @@ enum PaymentStatus {
 }
 
 model ChatGroup {
-  id         Int      @id @default(autoincrement())
-  vehicle    Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-  vehicleId  Int 
+  id         Int         @id @default(autoincrement())
   name       String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  messages  Message[]
+  vehicle    Vehicle?    @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  vehicleId  Int?        // Made optional to allow non-vehicle chat groups
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  messages   Message[]
+  users      User[]      @relation("UserChatGroups") // Many-to-many relationship with users
 }
 
 model Message {
-  id         Int       @id @default(autoincrement())
-  text       String
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  sender     User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
-  senderId   Int
-  chatGroup ChatGroup  @relation(fields: [chatGroupId], references: [id], onDelete: Cascade)
-  chatGroupId Int
-  isRead      Boolean
+  id           Int         @id @default(autoincrement())
+  text         String      @db.Text     // Using Text type for longer messages
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  sender       User        @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderId     Int
+  chatGroup    ChatGroup   @relation(fields: [chatGroupId], references: [id], onDelete: Cascade)
+  chatGroupId  Int
+  isRead       Boolean     @default(false)
+  readAt       DateTime?   // Track when message was read
 }

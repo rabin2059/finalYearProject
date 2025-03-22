@@ -104,3 +104,10 @@ router.put(
   protectRoute,
   chatController.markMessagesAsRead
 );
+
+// Get chat group of a vehicle
+router.get(
+  "/vehicles/:vehicleId/chatGroup",
+  protectRoute,
+  chatController.chatGroupOfVehicle
+);

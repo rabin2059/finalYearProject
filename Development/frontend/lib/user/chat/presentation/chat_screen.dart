@@ -1,52 +1,21 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:frontend/core/constants.dart';
-import 'package:frontend/user/Passenger/setting/providers/setting_provider.dart';
 import 'package:frontend/user/authentication/login/providers/auth_provider.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:intl/intl.dart';
-import 'package:http/http.dart' as http;
-
-/// **Message Model** - Simplified
-class Message {
-  final String text;
-  final DateTime date;
-  final bool isSentByMe;  // Changed back to bool for correct UI rendering
-  final String avatar;
-  final int senderId;
-
-  Message({
-    required this.text,
-    required this.date,
-    required this.isSentByMe,
-    required this.avatar,
-    required this.senderId,
-  });
-
-  // Add factory constructor to create Message from JSON
-  factory Message.fromJson(Map<String, dynamic> json, int currentUserId) {
-    return Message(
-      text: json['text'] ?? 'No message',
-      date: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
-      isSentByMe: json['senderId'] == currentUserId,
-      avatar: 'https://randomuser.me/api/portraits/men/${json['senderId'] % 10}.jpg',
-      senderId: json['senderId'] ?? 0,
-    );
-  }
-}
+import 'package:frontend/data/services/socket_service.dart';
+import 'package:frontend/core/constants.dart';
 
 /// **Chat Screen UI**
 class ChatScreen extends ConsumerStatefulWidget {
-  final int roomId;
-  final String roomName;
+  final int groupId;
+  final String groupName;
 
   const ChatScreen({
     super.key,
-    required this.roomId,
-    required this.roomName,
+    required this.groupId,
+    required this.groupName,
   });
 
   @override
@@ -55,155 +24,307 @@ class ChatScreen extends ConsumerStatefulWidget {
 
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController messageController = TextEditingController();
-  List<Message> messages = [];
-
+  final List<Map<String, dynamic>> messages = [];
+  bool isLoading = true;
+  bool isSending = false;
+  String? connectionStatus;
+  
   @override
   void initState() {
     super.initState();
-    // Fetch messages when screen initializes
-    getMessage();
+    _setupSocketService();
+  }
+  
+  void _setupSocketService() async {
+    final socketService = ref.read(socketServiceProvider);
+    final authState = ref.read(authProvider);
+    final userId = authState.userId;
+    
+    if (userId == null) {
+      setState(() {
+        connectionStatus = "Error: User not logged in";
+        isLoading = false;
+      });
+      return;
+    }
+    
+    // Set up connection status callback
+    socketService.onConnectionStatus = (status) {
+      setState(() {
+        connectionStatus = status;
+      });
+    };
+    
+    // Set up new message callback
+    socketService.onNewMessage = (data) {
+      if (data['chatGroupId'] == widget.groupId) {
+        setState(() {
+          messages.add(data);
+        });
+        _scrollToBottom();
+      }
+    };
+    
+    // Set up message sent callback
+    socketService.onMessageSent = (data) {
+      if (data['chatGroupId'] == widget.groupId) {
+        setState(() {
+          messages.add(data);
+          isSending = false;
+        });
+        _scrollToBottom();
+      }
+    };
+    
+    // Load message history
+    try {
+      await socketService.joinGroup(userId.toString(), widget.groupId);
+      
+      final history = await socketService.fetchGroupHistory(widget.groupId);
+      setState(() {
+        messages.addAll(List<Map<String, dynamic>>.from(history));
+        isLoading = false;
+      });
+      
+      // Mark messages as read
+      _markMessagesAsRead(userId);
+      
+      // Scroll to bottom after loading history
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToBottom();
+      });
+    } catch (e) {
+      setState(() {
+        connectionStatus = "Error: $e";
+        isLoading = false;
+      });
+    }
+  }
+  
+  Future<void> _sendMessage() async {
+    if (messageController.text.trim().isEmpty) return;
+    
+    final authState = ref.read(authProvider);
+    final userId = authState.userId;
+    
+    if (userId == null) return;
+    
+    setState(() {
+      isSending = true;
+    });
+    
+    try {
+      final socketService = ref.read(socketServiceProvider);
+      await socketService.sendMessage(
+        userId,
+        widget.groupId,
+        messageController.text.trim()
+      );
+      messageController.clear();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to send message: $e"))
+      );
+      setState(() {
+        isSending = false;
+      });
+    }
+  }
+  
+  void _markMessagesAsRead(int userId) async {
+    try {
+      // Get all unread messages not sent by current user
+      final unreadMessages = messages.where((msg) => 
+        msg['senderId'] != userId && msg['isRead'] == false
+      ).toList();
+      
+      if (unreadMessages.isEmpty) return;
+      
+      final socketService = ref.read(socketServiceProvider);
+      
+      // Mark each message as read
+      for (final message in unreadMessages) {
+        try {
+          await socketService.markMessageAsRead(message['id']);
+        } catch (e) {
+          // Continue with other messages if one fails
+          print("Failed to mark message ${message['id']} as read: $e");
+        }
+      }
+    } catch (e) {
+      print("Error marking messages as read: $e");
+    }
+  }
+  
+  final ScrollController _scrollController = ScrollController();
+  
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   @override
   void dispose() {
     messageController.dispose();
+    _scrollController.dispose();
     super.dispose();
-  }
-
-  void sendMessage() async {
-    final text = messageController.text.trim();
-    if (text.isEmpty) return;
-    
-    // Clear text field immediately for better UX
-    messageController.clear();
-    
-    // Get current user ID
-    final userId = ref.read(authProvider).userId;
-    
-    // Create a local message to show immediately
-    // final newMessage = Message(
-    //   text: text,
-    //   date: DateTime.now(),
-    //   isSentByMe: true,
-    //   avatar: 'https://randomuser.me/api/portraits/men/${userId % 10}.jpg',
-    //   // senderId: userId,
-    // );
-    
-    // Update UI immediately with the new message
-    setState(() {
-      // messages.add(newMessage);
-    });
-    
-    // Send message to server
-    try {
-      final url = Uri.parse("$apiBaseUrl/sendMessage");
-      
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'text': text,
-          'senderId': userId,
-          'chatGroupId': widget.roomId,
-        }),
-      );
-      
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        print('Failed to send message: ${response.statusCode}');
-        // You might want to add error handling here
-      }
-    } catch (e) {
-      print('Error sending message: $e');
-      // You might want to add error handling here
-    }
-  }
-
-  void getMessage() async {
-    final userId = ref.read(authProvider).userId;
-    final url = Uri.parse("$apiBaseUrl/getmessage/${9}");
-    
-    try {
-      final response = await http.get(url);
-      
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final jsonResponse = json.decode(response.body);
-        
-        // Handle both array and object with messages property
-        List<dynamic> messagesJson;
-        if (jsonResponse is List) {
-          messagesJson = jsonResponse;
-        } else if (jsonResponse is Map && jsonResponse.containsKey('messages')) {
-          messagesJson = jsonResponse['messages'];
-        } else {
-          print('Unexpected response format');
-          return;
-        }
-        
-        setState(() {
-          // Use Message.fromJson factory to create Message objects
-          messages = messagesJson
-              .map<Message>((json) => Message.fromJson(json, userId!))
-              .toList();
-        });
-      } else {
-        // Handle error case
-        print('Failed to load messages: ${response.statusCode}');
-      }
-    } catch (e) {
-      // Handle exceptions
-      print('Error fetching messages: $e');
-    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+    final currentUserId = authState.userId;
+    
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.roomName),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(widget.groupName),
+            if (connectionStatus != null)
+              Text(
+                connectionStatus!,
+                style: TextStyle(fontSize: 12.sp),
+              ),
+          ],
+        ),
         backgroundColor: Colors.pink.shade50,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.download),
-            onPressed: () {
-              // Add download functionality here
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: getMessage,
-          ),
-        ],
       ),
       body: Column(
         children: [
           Expanded(
-            child: messages.isEmpty 
-              ? const Center(child: Text("No messages yet"))
-              : GroupedListView<Message, DateTime>(
-                  padding: EdgeInsets.all(12.r),
-                  elements: messages,
-                  groupBy: (element) => DateTime(
-                    element.date.year,
-                    element.date.month,
-                    element.date.day,
-                  ),
-                  groupSeparatorBuilder: (DateTime date) => Center(
-                    child: Padding(
+            child: isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : messages.isEmpty
+                ? Center(
+                    child: Text(
+                      'No messages yet.\nStart the conversation!',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  )
+                : GroupedListView<Map<String, dynamic>, DateTime>(
+                    elements: messages,
+                    controller: _scrollController,
+                    groupBy: (message) {
+                      final date = DateTime.parse(message['createdAt'] ?? DateTime.now().toIso8601String());
+                      return DateTime(date.year, date.month, date.day);
+                    },
+                    groupHeaderBuilder: (message) => Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.r),
-                      child: Text(
-                        DateFormat('dd/MM/yyyy').format(date),
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.bold,
+                      child: Center(
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12.r,
+                            vertical: 4.r,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          child: Text(
+                            _formatMessageDate(DateTime.parse(
+                                message['createdAt'] ?? 
+                                DateTime.now().toIso8601String())),
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
                         ),
                       ),
                     ),
+                    itemBuilder: (context, message) {
+                      final isMe = message['senderId'] == currentUserId;
+                      
+                      return Align(
+                        alignment: isMe 
+                            ? Alignment.centerRight 
+                            : Alignment.centerLeft,
+                        child: Container(
+                          margin: EdgeInsets.symmetric(
+                            horizontal: 12.r,
+                            vertical: 4.r,
+                          ),
+                          padding: EdgeInsets.all(12.r),
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context).size.width * 0.7,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isMe
+                                ? Colors.blue.shade100
+                                : Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(12.r),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 5,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (!isMe)
+                                Text(
+                                  message['senderName'] ?? 'Unknown',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12.sp,
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ),
+                              if (!isMe) SizedBox(height: 4.h),
+                              Text(
+                                message['text'] ?? '',
+                                style: TextStyle(fontSize: 14.sp),
+                              ),
+                              SizedBox(height: 4.h),
+                              Align(
+                                alignment: Alignment.bottomRight,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      _formatMessageTime(DateTime.parse(
+                                          message['createdAt'] ?? 
+                                          DateTime.now().toIso8601String())),
+                                      style: TextStyle(
+                                        fontSize: 10.sp,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                    if (isMe) SizedBox(width: 4.w),
+                                    if (isMe)
+                                      Icon(
+                                        message['isRead'] 
+                                            ? Icons.done_all 
+                                            : Icons.done,
+                                        size: 12.r,
+                                        color: message['isRead']
+                                            ? Colors.blue
+                                            : Colors.grey,
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                    order: GroupedListOrder.ASC,
                   ),
-                  itemBuilder: (context, Message message) {
-                    return MessageBubble(message: message);
-                  },
-                ),
           ),
           SafeArea(
             bottom: true,
@@ -218,16 +339,39 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   Expanded(
                     child: TextField(
                       controller: messageController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: "Type a message",
-                        border: InputBorder.none,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24.r),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16.r,
+                          vertical: 8.r,
+                        ),
                       ),
-                      onSubmitted: (_) => sendMessage(),
+                      textCapitalization: TextCapitalization.sentences,
+                      onSubmitted: (_) => _sendMessage(),
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.send),
-                    onPressed: sendMessage,
+                  SizedBox(width: 8.w),
+                  CircleAvatar(
+                    backgroundColor: Colors.blue,
+                    child: IconButton(
+                      icon: isSending
+                          ? SizedBox(
+                              width: 18.r,
+                              height: 18.r,
+                              child: const CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Icon(Icons.send, color: Colors.white, size: 18.r),
+                      onPressed: isSending ? null : _sendMessage,
+                    ),
                   ),
                 ],
               ),
@@ -237,55 +381,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       ),
     );
   }
-}
-
-class MessageBubble extends StatelessWidget {
-  final Message message;
-
-  const MessageBubble({
-    super.key,
-    required this.message,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4.r),
-      child: Row(
-        mainAxisAlignment: message.isSentByMe
-            ? MainAxisAlignment.end
-            : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (!message.isSentByMe) ...[
-            CircleAvatar(
-              backgroundImage: NetworkImage(message.avatar),
-              radius: 18.r,
-            ),
-            SizedBox(width: 8.w),
-          ],
-          Container(
-            padding: EdgeInsets.all(12.r),
-            decoration: BoxDecoration(
-              color: message.isSentByMe ? Colors.blue : Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(12.r),
-            ),
-            child: Text(
-              message.text,
-              style: TextStyle(
-                color: message.isSentByMe ? Colors.white : Colors.black,
-              ),
-            ),
-          ),
-          if (message.isSentByMe) ...[
-            SizedBox(width: 8.w),
-            CircleAvatar(
-              backgroundImage: NetworkImage(message.avatar),
-              radius: 18.r,
-            ),
-          ],
-        ],
-      ),
-    );
+  
+  String _formatMessageDate(DateTime date) {
+    final now = DateTime.now();
+    if (date.year == now.year && date.month == now.month && date.day == now.day) {
+      return 'Today';
+    } else if (date.year == now.year && date.month == now.month && date.day == now.day - 1) {
+      return 'Yesterday';
+    } else {
+      return DateFormat('MMMM d, yyyy').format(date);
+    }
+  }
+  
+  String _formatMessageTime(DateTime dateTime) {
+    return DateFormat('h:mm a').format(dateTime);
   }
 }

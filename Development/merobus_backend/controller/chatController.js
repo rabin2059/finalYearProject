@@ -180,6 +180,8 @@ const addUserToChatGroup = async (req, res) => {
     const { groupId } = req.params;
     const { userId } = req.body;
 
+    console.log("i joined");
+
     if (!groupId || !userId) {
       return res
         .status(400)
@@ -236,12 +238,10 @@ const addUserToChatGroup = async (req, res) => {
     });
   } catch (error) {
     logger.error(`Error adding user to chat group: ${error.message}`);
-    res
-      .status(500)
-      .json({
-        error: "Failed to add user to chat group",
-        details: error.message,
-      });
+    res.status(500).json({
+      error: "Failed to add user to chat group",
+      details: error.message,
+    });
   }
 };
 
@@ -275,12 +275,10 @@ const removeUserFromChatGroup = async (req, res) => {
     });
   } catch (error) {
     logger.error(`Error removing user from chat group: ${error.message}`);
-    res
-      .status(500)
-      .json({
-        error: "Failed to remove user from chat group",
-        details: error.message,
-      });
+    res.status(500).json({
+      error: "Failed to remove user from chat group",
+      details: error.message,
+    });
   }
 };
 
@@ -341,12 +339,10 @@ const getUnreadMessageCount = async (req, res) => {
     });
   } catch (error) {
     logger.error(`Error getting unread message count: ${error.message}`);
-    res
-      .status(500)
-      .json({
-        error: "Failed to get unread message count",
-        details: error.message,
-      });
+    res.status(500).json({
+      error: "Failed to get unread message count",
+      details: error.message,
+    });
   }
 };
 
@@ -380,12 +376,30 @@ const markMessagesAsRead = async (req, res) => {
     });
   } catch (error) {
     logger.error(`Error marking messages as read: ${error.message}`);
-    res
-      .status(500)
-      .json({
-        error: "Failed to mark messages as read",
-        details: error.message,
-      });
+    res.status(500).json({
+      error: "Failed to mark messages as read",
+      details: error.message,
+    });
+  }
+};
+
+const chatGroupOfVehicle = async (req, res) => {
+  try {
+    const { vehicleId } = req.params;
+    const checkChatGroup = await prisma.chatGroup.findFirst({
+      where: {
+        vehicleId: parseInt(vehicleId),
+      },
+    });
+
+    return res.status(200).json({ success: true, message: checkChatGroup });
+  } catch (error) {
+    logger.error(`Error checking chat group of vehicle: ${error.message}`);
+    res.status(500).json({
+      success: false,
+      message: "Failed to check chat group of vehicle",
+      details: error.message,
+    });
   }
 };
 
@@ -397,4 +411,5 @@ module.exports = {
   removeUserFromChatGroup,
   getUnreadMessageCount,
   markMessagesAsRead,
+  chatGroupOfVehicle,
 };
