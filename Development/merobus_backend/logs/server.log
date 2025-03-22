@@ -1279,3 +1279,4 @@ Unknown field `users` for include statement on model `ChatGroup`. Available opti
 2025-03-22 18:36:53 [info]: New client connected: IjL9-Ol5J_zlDc0RAAAB (transport: websocket)
 2025-03-22 18:36:53 [info]: User 1 logged in via socket IjL9-Ol5J_zlDc0RAAAB (transport: websocket)
 2025-03-22 18:43:50 [info]: Client disconnected: IjL9-Ol5J_zlDc0RAAAB, reason: transport close
+2025-03-23 04:08:35 [info]: Server running on http://localhost:3089
