@@ -2419,3 +2419,10 @@ Unknown field `ChatGroup` for include statement on model `User`. Available optio
 2025-03-29 23:21:14 [info]: Sending active buses: 1
 2025-03-29 23:21:15 [info]: Sending active buses: 1
 2025-03-29 23:21:24 [info]: Sending active buses: 1
+2025-03-29 23:50:50 [info]: Server running on http://localhost:3089
+2025-03-29 23:50:51 [info]: New client connected: dmQ-y0mtKau9liWAAAAB (transport: websocket)
+2025-03-29 23:50:51 [info]: User 1 logged in via socket dmQ-y0mtKau9liWAAAAB (transport: websocket)
+2025-03-29 23:50:51 [info]: User user-1743269537282 logged in via socket dmQ-y0mtKau9liWAAAAB (transport: websocket)
+2025-03-29 23:50:52 [info]: New client connected: D6psmKi8GFVUt-cZAAAD (transport: websocket)
+2025-03-29 23:50:52 [info]: User 2 logged in via socket D6psmKi8GFVUt-cZAAAD (transport: websocket)
+2025-03-29 23:50:52 [info]: User driver-1 logged in via socket D6psmKi8GFVUt-cZAAAD (transport: websocket)
