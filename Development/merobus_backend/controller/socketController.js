@@ -93,6 +93,102 @@ io.on("connection", (socket) => {
     socket.emit("pong", { time: new Date().toISOString() });
   });
 
+  socket.on("check_group_membership", async (data) => {
+    try {
+      const { userId, chatGroupId } = data;
+      const userIdInt = parseInt(userId);
+      const chatGroupIdInt = parseInt(chatGroupId);
+
+      logger.info(
+        `Checking if user ${userId} is member of group ${chatGroupId}`
+      );
+
+      // Find if the user is a member of the chat group
+      const membership = await prisma.userChatGroup.findUnique({
+        where: {
+          userId_chatGroupId: {
+            userId: userIdInt,
+            chatGroupId: chatGroupIdInt,
+          },
+        },
+      });
+
+      const isMember = !!membership;
+
+      // If user is a member, make sure they're in the socket room
+      if (isMember) {
+        socket.join(`group_${chatGroupId}`);
+      }
+
+      const isInRoom = socket.rooms.has(`group_${chatGroupId}`);
+      const joinedAt = membership?.joinedAt || new Date();
+
+      socket.emit("membership_status", {
+        userId,
+        chatGroupId,
+        isMember,
+        isInRoom,
+        joinedAt: joinedAt.toISOString(),
+      });
+
+      // Join the room if needed
+      if (isMember && !isInRoom) {
+        socket.join(`group_${chatGroupId}`);
+      }
+    } catch (error) {
+      logger.error(`Error checking group membership: ${error.message}`);
+      socket.emit("error", {
+        message: "Failed to check group membership",
+        error: error.message,
+      });
+    }
+  });
+
+  socket.on("fetch_messages_since", async (data) => {
+    try {
+      const { chatGroupId, since } = data;
+      logger.info(`Fetching messages for group ${chatGroupId} since ${since}`);
+
+      const sinceDate = new Date(since);
+
+      const messages = await prisma.message.findMany({
+        where: {
+          chatGroupId: parseInt(chatGroupId),
+          createdAt: {
+            gte: sinceDate,
+          },
+        },
+        include: {
+          sender: {
+            select: {
+              id: true,
+              username: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      });
+
+      const formattedMessages = messages.map((msg) => ({
+        id: msg.id,
+        text: msg.text,
+        senderId: msg.senderId,
+        senderName: msg.sender?.username || "Unknown User",
+        chatGroupId: msg.chatGroupId,
+        createdAt: msg.createdAt,
+        isRead: msg.isRead,
+      }));
+
+      socket.emit("messages_since", formattedMessages);
+    } catch (error) {
+      logger.error(`Error fetching messages since date: ${error.message}`);
+      socket.emit("error", {
+        message: "Failed to fetch messages",
+        error: error.message,
+      });
+    }
+  });
+
   socket.on("send_message", async (data) => {
     try {
       logger.info(`Message from user ${data.senderId}: ${data.text}`);
@@ -130,6 +226,14 @@ io.on("connection", (socket) => {
 
         const chatGroupWithUsers = await prisma.chatGroup.findUnique({
           where: { id: parseInt(chatGroupId) },
+          include: {
+            users: {
+              select: {
+                id: true,
+                username: true,
+              },
+            },
+          },
         });
 
         if (!chatGroupWithUsers || !chatGroupWithUsers.users) {
@@ -144,10 +248,10 @@ io.on("connection", (socket) => {
                   id: newMessage.id,
                   text: newMessage.text,
                   senderId: newMessage.senderId,
-                  senderName: newMessage.sender.username,
                   chatGroupId: newMessage.chatGroupId,
                   createdAt: newMessage.createdAt,
                   isRead: newMessage.isRead,
+                  senderName: newMessage.sender?.username || "Unknown User",
                 });
               }
             }
@@ -158,10 +262,10 @@ io.on("connection", (socket) => {
           id: newMessage.id,
           text: newMessage.text,
           senderId: newMessage.senderId,
-          senderName: newMessage.sender.username,
           chatGroupId: newMessage.chatGroupId,
           createdAt: newMessage.createdAt,
           isRead: newMessage.isRead,
+          senderName: newMessage.sender?.username || "Unknown User",
         });
       } catch (dbError) {
         logger.error(`Database error: ${dbError.message}`);
@@ -205,12 +309,80 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("join_group", (data) => {
+  socket.on("join_group", async (data) => {
     try {
       const { userId, chatGroupId } = data;
+      const userIdInt = parseInt(userId);
+      const chatGroupIdInt = parseInt(chatGroupId);
+
+      // Check if user is already a member
+      const existingMembership = await prisma.userChatGroup.findUnique({
+        where: {
+          userId_chatGroupId: {
+            userId: userIdInt,
+            chatGroupId: chatGroupIdInt,
+          },
+        },
+      });
+
+      if (existingMembership) {
+        // User is already a member, just join the socket room
+        socket.join(`group_${chatGroupId}`);
+        socket.emit("group_joined", {
+          chatGroupId,
+          joinedAt: existingMembership.joinedAt.toISOString(),
+        });
+        return;
+      }
+
+      const now = new Date();
+
+      // First connect the user to the chat group (many-to-many relation)
+      const updatedGroup = await prisma.chatGroup.update({
+        where: {
+          id: chatGroupIdInt,
+        },
+        data: {
+          users: {
+            connect: {
+              id: userIdInt,
+            },
+          },
+        },
+        include: {
+          users: {
+            select: {
+              id: true,
+              username: true,
+            },
+          },
+        },
+      });
+
+      // Then create the UserChatGroup entry with the join date
+      await prisma.userChatGroup.create({
+        data: {
+          userId: userIdInt,
+          chatGroupId: chatGroupIdInt,
+          joinedAt: now,
+          isActive: true,
+        },
+      });
+
+      // Join the socket room
       socket.join(`group_${chatGroupId}`);
+
+      // Notify other users in the group
+      socket.to(`group_${chatGroupId}`).emit("group_members_updated", {
+        chatGroupId,
+        users: updatedGroup.users,
+      });
+
       logger.info(`User ${userId} joined group chat ${chatGroupId}`);
-      socket.emit("group_joined", { chatGroupId });
+      socket.emit("group_joined", {
+        chatGroupId,
+        joinedAt: now.toISOString(),
+      });
     } catch (error) {
       logger.error(`Error joining group: ${error.message}`);
       socket.emit("error", {
@@ -220,9 +392,57 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("leave_group", (data) => {
+  async function getUserJoinDate(userId, chatGroupId) {
+    try {
+      const userChatGroup = await prisma.userChatGroup.findUnique({
+        where: {
+          userId_chatGroupId: {
+            userId: userId,
+            chatGroupId: chatGroupId,
+          },
+        },
+      });
+
+      return userChatGroup?.joinedAt || null;
+    } catch (error) {
+      logger.error(`Error getting user join date: ${error.message}`);
+      return null;
+    }
+  }
+
+  socket.on("join_room", (data) => {
+    try {
+      const { chatGroupId } = data;
+      socket.join(`group_${chatGroupId}`);
+      logger.info(`Socket ${socket.id} joined room for group ${chatGroupId}`);
+    } catch (error) {
+      logger.error(`Error joining room: ${error.message}`);
+      socket.emit("error", {
+        message: "Failed to join room",
+        error: error.message,
+      });
+    }
+  });
+
+  socket.on("leave_group", async (data) => {
     try {
       const { userId, chatGroupId } = data;
+      const userIdInt = parseInt(userId);
+      const chatGroupIdInt = parseInt(chatGroupId);
+
+      // Update the UserChatGroup to mark it as inactive instead of deleting
+      await prisma.userChatGroup.update({
+        where: {
+          userId_chatGroupId: {
+            userId: userIdInt,
+            chatGroupId: chatGroupIdInt,
+          },
+        },
+        data: {
+          isActive: false,
+        },
+      });
+
       socket.leave(`group_${chatGroupId}`);
       logger.info(`User ${userId} left group chat ${chatGroupId}`);
       socket.emit("group_left", { chatGroupId });

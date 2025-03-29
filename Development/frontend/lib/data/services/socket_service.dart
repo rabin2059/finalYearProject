@@ -11,6 +11,12 @@ class SocketService {
 
   final Set<int> _joinedGroups = {};
 
+  // Store user join dates for groups
+  final Map<int, String> _userJoinDates = {};
+
+  // Store active completers to prevent duplicate completion
+  final Map<String, Completer<dynamic>> _activeCompleters = {};
+
   final ValueNotifier<List<String>> activeUsers =
       ValueNotifier<List<String>>([]);
   final ValueNotifier<Map<String, bool>> userTypingStatus =
@@ -19,10 +25,12 @@ class SocketService {
   Function(Map<String, dynamic>)? onNewMessage;
   Function(Map<String, dynamic>)? onMessageSent;
   Function(List<dynamic>)? onGroupHistory;
+  Function(List<dynamic>)? onMessagesSinceJoin;
   Function(Map<String, dynamic>)? onUserStatus;
   Function(Map<String, dynamic>)? onMessageReadConfirmed;
   Function(String)? onError;
   Function(String)? onConnectionStatus;
+  Function(Map<String, dynamic>)? onMembershipStatus;
 
   SocketService({required this.baseUrl});
 
@@ -30,7 +38,6 @@ class SocketService {
     _log('Attempting to connect to socket server: $baseUrl');
     _log('Using user ID: $userId');
 
-    // Check if we're already connected
     if (_socket != null) {
       if (_socket!.connected) {
         _log('Already connected with socket ID: ${_socket!.id}');
@@ -43,13 +50,10 @@ class SocketService {
       }
     }
 
-    // IMPORTANT: Using websocket transport instead of polling
-    // Changed from ['polling'] to ['websocket'] to match server configuration
     _socket = IO.io(
         baseUrl,
         IO.OptionBuilder()
-            .setTransports(
-                ['websocket']) // Changed to match server transport config
+            .setTransports(['websocket'])
             .disableAutoConnect()
             .setExtraHeaders({'Access-Control-Allow-Origin': '*'})
             .setReconnectionAttempts(10)
@@ -62,7 +66,6 @@ class SocketService {
     _log('Connecting to socket...');
     _socket!.connect();
 
-    // Connection event handlers with better logging
     _socket!.onConnect((_) {
       _log('✅ Connected to socket server with ID: ${_socket!.id}');
       if (onConnectionStatus != null) {
@@ -93,6 +96,9 @@ class SocketService {
       _log('Disconnecting socket');
       _socket!.disconnect();
       _joinedGroups.clear();
+      _userJoinDates.clear();
+
+      _activeCompleters.clear();
 
       _log('Socket disconnected');
       if (onConnectionStatus != null) {
@@ -105,6 +111,137 @@ class SocketService {
     return _joinedGroups.contains(chatGroupId);
   }
 
+  Future<T> _createCompleterWithTimeout<T>({
+    required String key,
+    required Duration timeout,
+    required String timeoutMessage,
+  }) {
+    if (_activeCompleters.containsKey(key)) {
+      _log('Using existing completer for $key');
+      return _activeCompleters[key]!.future as Future<T>;
+    }
+
+    final completer = Completer<T>();
+    _activeCompleters[key] = completer;
+
+    // Set up timeout
+    Timer(timeout, () {
+      if (!completer.isCompleted && _activeCompleters[key] == completer) {
+        _log('Timeout for $key: $timeoutMessage');
+        completer.completeError(timeoutMessage);
+        _activeCompleters.remove(key);
+      }
+    });
+
+    return completer.future;
+  }
+
+  void _completeAndRemove<T>(String key, T result) {
+    if (_activeCompleters.containsKey(key)) {
+      final completer = _activeCompleters[key]!;
+      if (!completer.isCompleted) {
+        completer.complete(result);
+      }
+      _activeCompleters.remove(key);
+    }
+  }
+
+  void _completeErrorAndRemove(String key, dynamic error) {
+    if (_activeCompleters.containsKey(key)) {
+      final completer = _activeCompleters[key]!;
+      if (!completer.isCompleted) {
+        completer.completeError(error);
+      }
+      _activeCompleters.remove(key);
+    }
+  }
+
+  // New method to check user membership in a group
+  Future<Map<String, dynamic>> checkUserInGroup(
+      String userId, int chatGroupId) async {
+    if (!isConnected) {
+      _log('Cannot check membership: Not connected to socket server');
+      throw Exception('Not connected to socket server');
+    }
+
+    final completerKey = 'membership_${userId}_$chatGroupId';
+
+    _log('Checking membership: userId=$userId, chatGroupId=$chatGroupId');
+    _socket!.emit('check_group_membership', {
+      'userId': userId,
+      'chatGroupId': chatGroupId,
+    });
+
+    // Use one-time handler to avoid duplicate event handling
+    _socket!.once('membership_status', (data) {
+      _log('Received membership status: $data');
+
+      if (data['isMember'] == true && data['joinedAt'] != null) {
+        _userJoinDates[chatGroupId] = data['joinedAt'];
+        if (data['isInRoom'] != true) {
+          _socket!.emit('join_room', {'chatGroupId': chatGroupId});
+        }
+        _joinedGroups.add(chatGroupId);
+      }
+
+      if (onMembershipStatus != null) {
+        onMembershipStatus!(data);
+      }
+
+      _completeAndRemove(completerKey, data);
+    });
+
+    _socket!.once('error', (data) {
+      _log('Error checking membership: $data');
+      _completeErrorAndRemove(
+          completerKey, data['message'] ?? 'Failed to check membership');
+    });
+
+    return _createCompleterWithTimeout<Map<String, dynamic>>(
+        key: completerKey,
+        timeout: Duration(seconds: 5),
+        timeoutMessage: 'Timeout while checking membership');
+  }
+
+  Future<List<dynamic>> fetchMessagesSinceJoin(int chatGroupId) async {
+    if (!isConnected) {
+      _log('Cannot fetch messages: Not connected to socket server');
+      throw Exception('Not connected to socket server');
+    }
+
+    if (!_userJoinDates.containsKey(chatGroupId)) {
+      _log(
+          'Join date not found for group $chatGroupId, fetching full history instead');
+      return fetchGroupHistory(chatGroupId);
+    }
+
+    final joinedAt = _userJoinDates[chatGroupId];
+    _log('Fetching messages since $joinedAt for group $chatGroupId');
+
+    final completerKey = 'messages_since_$chatGroupId';
+
+    _socket!.emit('fetch_messages_since', {
+      'chatGroupId': chatGroupId,
+      'since': joinedAt,
+    });
+
+    _socket!.once('messages_since', (data) {
+      _log('Received ${data.length} messages since join date');
+      _completeAndRemove(completerKey, data);
+    });
+
+    _socket!.once('error', (data) {
+      _log('Error fetching messages since join: $data');
+      _completeErrorAndRemove(
+          completerKey, data['message'] ?? 'Failed to fetch messages');
+    });
+
+    return _createCompleterWithTimeout<List<dynamic>>(
+        key: completerKey,
+        timeout: Duration(seconds: 10),
+        timeoutMessage: 'Timeout while fetching messages since join');
+  }
+
   Future<void> sendMessage(int senderId, int chatGroupId, String text) async {
     if (!isConnected) {
       _log('Cannot send message: Not connected to socket server');
@@ -113,10 +250,26 @@ class SocketService {
 
     if (!_joinedGroups.contains(chatGroupId)) {
       try {
-        _log('Auto-joining group $chatGroupId before sending message');
-        await _autoJoinGroup(senderId.toString(), chatGroupId);
+        _log('Checking user membership in group $chatGroupId');
+        final membershipData =
+            await checkUserInGroup(senderId.toString(), chatGroupId);
+
+        if (membershipData['isMember'] == true) {
+          _log('User is already a member of group $chatGroupId');
+        } else {
+          _log('User is not a member, attempting to join group $chatGroupId');
+          await _autoJoinGroup(senderId.toString(), chatGroupId);
+        }
       } catch (e) {
-        _log('Auto-join failed, but will attempt to send message anyway: $e');
+        _log('Group membership check failed: $e');
+        _log('Will attempt to send message anyway');
+
+        try {
+          await _autoJoinGroup(senderId.toString(), chatGroupId);
+        } catch (joinError) {
+          _log(
+              'Auto-join failed, but will attempt to send message anyway: $joinError');
+        }
       }
     }
 
@@ -129,30 +282,28 @@ class SocketService {
     _log('Sending message: $messageData');
     _socket!.emit('send_message', messageData);
 
-    Completer<void> completer = Completer<void>();
+    final completerKey =
+        'send_message_${senderId}_${chatGroupId}_${DateTime.now().millisecondsSinceEpoch}';
 
     _socket!.once('message_sent', (data) {
       _log('Message sent confirmation received: $data');
-      completer.complete();
+      _completeAndRemove(completerKey, null);
     });
 
     _socket!.once('error', (data) {
       _log('Error sending message: $data');
-      completer.completeError(data['message'] ?? 'Failed to send message');
+      _completeErrorAndRemove(
+          completerKey, data['message'] ?? 'Failed to send message');
     });
 
-    Timer(Duration(seconds: 5), () {
-      if (!completer.isCompleted) {
-        _log('Timeout while sending message');
-        completer.completeError('Timeout while sending message');
-      }
-    });
-
-    return completer.future;
+    return _createCompleterWithTimeout<void>(
+        key: completerKey,
+        timeout: Duration(seconds: 5),
+        timeoutMessage: 'Timeout while sending message');
   }
 
   Future<void> _autoJoinGroup(String userId, int chatGroupId) async {
-    final Completer<void> completer = Completer<void>();
+    final completerKey = 'auto_join_${userId}_$chatGroupId';
 
     _log('Auto-joining group: userId=$userId, chatGroupId=$chatGroupId');
     _socket!.emit('join_group', {
@@ -163,22 +314,27 @@ class SocketService {
     _socket!.once('group_joined', (data) {
       _log('Successfully joined group: $chatGroupId');
       _joinedGroups.add(chatGroupId);
-      completer.complete();
+
+      if (data != null && data['joinedAt'] != null) {
+        _userJoinDates[chatGroupId] = data['joinedAt'];
+      } else {
+        _userJoinDates[chatGroupId] = DateTime.now().toIso8601String();
+      }
+
+      _completeAndRemove(completerKey, null);
     });
 
+    // Use one-time error handler
     _socket!.once('error', (data) {
       _log('Error joining group: $data');
-      completer.completeError(data['message'] ?? 'Failed to join group');
+      _completeErrorAndRemove(
+          completerKey, data['message'] ?? 'Failed to join group');
     });
 
-    Timer(Duration(seconds: 5), () {
-      if (!completer.isCompleted) {
-        _log('Timeout while joining group');
-        completer.completeError('Timeout while joining group');
-      }
-    });
-
-    return completer.future;
+    return _createCompleterWithTimeout<void>(
+        key: completerKey,
+        timeout: Duration(seconds: 5),
+        timeoutMessage: 'Timeout while joining group');
   }
 
   Future<List<dynamic>> fetchGroupHistory(int chatGroupId) async {
@@ -197,28 +353,28 @@ class SocketService {
       }
     }
 
-    final Completer<List<dynamic>> completer = Completer<List<dynamic>>();
+    final completerKey = 'group_history_$chatGroupId';
+
     _log('Fetching group history for chatGroupId: $chatGroupId');
     _socket!.emit('fetch_group_history', {'chatGroupId': chatGroupId});
 
+    // Use one-time handler
     _socket!.once('group_history', (data) {
       _log('Received group history: ${data.length} messages');
-      completer.complete(data);
+      _completeAndRemove(completerKey, data);
     });
 
+    // Use one-time error handler
     _socket!.once('error', (data) {
       _log('Error fetching history: $data');
-      completer.completeError(data['message'] ?? 'Failed to fetch history');
+      _completeErrorAndRemove(
+          completerKey, data['message'] ?? 'Failed to fetch history');
     });
 
-    Timer(Duration(seconds: 10), () {
-      if (!completer.isCompleted) {
-        _log('Timeout while fetching history');
-        completer.completeError('Timeout while fetching history');
-      }
-    });
-
-    return completer.future;
+    return _createCompleterWithTimeout<List<dynamic>>(
+        key: completerKey,
+        timeout: Duration(seconds: 10),
+        timeoutMessage: 'Timeout while fetching history');
   }
 
   String? _getUserId() {
@@ -236,29 +392,38 @@ class SocketService {
       return;
     }
 
-    final Completer<void> completer = Completer<void>();
+    final completerKey = 'join_group_${userId}_$chatGroupId';
+
     _log('Joining group: userId=$userId, chatGroupId=$chatGroupId');
     _socket!.emit('join_group', {'userId': userId, 'chatGroupId': chatGroupId});
 
+    // Use one-time handler
     _socket!.once('group_joined', (data) {
       _log('Successfully joined group: $chatGroupId');
       _joinedGroups.add(chatGroupId);
-      completer.complete();
+
+      // Store join date if provided
+      if (data != null && data['joinedAt'] != null) {
+        _userJoinDates[chatGroupId] = data['joinedAt'];
+      } else {
+        // If not provided, use current time
+        _userJoinDates[chatGroupId] = DateTime.now().toIso8601String();
+      }
+
+      _completeAndRemove(completerKey, null);
     });
 
+    // Use one-time error handler
     _socket!.once('error', (data) {
       _log('Error joining group: $data');
-      completer.completeError(data['message'] ?? 'Failed to join group');
+      _completeErrorAndRemove(
+          completerKey, data['message'] ?? 'Failed to join group');
     });
 
-    Timer(Duration(seconds: 5), () {
-      if (!completer.isCompleted) {
-        _log('Timeout while joining group');
-        completer.completeError('Timeout while joining group');
-      }
-    });
-
-    return completer.future;
+    return _createCompleterWithTimeout<void>(
+        key: completerKey,
+        timeout: Duration(seconds: 5),
+        timeoutMessage: 'Timeout while joining group');
   }
 
   Future<void> leaveGroup(String userId, int chatGroupId) async {
@@ -267,30 +432,31 @@ class SocketService {
       throw Exception('Not connected to socket server');
     }
 
-    final Completer<void> completer = Completer<void>();
+    final completerKey = 'leave_group_${userId}_$chatGroupId';
+
     _log('Leaving group: userId=$userId, chatGroupId=$chatGroupId');
     _socket!
         .emit('leave_group', {'userId': userId, 'chatGroupId': chatGroupId});
 
+    // Use one-time handler
     _socket!.once('group_left', (data) {
       _log('Successfully left group: $chatGroupId');
       _joinedGroups.remove(chatGroupId);
-      completer.complete();
+      _userJoinDates.remove(chatGroupId);
+      _completeAndRemove(completerKey, null);
     });
 
+    // Use one-time error handler
     _socket!.once('error', (data) {
       _log('Error leaving group: $data');
-      completer.completeError(data['message'] ?? 'Failed to leave group');
+      _completeErrorAndRemove(
+          completerKey, data['message'] ?? 'Failed to leave group');
     });
 
-    Timer(Duration(seconds: 5), () {
-      if (!completer.isCompleted) {
-        _log('Timeout while leaving group');
-        completer.completeError('Timeout while leaving group');
-      }
-    });
-
-    return completer.future;
+    return _createCompleterWithTimeout<void>(
+        key: completerKey,
+        timeout: Duration(seconds: 5),
+        timeoutMessage: 'Timeout while leaving group');
   }
 
   void sendTypingIndicator(String userId, int chatGroupId) {
@@ -310,28 +476,28 @@ class SocketService {
       throw Exception('Not connected to socket server');
     }
 
-    final Completer<void> completer = Completer<void>();
+    final completerKey = 'message_read_$messageId';
+
     _log('Marking message as read: messageId=$messageId');
     _socket!.emit('message_read', messageId);
 
+    // Use one-time handler
     _socket!.once('message_read_confirmed', (data) {
       _log('Message marked as read: $messageId');
-      completer.complete();
+      _completeAndRemove(completerKey, null);
     });
 
+    // Use one-time error handler
     _socket!.once('error', (data) {
       _log('Error marking message as read: $data');
-      completer.completeError(data['message'] ?? 'Failed to mark as read');
+      _completeErrorAndRemove(
+          completerKey, data['message'] ?? 'Failed to mark as read');
     });
 
-    Timer(Duration(seconds: 5), () {
-      if (!completer.isCompleted) {
-        _log('Timeout while marking as read');
-        completer.completeError('Timeout while marking as read');
-      }
-    });
-
-    return completer.future;
+    return _createCompleterWithTimeout<void>(
+        key: completerKey,
+        timeout: Duration(seconds: 5),
+        timeoutMessage: 'Timeout while marking as read');
   }
 
   Future<Map<String, dynamic>> ping() async {
@@ -340,23 +506,21 @@ class SocketService {
       throw Exception('Not connected to socket server');
     }
 
-    final Completer<Map<String, dynamic>> completer = Completer();
+    final completerKey = 'ping_${DateTime.now().millisecondsSinceEpoch}';
+
     _log('Pinging server');
     _socket!.emit('ping');
 
+    // Use one-time handler
     _socket!.once('pong', (data) {
       _log('Received pong: $data');
-      completer.complete(data);
+      _completeAndRemove(completerKey, data);
     });
 
-    Timer(Duration(seconds: 5), () {
-      if (!completer.isCompleted) {
-        _log('Timeout while pinging server');
-        completer.completeError('Timeout while pinging server');
-      }
-    });
-
-    return completer.future;
+    return _createCompleterWithTimeout<Map<String, dynamic>>(
+        key: completerKey,
+        timeout: Duration(seconds: 5),
+        timeoutMessage: 'Timeout while pinging server');
   }
 
   void _setupEventListeners() {
@@ -380,6 +544,11 @@ class SocketService {
       onGroupHistory?.call(data);
     });
 
+    _socket!.on('messages_since', (data) {
+      _log('Received messages since join: ${data.length} messages');
+      onMessagesSinceJoin?.call(data);
+    });
+
     _socket!.on('user_status', (data) {
       _log('User status update: $data');
       onUserStatus?.call(data);
@@ -388,6 +557,11 @@ class SocketService {
     _socket!.on('message_read_confirmed', (data) {
       _log('Message read confirmed: $data');
       onMessageReadConfirmed?.call(data);
+    });
+
+    _socket!.on('membership_status', (data) {
+      _log('Membership status update: $data');
+      onMembershipStatus?.call(data);
     });
 
     _socket!.on('error', (data) {
@@ -445,6 +619,8 @@ class SocketService {
     }
 
     _joinedGroups.clear();
+    _userJoinDates.clear();
+    _activeCompleters.clear();
     activeUsers.dispose();
     userTypingStatus.dispose();
     _log('Socket service disposed');

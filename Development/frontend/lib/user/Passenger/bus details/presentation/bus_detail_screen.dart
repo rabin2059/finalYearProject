@@ -73,7 +73,7 @@ class _BusDetailScreenState extends ConsumerState<BusDetailScreen> {
             0, (sum, booking) => sum! + (booking.bookingSeats?.length ?? 0)) ??
         0;
 
-    final seatCount = (vehicle!.vehicleSeat?.length ?? 0) - bookedSeatsCount;
+    final seatCount = (vehicle?.vehicleSeat?.length ?? 0) - bookedSeatsCount;
 
     return Scaffold(
       appBar: AppBar(

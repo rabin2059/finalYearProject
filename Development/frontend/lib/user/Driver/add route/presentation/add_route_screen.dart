@@ -5,10 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/components/CustomTextField.dart';
 import 'package:frontend/core/constants.dart';
+import 'package:frontend/user/Passenger/map/providers/map_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:latlong2/latlong.dart';
-import '../../../Passenger/map/providers/map_provider.dart';
 import 'package:http/http.dart' as http;
 
 class AddRouteScreen extends ConsumerStatefulWidget {

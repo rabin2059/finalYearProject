@@ -192,15 +192,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           color: AppColors.primary,
                           fontSize: 17.sp,
                         ),
-                  if (authState.error != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 16.0),
-                      child: Text(
-                        authState.error!,
-                        style: const TextStyle(color: Colors.red),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
+                  // if (authState.error != null)
+                  //   Padding(
+                  //     padding: const EdgeInsets.only(top: 16.0),
+                  //     child: Text(
+                  //       authState.error!,
+                  //       style: const TextStyle(color: Colors.red),
+                  //       textAlign: TextAlign.center,
+                  //     ),
+                  //   ),
                   SizedBox(
                     height: 10.h,
                   ),

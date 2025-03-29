@@ -22,21 +22,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final token = response['token'];
       final refreshToken = response['refreshToken'];
 
-      // Create auth state from response
       final newState = AuthState.fromLoginResponse(response);
 
-      // Save tokens
       await SharedPrefsUtil.saveToken(token, newState.tokenExpiry!);
       await SharedPrefsUtil.saveRefreshToken(refreshToken!);
 
-      // Update state first
       state = newState;
 
-      // Connect to socket after state is updated
       if (state.isLoggedIn && state.userId != null) {
-        // Make sure we're disconnected first to avoid duplicate connections
         _disconnectSocket();
-        // Connect with the userId
         socketService.connect(state.userId.toString());
       }
     } catch (e) {
@@ -47,8 +41,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> logout() async {
     try {
       if (state.isLoggedIn && state.userId != null) {
-        // Make sure to disconnect socket before clearing state
-        socketService.disconnect(state.userId.toString());
+       _disconnectSocket();
       }
 
       // Clear tokens and state
@@ -79,7 +72,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
       await SharedPrefsUtil.saveToken(newToken, newExpiry);
 
-      // Reconnect socket after token refresh
       if (state.isLoggedIn && state.userId != null) {
         _reconnectSocket();
       }

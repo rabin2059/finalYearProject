@@ -31,7 +31,8 @@ model User {
 
   Message Message[]
 
-  ChatGroup ChatGroup[] @relation("UserChatGroups")
+  chatGroups ChatGroup[] @relation("UserChatGroups")
+  UserChatGroup UserChatGroup[]
 }
 
 enum Role {
@@ -162,6 +163,7 @@ model ChatGroup {
   updatedAt  DateTime    @updatedAt
   messages   Message[]
   users      User[]      @relation("UserChatGroups") // Many-to-many relationship with users
+  UserChatGroup UserChatGroup[]
 }
 
 model Message {
@@ -175,4 +177,16 @@ model Message {
   chatGroupId  Int
   isRead       Boolean     @default(false)
   readAt       DateTime?   // Track when message was read
+}
+
+// New model to track when users join chat groups
+model UserChatGroup {
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+  chatGroup   ChatGroup @relation(fields: [chatGroupId], references: [id], onDelete: Cascade)
+  chatGroupId Int
+  joinedAt    DateTime  @default(now())
+  isActive    Boolean   @default(true)
+
+  @@id([userId, chatGroupId])
 }
