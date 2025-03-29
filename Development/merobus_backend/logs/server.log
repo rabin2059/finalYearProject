@@ -2131,3 +2131,10 @@ Unknown field `ChatGroup` for include statement on model `User`. Available optio
 2025-03-29 12:08:50 [info]: Fetching messages for group 1 since 2025-03-23T03:49:25.310Z
 2025-03-29 12:09:48 [info]: Server running on http://localhost:3089
 2025-03-29 12:09:59 [info]: Server running on http://localhost:3089
+2025-03-29 23:42:49 [info]: Server running on http://localhost:3089
+2025-03-29 23:42:49 [info]: New client connected: 03uXvtPlbps5CMn5AAAB (transport: websocket)
+2025-03-29 23:42:49 [info]: User 1 logged in via socket 03uXvtPlbps5CMn5AAAB (transport: websocket)
+2025-03-29 23:42:50 [info]: User user-1743269537282 logged in via socket 03uXvtPlbps5CMn5AAAB (transport: websocket)
+2025-03-29 23:42:51 [info]: New client connected: lJ1JI9z0CY3GqyLGAAAD (transport: websocket)
+2025-03-29 23:42:51 [info]: User 2 logged in via socket lJ1JI9z0CY3GqyLGAAAD (transport: websocket)
+2025-03-29 23:42:51 [info]: User driver-1 logged in via socket lJ1JI9z0CY3GqyLGAAAD (transport: websocket)
