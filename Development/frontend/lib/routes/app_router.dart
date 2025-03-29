@@ -8,7 +8,7 @@ import 'package:frontend/user/Passenger/book%20vehicle/presentation/booking_scre
 import 'package:frontend/user/Passenger/bus%20details/presentation/bus_detail_screen.dart';
 import 'package:frontend/user/authentication/sign%20up/presentation/signup.dart';
 import 'package:frontend/user/chat/presentation/chat_screen.dart';
-import 'package:frontend/user/Passenger/map/presentation/map_screen.dart';
+import 'package:frontend/user/Passenger/user%20map/presentation/map_screen.dart';
 import 'package:frontend/user/Passenger/payment/presentation/overview_screen.dart';
 import 'package:frontend/user/Passenger/payment/presentation/payment_screen.dart';
 import 'package:frontend/user/Passenger/profile/presentation/profile_screen.dart';

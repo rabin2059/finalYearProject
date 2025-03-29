@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
-import '../../../../data/models/map_model.dart';
-import '../../../../data/services/map_service.dart';
+import '../../../data/models/map_model.dart';
+import '../../../data/services/map_service.dart';
 import 'map_state.dart';
 
 class MapNotifier extends StateNotifier<MapState> {
@@ -12,7 +12,6 @@ class MapNotifier extends StateNotifier<MapState> {
 
   MapNotifier(this._mapService) : super(MapState());
 
-  /// **1️⃣ Fetch User Location**
   Future<void> fetchUserLocation() async {
     try {
       state = state.copyWith(isLoading: true);
@@ -27,9 +26,9 @@ class MapNotifier extends StateNotifier<MapState> {
     }
   }
 
-  /// **2️⃣ Search Places using OpenStreetMap (Only Nepal)**
   Future<void> searchPlaces(String query) async {
     try {
+      print(query);
       state = state.copyWith(isLoading: true);
       List<Map<String, dynamic>> results =
           await _mapService.searchPlaces(query);
@@ -49,7 +48,6 @@ class MapNotifier extends StateNotifier<MapState> {
     }
   }
 
-  /// **3️⃣ Get Coordinates from Address**
   Future<LocationModel?> getCoordinatesFromAddress(String address) async {
     try {
       List<Map<String, dynamic>> results =
@@ -68,15 +66,12 @@ class MapNotifier extends StateNotifier<MapState> {
     }
   }
 
-  /// **4️⃣ Fetch Route Between Two Locations**
   Future<void> fetchRoute(LatLng start, LatLng end) async {
     try {
       state = state.copyWith(isLoading: true);
 
-      // Fetch route points from MapService
       List<LatLng> routePoints = await _mapService.getRoutePoints(start, end);
 
-      // ✅ Convert List<LatLng> to List<LocationModel>
       List<LocationModel> locationPoints = routePoints.map((latLng) {
         return LocationModel(
           latitude: latLng.latitude,
@@ -89,7 +84,6 @@ class MapNotifier extends StateNotifier<MapState> {
         return;
       }
 
-      // ✅ Use the converted List<LocationModel>
       RouteModel route = RouteModel(routePoints: locationPoints);
       state = state.copyWith(route: route, isLoading: false);
     } catch (e, stackTrace) {
@@ -98,17 +92,51 @@ class MapNotifier extends StateNotifier<MapState> {
     }
   }
 
-  /// **5️⃣ Get Latitude & Longitude from Location Name**
+  void startLiveLocationSharing({
+    required int vehicleId,
+    required void Function(double lat, double lng) onLocationUpdate,
+    required Function(String error) onError,
+  }) async {
+    final hasPermission = await _handleLocationPermission();
+    if (!hasPermission) {
+      onError("Location permission not granted");
+      return;
+    }
+
+    _positionStream?.cancel();
+
+    try {
+      _positionStream = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 10,
+        ),
+      ).listen(
+        (position) {
+          final lat = position.latitude;
+          final lng = position.longitude;
+          onLocationUpdate(lat, lng);
+        },
+        onError: (e) {
+          onError("Location error: $e");
+          print("Live location error: $e");
+        },
+        cancelOnError: false,
+      );
+    } catch (e, stack) {
+      onError("Stream error: $e");
+      print("Error starting location stream: $e\n$stack");
+    }
+  }
+
   Future<LatLng?> getLatLngFromLocation(String locationName) async {
     return await _mapService.getLatLngFromLocation(locationName);
   }
 
-  /// **6️⃣ Set Selected Location**
   void setSelectedLocation(LocationModel location) {
     state = state.copyWith(selectedLocation: location);
   }
 
-  /// **7️⃣ Handle Location Permissions**
   Future<bool> _handleLocationPermission() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) return false;
@@ -123,9 +151,17 @@ class MapNotifier extends StateNotifier<MapState> {
 
     return true;
   }
+
+  void clearRoute() {
+    state = state.copyWith(route: null);
+  }
+
+  void stopLiveLocationSharing() {
+    _positionStream?.cancel();
+    _positionStream = null;
+  }
 }
 
-/// **🔹 Dependency Injection for Riverpod**
 final mapServiceProvider = Provider<MapService>((ref) => MapService());
 
 final mapProvider = StateNotifierProvider<MapNotifier, MapState>((ref) {

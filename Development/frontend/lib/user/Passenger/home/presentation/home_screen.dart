@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/components/AppColors.dart';
 import 'package:frontend/components/CustomButton.dart';
-import 'package:frontend/user/Passenger/map/presentation/map_screen.dart';
+import 'package:frontend/user/Passenger/user%20map/presentation/map_screen.dart';
 import 'package:frontend/user/authentication/login/providers/auth_provider.dart';
 import 'package:go_router/go_router.dart';
 

@@ -5,6 +5,7 @@ const { activeBuses } = require("./socketController.js");
 
 const getRoute = async (req, res) => {
   try {
+    const { activeBuses } = require("./socketController.js");
     const { startLat, startLng, endLat, endLng } = req.query;
 
     if (!startLat || !startLng || !endLat || !endLng) {
@@ -32,6 +33,13 @@ const getRoute = async (req, res) => {
           },
         },
       },
+    });
+
+    // Attach live location to each vehicle
+    routes.forEach((route) => {
+      if (route.vehicle && activeBuses.has(route.vehicle.id)) {
+        route.vehicle.location = activeBuses.get(route.vehicle.id).location;
+      }
     });
 
     console.log("Fetched Routes:", routes);

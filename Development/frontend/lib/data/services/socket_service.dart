@@ -31,6 +31,8 @@ class SocketService {
   Function(String)? onError;
   Function(String)? onConnectionStatus;
   Function(Map<String, dynamic>)? onMembershipStatus;
+  final ValueNotifier<List<String>> onActiveBusesReceived =
+      ValueNotifier<List<String>>([]);
 
   SocketService({required this.baseUrl});
 
@@ -523,10 +525,45 @@ class SocketService {
         timeoutMessage: 'Timeout while pinging server');
   }
 
+  // Driver-specific tracking
+  Function(String, double, double)? onVehicleLocation;
+  final Map<String, Map<String, double>> driverLocations = {};
+
+  void registerDriver(int vehicleId) {
+    if (isConnected) {
+      _log('Registering driver with vehicleId: $vehicleId');
+      _socket!.emit('register-driver', {'vehicleId': vehicleId});
+    }
+  }
+
+  void sendDriverLocation(int vehicleId, double lat, double lng) {
+    if (isConnected) {
+      _log('Sending driver location for vehicleId $vehicleId: ($lat, $lng)');
+      _socket!.emit('driver-location', {
+        'vehicleId': vehicleId,
+        'lat': lat,
+        'lng': lng,
+      });
+    }
+  }
+
+  void requestActiveBuses() {
+    if (isConnected) {
+      _log('Requesting list of active buses');
+      _socket!.emit('get_active_buses');
+    }
+  }
+
   void _setupEventListeners() {
     _socket!.on('active_users', (data) {
       _log('Received active users: $data');
       activeUsers.value = List<String>.from(data);
+    });
+
+    _socket!.on('active_buses', (data) {
+      _log('Received active buses: $data');
+      onActiveBusesReceived.value =
+          List<String>.from(data.map((e) => e.toString()));
     });
 
     _socket!.on('new_message', (data) {
@@ -572,6 +609,20 @@ class SocketService {
     _socket!.on('__ping', (_) {
       _log('Received server heartbeat');
       _socket!.emit('__pong');
+    });
+
+    _socket!.on('vehicle-location', (data) {
+      final vehicleId = data['vehicleId']?.toString();
+      final lat = data['lat'];
+      final lng = data['lng'];
+      _log('Received vehicle location: $vehicleId => ($lat, $lng)');
+
+      if (vehicleId != null && lat != null && lng != null) {
+        driverLocations[vehicleId] = {'lat': lat, 'lng': lng};
+        if (onVehicleLocation != null) {
+          onVehicleLocation!(vehicleId, lat.toDouble(), lng.toDouble());
+        }
+      }
     });
 
     _socket!.onDisconnect((_) {
@@ -622,6 +673,7 @@ class SocketService {
     _userJoinDates.clear();
     _activeCompleters.clear();
     activeUsers.dispose();
+    onActiveBusesReceived.dispose();
     userTypingStatus.dispose();
     _log('Socket service disposed');
   }
