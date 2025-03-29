@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/user/Driver/booking%20lists/providers/book_vehicle_provider.dart';
+import 'package:frontend/user/Passenger/bus%20details/providers/bus_details_provider.dart';
 import 'package:frontend/user/Passenger/setting/providers/setting_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -31,13 +32,13 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
     }
   }
 
+  void fetchVehicleSeats() {
+    final seats = ref.read(busDetailsProvider).vehicle!.vehicleSeat;
+  }
+
   @override
   Widget build(BuildContext context) {
     final bookingByVehicletate = ref.watch(bookVehicleProvider);
-
-    if (bookingByVehicletate.isLoading) {
-      fetchBookings();
-    }
 
     return Scaffold(
       appBar: AppBar(
@@ -49,8 +50,8 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
           _buildDateSelector(),
           Expanded(
             child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.black12,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
               ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -59,7 +60,7 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
                     : (bookingByVehicletate.bookingByVehicle == null ||
                             bookingByVehicletate.bookingByVehicle!.isEmpty)
                         ? _buildNoBookingsUI()
-                        : _buildFilteredBookings(
+                        : _buildBusLayoutWithBookings(
                             bookingByVehicletate.bookingByVehicle!),
               ),
             ),
@@ -69,7 +70,6 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
     );
   }
 
-  /// **Builds the horizontal date selector**
   Widget _buildDateSelector() {
     return Container(
       height: 70.h,
@@ -77,7 +77,7 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
       padding: EdgeInsets.symmetric(vertical: 5.h),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: 7, // Show 3 days before and 3 days after today
+        itemCount: 7,
         itemBuilder: (context, index) {
           DateTime date = DateTime.now().subtract(Duration(days: 3 - index));
           String formattedDate = DateFormat('yyyy-MM-dd').format(date);
@@ -102,14 +102,14 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
               child: Column(
                 children: [
                   Text(
-                    DateFormat('E').format(date), // Day abbreviation (e.g. Mon)
+                    DateFormat('E').format(date),
                     style: TextStyle(
                       color: isSelected ? Colors.white : Colors.blueAccent,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    DateFormat('MMM dd').format(date), // e.g. Mar 10
+                    DateFormat('MMM dd').format(date),
                     style: TextStyle(
                       color: isSelected ? Colors.white : Colors.blueAccent,
                       fontWeight: FontWeight.bold,
@@ -124,8 +124,7 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
     );
   }
 
-  /// **Filters and builds the bookings list based on the selected date**
-  Widget _buildFilteredBookings(List bookings) {
+  Widget _buildBusLayoutWithBookings(List bookings) {
     List sortedBookings = bookings
         .where((booking) =>
             DateFormat('yyyy-MM-dd')
@@ -134,87 +133,172 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
         .toList()
       ..sort((a, b) => b.id!.compareTo(a.id!));
 
-    return sortedBookings.isEmpty
-        ? _buildNoBookingsUI()
-        : ListView.builder(
-            itemCount: sortedBookings.length,
-            itemBuilder: (context, index) {
-              final booking = sortedBookings[index];
-              return _buildBookingCard(booking);
-            },
-          );
-  }
+    if (sortedBookings.isEmpty) {
+      return _buildNoBookingsUI();
+    }
 
-  /// **Booking card UI**
-  Widget _buildBookingCard(booking) {
-    DateTime bookingDate = DateTime.parse(booking.bookingDate);
-    String formattedDate = DateFormat('yyyy-MM-dd').format(bookingDate);
-
-    return GestureDetector(
-      onTap: () {
-        context.pushNamed('/bookingDetails', pathParameters: {
-          'bookId': booking.id.toString(),
-          'userId': booking.userId.toString(),
-        });
-      },
-      child: Card(
-        elevation: 1,
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.r),
-        ),
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.directions_bus,
-                      color: Colors.blue, size: 28),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildLocationRow(
-                            Icons.location_on, 'From:', booking.pickUpPoint),
-                        _buildLocationRow(
-                            Icons.flag, 'To:', booking.dropOffPoint),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const Divider(),
-              _buildLocationRow(Icons.calendar_today, 'Date:', formattedDate),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Fare: Rs.${booking.totalFare}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
-                    ),
-                  ),
-                  _buildStatusBadge(booking.status),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerRight,
-                child: IconButton(
-                  onPressed: () => _showDeleteConfirmation(booking.id),
-                  icon: const Icon(Icons.delete, color: Colors.redAccent),
-                ),
-              ),
-            ],
+    return Column(
+      children: [
+        SizedBox(height: 16.h),
+        _buildSeatLegend(),
+        SizedBox(height: 20.h),
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildBusLayout(sortedBookings),
+                SizedBox(height: 16.h),
+              ],
+            ),
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildSeatLegend() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildLegendItem(Colors.grey.shade300, "Available"),
+        SizedBox(width: 15.w),
+        _buildLegendItem(Colors.green.shade500, "Booked"),
+        SizedBox(width: 15.w),
+        _buildLegendItem(Colors.red.shade400, "Canceled"),
+      ],
+    );
+  }
+
+  Widget _buildLegendItem(Color color, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 16.w,
+          height: 16.h,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(4.r),
+          ),
+        ),
+        SizedBox(width: 4.w),
+        Text(
+          label,
+          style: TextStyle(fontSize: 12.sp, color: Colors.black87),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBusLayout(List bookings) {
+    List<List<dynamic>> busLayout = [
+      ['X', 'X', '', 'X', 'X'],
+      ['X', 'X', '', 'X', 'X'],
+      ['X', 'X', '', 'X', 'X'],
+      ['X', 'X', '', 'X', 'X'],
+      ['X', 'X', '', 'X', 'X'],
+      ['X', 'X', '', 'X', 'X'],
+      ['X', 'X', '', 'X', 'X'],
+      ['X', 'X', '', 'X', 'X'],
+      ['X', 'X', '', 'X', 'X'],
+      ['X', 'X', 'X', 'X', 'X'],
+    ];
+
+    int seatNumber = 1;
+    for (int i = 0; i < busLayout.length; i++) {
+      for (int j = 0; j < busLayout[i].length; j++) {
+        if (busLayout[i][j] == 'X') {
+          var booking = bookings.length >= seatNumber
+              ? bookings[seatNumber % bookings.length]
+              : null;
+
+          if (booking != null) {
+            busLayout[i]
+                [j] = {'seat': seatNumber.toString(), 'booking': booking};
+          } else {
+            busLayout[i][j] = {'seat': seatNumber.toString(), 'booking': null};
+          }
+          seatNumber++;
+        }
+      }
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 5,
+            offset: Offset(0, 2),
+          )
+        ],
+      ),
+      padding: EdgeInsets.all(16.w),
+      child: Column(
+        children: [
+          SizedBox(height: 20.h),
+          ...busLayout.map((row) {
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: row.map((seat) {
+                if (seat == '') {
+                  return SizedBox(width: 30.w);
+                }
+
+                var booking = seat['booking'];
+                var seatNum = seat['seat'];
+                Color seatColor = Colors.grey.shade300;
+
+                if (booking != null) {
+                  if (booking.status.toLowerCase() == 'canceled') {
+                    seatColor = Colors.red.shade400;
+                  } else {
+                    seatColor = Colors.green.shade500;
+                  }
+                }
+
+                return GestureDetector(
+                  onTap: () {
+                    if (booking != null &&
+                        booking.status.toLowerCase() != 'canceled') {
+                      context.pushNamed('/bookingDetails', pathParameters: {
+                        'bookId': booking.id.toString(),
+                        'userId': booking.userId.toString(),
+                      });
+                    }
+                  },
+                  child: Container(
+                    margin: EdgeInsets.all(4.w),
+                    width: 50.w,
+                    height: 50.h,
+                    decoration: BoxDecoration(
+                      color: seatColor,
+                      borderRadius: BorderRadius.circular(8.r),
+                      border: Border.all(
+                        color: booking != null
+                            ? Colors.black45
+                            : Colors.transparent,
+                        width: 1.5,
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      seatNum,
+                      style: TextStyle(
+                        color: seatColor == Colors.grey.shade300
+                            ? Colors.black87
+                            : Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            );
+          }),
+        ],
       ),
     );
   }
@@ -236,7 +320,7 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+      padding: EdgeInsets.symmetric(vertical: 4, horizontal: 10),
       decoration: BoxDecoration(
         color: statusColor.withOpacity(0.15),
         borderRadius: BorderRadius.circular(6),
@@ -252,16 +336,16 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
     return Row(
       children: [
         Icon(icon, color: Colors.blueAccent),
-        const SizedBox(width: 8),
+        SizedBox(width: 8),
         Text(
           label,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        const SizedBox(width: 5),
+        SizedBox(width: 5),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(fontSize: 14),
+            style: TextStyle(fontSize: 14),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -315,6 +399,6 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
 
   void _deleteBooking(int bookingId) {
     print('Deleting booking $bookingId');
-    // Implement delete logic here
+    // Implement your delete logic here
   }
 }

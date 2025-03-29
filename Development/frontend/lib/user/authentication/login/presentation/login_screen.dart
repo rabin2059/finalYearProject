@@ -137,7 +137,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   CustomTextField(
                     hint: 'Enter your email',
-                    icon: CupertinoIcons.mail,
+                    prefixIcon: CupertinoIcons.mail,
                     controller: emailController,
                   ),
                   SizedBox(height: 20.h),
@@ -148,7 +148,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   CustomTextField(
                     hint: 'Enter your password',
-                    icon: CupertinoIcons.lock,
+                    prefixIcon: CupertinoIcons.lock,
                     suffixIcon: CupertinoIcons.eye_slash,
                     keyboardType: TextInputType.visiblePassword,
                     controller: passwordController,
@@ -192,15 +192,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           color: AppColors.primary,
                           fontSize: 17.sp,
                         ),
-                  if (authState.error != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 16.0),
-                      child: Text(
-                        authState.error!,
-                        style: const TextStyle(color: Colors.red),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
+                  // if (authState.error != null)
+                  //   Padding(
+                  //     padding: const EdgeInsets.only(top: 16.0),
+                  //     child: Text(
+                  //       authState.error!,
+                  //       style: const TextStyle(color: Colors.red),
+                  //       textAlign: TextAlign.center,
+                  //     ),
+                  //   ),
                   SizedBox(
                     height: 10.h,
                   ),

@@ -1,112 +1,415 @@
-const prisma = require("../utils/prisma.js");
-const { io } = require("./socketController.js");
-const fs = require("fs").promises;
-const path = require("path");
+// controller/chatController.js
+const prisma = require("../utils/prisma");
+const { logger } = require("../utils/logger");
+const { activeUsers } = require("./socketController");
 
-// Create chat logs directory if it doesn't exist
-const CHAT_LOGS_DIR = path.join(__dirname, "../chat_logs");
-fs.mkdir(CHAT_LOGS_DIR, { recursive: true }).catch(console.error);
-
-const saveMessageToFile = async (roomId, senderId, message) => {
-  console.log("first");
+// Get all chat groups for a user
+const getUserChatGroups = async (req, res) => {
   try {
-    const logFile = path.join(CHAT_LOGS_DIR, `${roomId}.txt`);
-    const timestamp = new Date().toISOString();
-    const logEntry = `[${timestamp}] ${senderId || "Unknown"}: ${
-      message.text
-    }\n`;
+    const { userId } = req.params;
 
-    console.log(`📂 Saving message to: ${logFile}`); // ✅ Debug: Check file path
-    console.log(`✍️ Log Entry: ${logEntry}`); // ✅ Debug: Check log entry content
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
 
-    await fs.appendFile(logFile, logEntry, "utf8");
+    // Find all chat groups where the user is a member
+    const chatGroups = await prisma.chatGroup.findMany({
+      where: {
+        users: {
+          some: {
+            id: parseInt(userId),
+          },
+        },
+      },
+      include: {
+        users: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+        vehicle: {
+          select: {
+            id: true,
+            vehicleNo: true,
+            model: true,
+          },
+        },
+        _count: {
+          select: { messages: true },
+        },
+      },
+    });
 
-    console.log("✅ Message saved to file successfully!");
+    // Transform data to match expected response format
+    const formattedGroups = chatGroups.map((group) => ({
+      id: group.id,
+      name: group.name,
+      vehicleId: group.vehicleId,
+      vehicleInfo: group.vehicle,
+      createdAt: group.createdAt,
+      members: group.users.map((user) => ({
+        id: user.id,
+        username: user.username,
+        isOnline: activeUsers.has(user.id.toString()),
+      })),
+      messageCount: group._count.messages,
+    }));
+
+    res.status(200).json({ chatGroups: formattedGroups });
   } catch (error) {
-    console.error("🚨 Error saving message to file:", error);
+    logger.error(`Error fetching user chat groups: ${error.message}`);
+    res
+      .status(500)
+      .json({ error: "Failed to fetch chat groups", details: error.message });
   }
 };
 
-const getMessages = async (req, res) => {
+// Get messages for a specific chat group
+const getChatGroupMessages = async (req, res) => {
   try {
-    const { roomId } = req.params;
+    const { groupId } = req.params;
 
-    console.log(roomId);
-    const chatGroupId = parseInt(roomId, 10);
-
-    if (isNaN(chatGroupId)) {
-      return res.status(400).json({ error: "Invalid room ID" });
+    if (!groupId) {
+      return res.status(400).json({ error: "Chat group ID is required" });
     }
 
-    // ✅ Fetch messages from Prisma
+    // Fetch messages for the chat group
     const messages = await prisma.message.findMany({
       where: {
-        chatGroupId: chatGroupId, // ✅ Pass integer instead of string
+        chatGroupId: parseInt(groupId),
+      },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "asc",
       },
     });
 
-    // Get messages from file
-    try {
-      const logFile = path.join(CHAT_LOGS_DIR, `${roomId}.txt`);
-      const fileExists = await fs
-        .access(logFile)
-        .then(() => true)
-        .catch(() => false);
+    // Transform messages to match expected format
+    const formattedMessages = messages.map((msg) => ({
+      id: msg.id,
+      text: msg.text,
+      senderId: msg.senderId,
+      senderName: msg.sender.username,
+      chatGroupId: msg.chatGroupId,
+      createdAt: msg.createdAt,
+      isRead: msg.isRead,
+    }));
 
-      if (fileExists) {
-        const fileContent = await fs.readFile(logFile, "utf8");
-        console.log(fileContent);
-        res.status(200).json({
-          messages,
-          chatLog: fileContent,
-        });
-      } else {
-        res.status(200).json({
-          messages,
-          chatLog: "",
-        });
-      }
-    } catch (error) {
-      console.error("Error reading chat log file:", error);
-      res.status(200).json({ messages });
-    }
+    res.status(200).json({ messages: formattedMessages });
   } catch (error) {
-    console.log("Error in getting messages", error.message);
-    res.status(500).json({ error: "Internal Server Error" });
+    logger.error(`Error fetching chat group messages: ${error.message}`);
+    res
+      .status(500)
+      .json({ error: "Failed to fetch messages", details: error.message });
   }
 };
 
-const sendMessage = async (req, res) => {
+// Create a new chat group
+const createChatGroup = async (req, res) => {
   try {
-    const { message, senderId, roomId } = req.body;
+    const { name, vehicleId, userIds } = req.body;
 
-    // ✅ Save message to file
-    await saveMessageToFile(roomId, senderId, message);
-
-    // ✅ Get sender's socket ID (you need a function to track connected users)
-    const senderSocketId = getUserSocketId(senderId);
-
-    // ✅ Broadcast message to all users EXCEPT the sender
-    if (senderSocketId) {
-      socket.to(roomId).emit("receiveMessage", {
-        ...message,
-        isSentByMe: false,
-      });
-    } else {
-      io.to(roomId).emit("receiveMessage", {
-        ...message,
-        isSentByMe: false,
-      });
+    if (!name || !userIds || !Array.isArray(userIds) || userIds.length === 0) {
+      return res
+        .status(400)
+        .json({ error: "Name and at least one user ID are required" });
     }
 
-    res.status(201).json({ message });
+    // Create chat group
+    const chatGroup = await prisma.chatGroup.create({
+      data: {
+        name,
+        vehicleId: vehicleId ? parseInt(vehicleId) : null,
+        users: {
+          connect: userIds.map((id) => ({ id: parseInt(id) })),
+        },
+      },
+      include: {
+        users: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+        vehicle: vehicleId
+          ? {
+              select: {
+                id: true,
+                vehicleNo: true,
+                model: true,
+              },
+            }
+          : false,
+      },
+    });
+
+    res.status(201).json({
+      message: "Chat group created successfully",
+      chatGroup: {
+        id: chatGroup.id,
+        name: chatGroup.name,
+        vehicleId: chatGroup.vehicleId,
+        vehicleInfo: chatGroup.vehicle,
+        createdAt: chatGroup.createdAt,
+        members: chatGroup.users.map((user) => ({
+          id: user.id,
+          username: user.username,
+          isOnline: activeUsers.has(user.id.toString()),
+        })),
+      },
+    });
   } catch (error) {
-    console.log("Error in sending message", error.message);
-    res.status(500).json({ error: "Internal Server Error" });
+    logger.error(`Error creating chat group: ${error.message}`);
+    res
+      .status(500)
+      .json({ error: "Failed to create chat group", details: error.message });
   }
 };
 
-module.exports = { getMessages, sendMessage };
+// Add a user to a chat group
+const addUserToChatGroup = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const { userId } = req.body;
+
+    console.log("i joined");
+
+    if (!groupId || !userId) {
+      return res
+        .status(400)
+        .json({ error: "Group ID and user ID are required" });
+    }
+
+    // Check if user is already in the group
+    const existingMember = await prisma.chatGroup.findFirst({
+      where: {
+        id: parseInt(groupId),
+        users: {
+          some: {
+            id: parseInt(userId),
+          },
+        },
+      },
+    });
+
+    if (existingMember) {
+      return res
+        .status(400)
+        .json({ error: "User is already a member of this chat group" });
+    }
+
+    // Add user to chat group
+    const updatedGroup = await prisma.chatGroup.update({
+      where: {
+        id: parseInt(groupId),
+      },
+      data: {
+        users: {
+          connect: {
+            id: parseInt(userId),
+          },
+        },
+      },
+      include: {
+        users: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+      },
+    });
+
+    res.status(200).json({
+      message: "User added to chat group successfully",
+      members: updatedGroup.users.map((user) => ({
+        id: user.id,
+        username: user.username,
+        isOnline: activeUsers.has(user.id.toString()),
+      })),
+    });
+  } catch (error) {
+    logger.error(`Error adding user to chat group: ${error.message}`);
+    res.status(500).json({
+      error: "Failed to add user to chat group",
+      details: error.message,
+    });
+  }
+};
+
+// Remove a user from a chat group
+const removeUserFromChatGroup = async (req, res) => {
+  try {
+    const { groupId, userId } = req.params;
+
+    if (!groupId || !userId) {
+      return res
+        .status(400)
+        .json({ error: "Group ID and user ID are required" });
+    }
+
+    // Remove user from chat group
+    const updatedGroup = await prisma.chatGroup.update({
+      where: {
+        id: parseInt(groupId),
+      },
+      data: {
+        users: {
+          disconnect: {
+            id: parseInt(userId),
+          },
+        },
+      },
+    });
+
+    res.status(200).json({
+      message: "User removed from chat group successfully",
+    });
+  } catch (error) {
+    logger.error(`Error removing user from chat group: ${error.message}`);
+    res.status(500).json({
+      error: "Failed to remove user from chat group",
+      details: error.message,
+    });
+  }
+};
+
+// Get unread message count for a user
+const getUnreadMessageCount = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    // Find chat groups where the user is a member
+    const chatGroups = await prisma.chatGroup.findMany({
+      where: {
+        users: {
+          some: {
+            id: parseInt(userId),
+          },
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    const groupIds = chatGroups.map((group) => group.id);
+
+    // Count unread messages for each group
+    const unreadCounts = await Promise.all(
+      groupIds.map(async (groupId) => {
+        const count = await prisma.message.count({
+          where: {
+            chatGroupId: groupId,
+            senderId: {
+              not: parseInt(userId),
+            },
+            isRead: false,
+          },
+        });
+
+        return { groupId, count };
+      })
+    );
+
+    // Calculate total unread count
+    const totalUnread = unreadCounts.reduce(
+      (total, item) => total + item.count,
+      0
+    );
+
+    res.status(200).json({
+      totalUnread,
+      groupCounts: unreadCounts.reduce((acc, item) => {
+        acc[item.groupId] = item.count;
+        return acc;
+      }, {}),
+    });
+  } catch (error) {
+    logger.error(`Error getting unread message count: ${error.message}`);
+    res.status(500).json({
+      error: "Failed to get unread message count",
+      details: error.message,
+    });
+  }
+};
+
+// Mark messages as read
+const markMessagesAsRead = async (req, res) => {
+  try {
+    const { userId, groupId } = req.params;
+
+    if (!userId || !groupId) {
+      return res
+        .status(400)
+        .json({ error: "User ID and group ID are required" });
+    }
+
+    // Mark all messages in the group as read
+    await prisma.message.updateMany({
+      where: {
+        chatGroupId: parseInt(groupId),
+        senderId: {
+          not: parseInt(userId),
+        },
+        isRead: false,
+      },
+      data: {
+        isRead: true,
+      },
+    });
+
+    res.status(200).json({
+      message: "Messages marked as read successfully",
+    });
+  } catch (error) {
+    logger.error(`Error marking messages as read: ${error.message}`);
+    res.status(500).json({
+      error: "Failed to mark messages as read",
+      details: error.message,
+    });
+  }
+};
+
+const chatGroupOfVehicle = async (req, res) => {
+  try {
+    const { vehicleId } = req.params;
+    const checkChatGroup = await prisma.chatGroup.findFirst({
+      where: {
+        vehicleId: parseInt(vehicleId),
+      },
+    });
+
+    return res.status(200).json({ success: true, message: checkChatGroup });
+  } catch (error) {
+    logger.error(`Error checking chat group of vehicle: ${error.message}`);
+    res.status(500).json({
+      success: false,
+      message: "Failed to check chat group of vehicle",
+      details: error.message,
+    });
+  }
+};
+
+module.exports = {
+  getUserChatGroups,
+  getChatGroupMessages,
+  createChatGroup,
+  addUserToChatGroup,
+  removeUserFromChatGroup,
+  getUnreadMessageCount,
+  markMessagesAsRead,
+  chatGroupOfVehicle,
+};

@@ -56,12 +56,13 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
       path: '/profile',
       builder: (context, state) => ProfileScreen()),
   GoRoute(
-      name: '/chat',
-      path: '/chat',
-      builder: (context, state) => ChatScreen(
-            roomId: 1,
-            roomName: 'Group Chat',
-          )),
+    path: '/chat/:groupId/:groupName',
+    name: 'chat',
+    builder: (context, state) => ChatScreen(
+      groupId: int.parse(state.pathParameters['groupId']!),
+      groupName: state.pathParameters['groupName']!,
+    ),
+  ),
   GoRoute(
       name: '/roleChange',
       path: '/roleChange',

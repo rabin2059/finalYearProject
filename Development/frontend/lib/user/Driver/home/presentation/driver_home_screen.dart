@@ -12,7 +12,8 @@ class DriverHomeScreen extends ConsumerStatefulWidget {
   const DriverHomeScreen({super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _DriverHomeScreenState();
+  ConsumerState<ConsumerStatefulWidget> createState() =>
+      _DriverHomeScreenState();
 }
 
 class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
@@ -57,7 +58,6 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     return Scaffold(
       body: Column(
         children: [
-          
           _buildHeader(userName!, userEmail, userImage), // User Profile Section
           _buildUserOptions(context), // Quick Actions Section
         ],

@@ -1,9 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:frontend/core/shared_prefs_utils.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'package:http/http.dart' as http;
 import '../../../../components/AppColors.dart';
 import '../../../../components/CustomButton.dart';
 import '../../../../core/constants.dart';
@@ -19,12 +23,38 @@ class BusDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _BusDetailScreenState extends ConsumerState<BusDetailScreen> {
+  int? groupId;
+  String? groupName;
   @override
   void initState() {
     super.initState();
     Future.microtask(
       () => ref.read(busDetailsProvider.notifier).fetchBusDetail(widget.busId),
     );
+    getChatGroup();
+  }
+
+  void getChatGroup() async {
+    try {
+      final url = Uri.parse("$apiBaseUrl/vehicles/${widget.busId}/chatGroup");
+      final tokenData = await SharedPrefsUtil.getToken();
+      final token = tokenData is Map ? tokenData["token"] : tokenData;
+      final header = {
+        'Authorization': 'Bearer $token',
+      };
+      print(token);
+      print(url);
+      final data = await http.get(url, headers: header);
+      print(data.statusCode);
+      if (data.statusCode == 200 || data.statusCode == 201) {
+        final response = json.decode(data.body);
+        final groupData = response['message'];
+        groupId = groupData['id'];
+        groupName = groupData['name'];
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 
   @override
@@ -43,7 +73,7 @@ class _BusDetailScreenState extends ConsumerState<BusDetailScreen> {
             0, (sum, booking) => sum! + (booking.bookingSeats?.length ?? 0)) ??
         0;
 
-    final seatCount = (vehicle!.vehicleSeat?.length ?? 0) - bookedSeatsCount;
+    final seatCount = (vehicle?.vehicleSeat?.length ?? 0) - bookedSeatsCount;
 
     return Scaffold(
       appBar: AppBar(
@@ -75,9 +105,12 @@ class _BusDetailScreenState extends ConsumerState<BusDetailScreen> {
                   ),
                   SizedBox(height: 10.h),
                   CustomButton(
-                    text: "Chat",
-                    onPressed: () => context.pushNamed('/chat'),
-                  ),
+                      text: "Chat",
+                      onPressed: () => context.pushNamed('chat',
+                              pathParameters: {
+                                'groupId': groupId.toString(),
+                                'groupName': groupName ?? 'Bus Chat'
+                              })),
                 ],
               ),
             ),

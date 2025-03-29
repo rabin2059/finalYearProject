@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Socket.io Chat Test (WebSocket)</title>
+  <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .panel {
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 15px;
+    }
+    .form-group {
+      margin-bottom: 10px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    button {
+      padding: 8px 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 5px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    #connectionStatus {
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    .connected {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .disconnected {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    .connecting {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    .event-log {
+      height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      padding: 10px;
+      background-color: #f8f9fa;
+    }
+    .log-item {
+      margin-bottom: 5px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 5px;
+    }
+    .log-event {
+      font-weight: bold;
+    }
+    .log-data {
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+    .debug-panel {
+      background-color: #f8f9fa;
+      border-left: 3px solid #6c757d;
+      padding: 10px;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Socket.io Chat Test</h1>
+    
+    <div id="connectionStatus" class="disconnected">Disconnected</div>
+    
+    <div class="panel">
+      <h2>Connection</h2>
+      <div class="form-group">
+        <label for="serverUrl">Server URL:</label>
+        <input type="text" id="serverUrl" value="http://localhost:3089" />
+      </div>
+      <div class="form-group">
+        <label for="transportType">Transport Type:</label>
+        <select id="transportType">
+          <option value="websocket">WebSocket Only</option>
+          <option value="polling">Polling Only</option>
+          <option value="both">WebSocket with Polling Fallback</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="userId">User ID:</label>
+        <input type="text" id="userId" value="1" />
+      </div>
+      <button id="connectBtn">Connect</button>
+      <button id="disconnectBtn" disabled>Disconnect</button>
+      <button id="pingBtn" disabled>Ping Server</button>
+    </div>
+    
+    <div class="panel">
+      <h2>Send Message</h2>
+      <div class="form-group">
+        <label for="senderId">Sender ID:</label>
+        <input type="text" id="senderId" value="1" />
+      </div>
+      <div class="form-group">
+        <label for="chatGroupId">Chat Group ID:</label>
+        <input type="text" id="chatGroupId" value="1" />
+      </div>
+      <div class="form-group">
+        <label for="messageText">Message:</label>
+        <textarea id="messageText" rows="3">Hello, this is a test message</textarea>
+      </div>
+      <button id="sendMessageBtn" disabled>Send Message</button>
+    </div>
+    
+    <div class="panel">
+      <h2>Event Log</h2>
+      <div id="eventLog" class="event-log"></div>
+    </div>
+    
+    <div class="panel">
+      <h2>Debug Information</h2>
+      <div id="debugInfo" class="debug-panel">
+        <p>Socket ID: <span id="socketId">Not connected</span></p>
+        <p>Transport: <span id="currentTransport">None</span></p>
+        <p>Connection State: <span id="connectionState">Disconnected</span></p>
+        <p>Heartbeats: <span id="heartbeatCount">0</span></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let socket;
+    let heartbeatCount = 0;
+    
+    // DOM elements
+    const connectBtn = document.getElementById('connectBtn');
+    const disconnectBtn = document.getElementById('disconnectBtn');
+    const pingBtn = document.getElementById('pingBtn');
+    const sendMessageBtn = document.getElementById('sendMessageBtn');
+    const connectionStatus = document.getElementById('connectionStatus');
+    const eventLog = document.getElementById('eventLog');
+    const socketIdSpan = document.getElementById('socketId');
+    const currentTransportSpan = document.getElementById('currentTransport');
+    const connectionStateSpan = document.getElementById('connectionState');
+    const heartbeatCountSpan = document.getElementById('heartbeatCount');
+    
+    // Log function
+    function logEvent(event, data, isError = false) {
+      const logItem = document.createElement('div');
+      logItem.className = 'log-item' + (isError ? ' error' : '');
+      
+      const eventSpan = document.createElement('span');
+      eventSpan.className = 'log-event';
+      eventSpan.textContent = `[${new Date().toLocaleTimeString()}] ${event}`;
+      
+      logItem.appendChild(eventSpan);
+      
+      if (data) {
+        const dataSpan = document.createElement('div');
+        dataSpan.className = 'log-data';
+        dataSpan.textContent = JSON.stringify(data, null, 2);
+        logItem.appendChild(dataSpan);
+      }
+      
+      eventLog.appendChild(logItem);
+      eventLog.scrollTop = eventLog.scrollHeight;
+    }
+    
+    // Connect to socket
+    connectBtn.addEventListener('click', () => {
+      const serverUrl = document.getElementById('serverUrl').value;
+      const userId = document.getElementById('userId').value;
+      const transportType = document.getElementById('transportType').value;
+      
+      if (!serverUrl || !userId) {
+        alert('Please provide Server URL and User ID');
+        return;
+      }
+      
+      try {
+        // Update UI
+        connectionStatus.textContent = 'Connecting...';
+        connectionStatus.className = 'connecting';
+        connectBtn.disabled = true;
+        
+        // Determine transport options based on selection
+        let transportOptions = [];
+        let upgradeEnabled = false;
+        
+        switch(transportType) {
+          case 'websocket':
+            transportOptions = ['websocket'];
+            upgradeEnabled = false;
+            break;
+          case 'polling':
+            transportOptions = ['polling'];
+            upgradeEnabled = false;
+            break;
+          case 'both':
+            transportOptions = ['polling', 'websocket'];
+            upgradeEnabled = true;
+            break;
+        }
+        
+        // Socket.io options
+        const options = {
+          transports: transportOptions,
+          forceNew: true,
+          reconnection: true,
+          reconnectionAttempts: 10,
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 5000,
+          timeout: 20000,
+          autoConnect: true,
+          upgrade: upgradeEnabled
+        };
+        
+        logEvent('Connecting to Socket.io server', { 
+          url: serverUrl, 
+          transport: options.transports.join(', '),
+          upgrade: upgradeEnabled
+        });
+        
+        socket = io(serverUrl, options);
+        
+        // Heartbeat response
+        socket.on('__ping', function() {
+          socket.emit('__pong');
+          heartbeatCount++;
+          heartbeatCountSpan.textContent = heartbeatCount;
+        });
+        
+        // Transport change event
+        socket.io.engine.on('upgrade', (transport) => {
+          currentTransportSpan.textContent = transport.name;
+          logEvent('Transport upgraded', { transport: transport.name });
+        });
+        
+        // Connection event
+        socket.on('connect', () => {
+          connectionStatus.textContent = 'Connected';
+          connectionStatus.className = 'connected';
+          connectBtn.disabled = true;
+          disconnectBtn.disabled = false;
+          pingBtn.disabled = false;
+          sendMessageBtn.disabled = false;
+          
+          socketIdSpan.textContent = socket.id;
+          currentTransportSpan.textContent = socket.io.engine.transport.name;
+          connectionStateSpan.textContent = 'Connected';
+          
+          logEvent('Connected to Socket.io server', { 
+            socketId: socket.id,
+            transport: socket.io.engine.transport.name
+          });
+          
+          // Login
+          socket.emit('login', userId);
+          logEvent('Sent login event', { userId });
+        });
+        
+        // Login success event
+        socket.on('login_success', (data) => {
+          logEvent('Login successful', data);
+        });
+        
+        // Disconnect event
+        socket.on('disconnect', (reason) => {
+          connectionStatus.textContent = `Disconnected (${reason})`;
+          connectionStatus.className = 'disconnected';
+          disconnectBtn.disabled = true;
+          pingBtn.disabled = true;
+          sendMessageBtn.disabled = true;
+          
+          socketIdSpan.textContent = 'Not connected';
+          currentTransportSpan.textContent = 'None';
+          connectionStateSpan.textContent = `Disconnected (${reason})`;
+          
+          logEvent('Disconnected from Socket.io server', { reason });
+          
+          // Don't re-enable connect button if we're attempting to reconnect
+          if (reason !== 'io client disconnect' && reason !== 'io server disconnect') {
+            connectBtn.disabled = false;
+          }
+        });
+        
+        // Reconnect event
+        socket.io.on('reconnect', (attempt) => {
+          connectionStatus.textContent = 'Reconnected';
+          connectionStatus.className = 'connected';
+          connectionStateSpan.textContent = 'Connected (after reconnect)';
+          
+          logEvent('Reconnected to Socket.io server', { attempt });
+          
+          // Re-login after reconnect
+          socket.emit('login', userId);
+          logEvent('Re-sent login event after reconnect', { userId });
+        });
+        
+        // Reconnect attempt event
+        socket.io.on('reconnect_attempt', (attempt) => {
+          connectionStatus.textContent = `Reconnecting (Attempt ${attempt})...`;
+          connectionStatus.className = 'connecting';
+          connectionStateSpan.textContent = `Reconnecting (Attempt ${attempt})`;
+          
+          logEvent('Reconnection attempt', { attempt });
+        });
+        
+        // Reconnect error event
+        socket.io.on('reconnect_error', (error) => {
+          logEvent('Reconnection error', { error: error.toString() }, true);
+        });
+        
+        // Connection error event
+        socket.on('connect_error', (error) => {
+          logEvent('Connection error', { error: error.toString() }, true);
+          connectionStatus.textContent = 'Connection Error';
+          connectionStatus.className = 'disconnected';
+          connectionStateSpan.textContent = 'Error';
+          
+          connectBtn.disabled = false;
+        });
+        
+        // Pong event
+        socket.on('pong', (data) => {
+          logEvent('Received pong event', data);
+        });
+        
+        // Register other event listeners
+        socket.on('active_users', (data) => {
+          logEvent('Received active_users event', data);
+        });
+        
+        socket.on('user_status', (data) => {
+          logEvent('Received user_status event', data);
+        });
+        
+        socket.on('new_message', (data) => {
+          logEvent('Received new_message event', data);
+        });
+        
+        socket.on('message_sent', (data) => {
+          logEvent('Received message_sent event', data);
+        });
+        
+        socket.on('error', (data) => {
+          logEvent('Received error event', data, true);
+        });
+        
+      } catch (error) {
+        connectionStatus.textContent = 'Connection Failed';
+        connectionStatus.className = 'disconnected';
+        connectBtn.disabled = false;
+        
+        alert(`Error connecting to Socket.io server: ${error.message}`);
+        logEvent('Connection error', { error: error.message }, true);
+      }
+    });
+    
+    // Disconnect from socket
+    disconnectBtn.addEventListener('click', () => {
+      if (socket) {
+        const userId = document.getElementById('userId').value;
+        socket.emit('logout', userId);
+        logEvent('Sent logout event', { userId });
+        
+        socket.disconnect();
+        connectBtn.disabled = false;
+      }
+    });
+    
+    // Ping server
+    pingBtn.addEventListener('click', () => {
+      if (!socket?.connected) {
+        alert('Socket is not connected');
+        return;
+      }
+      
+      socket.emit('ping');
+      logEvent('Sent ping event');
+    });
+    
+    // Send message
+    sendMessageBtn.addEventListener('click', () => {
+      if (!socket?.connected) {
+        alert('Socket is not connected');
+        return;
+      }
+      
+      const senderId = document.getElementById('senderId').value;
+      const chatGroupId = document.getElementById('chatGroupId').value;
+      const text = document.getElementById('messageText').value;
+      
+      if (!senderId || !chatGroupId || !text) {
+        alert('Please provide Sender ID, Chat Group ID, and Message');
+        return;
+      }
+      
+      const messageData = {
+        senderId: parseInt(senderId),
+        chatGroupId: parseInt(chatGroupId),
+        text
+      };
+      
+      socket.emit('send_message', messageData);
+      logEvent('Sent send_message event', messageData);
+    });
+  </script>
+</body>
+</html>

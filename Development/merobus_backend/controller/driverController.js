@@ -1,5 +1,6 @@
 const prisma = require("../utils/prisma.js");
 const polyline = require("@mapbox/polyline");
+const axios = require("axios");
 
 const addVehicle = async (req, res) => {
   try {
@@ -70,6 +71,72 @@ const addVehicle = async (req, res) => {
       .status(500)
       .json({ message: "Error adding vehicle", error: error.message });
   }
+};
+
+const getRoutePoints = async (start, end) => {
+  const apiKey = "bdd2485e-33f3-455c-890d-a9ada7a60138";
+  const url = `https://graphhopper.com/api/1/route?point=${start[0]},${start[1]}&point=${end[0]},${end[1]}&vehicle=car&key=${apiKey}&points_encoded=false`;
+
+  try {
+    const response = await axios.get(url);
+    const routePoints = response.data.paths[0].points.coordinates;
+    const routePointsLatLng = routePoints.map(([lon, lat]) => [lat, lon]); 
+
+    return getSampledPoints(routePointsLatLng, 5); // 5km intervals
+  } catch (error) {
+    console.error("Error fetching route points:", error);
+    return [];
+  }
+};
+
+
+const calculateDistance = (point1, point2) => {
+  const [lat1, lon1] = point1;
+  const [lat2, lon2] = point2;
+
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c;
+
+  return distance;
+};
+
+const getSampledPoints = (points, intervalKm) => {
+  if (points.length < 2) return points;
+
+  const sampledPoints = [points[0]];
+  let accumulatedDistance = 0;
+  let lastSampledPoint = points[0];
+
+  for (let i = 1; i < points.length; i++) {
+    const currentPoint = points[i];
+    const segmentDistance = calculateDistance(lastSampledPoint, currentPoint);
+
+    accumulatedDistance += segmentDistance;
+
+    if (accumulatedDistance >= intervalKm) {
+      sampledPoints.push(currentPoint);
+      lastSampledPoint = currentPoint;
+      accumulatedDistance = 0;
+    }
+  }
+
+  const lastPoint = points[points.length - 1];
+  if (sampledPoints[sampledPoints.length - 1] !== lastPoint) {
+    sampledPoints.push(lastPoint);
+  }
+
+  return sampledPoints;
 };
 
 const createRoute = async (req, res) => {

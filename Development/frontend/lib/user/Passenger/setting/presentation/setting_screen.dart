@@ -49,11 +49,6 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
       ),
     );
   }
-
-  /// **Fetch user data**
-  
-
-  /// **Builds the profile header**
   Widget _buildProfileHeader(settingState) {
     final hasUser = settingState.users.isNotEmpty;
     final user = hasUser ? settingState.users[0] : null;
