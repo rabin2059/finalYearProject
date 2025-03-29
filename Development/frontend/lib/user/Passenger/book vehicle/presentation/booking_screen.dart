@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/components/CustomButton.dart';
 import 'package:frontend/core/constants.dart';
-import 'package:frontend/user/Passenger/map/providers/map_provider.dart';
+import 'package:frontend/user/map/providers/map_provider.dart';
 import 'package:frontend/user/authentication/login/providers/auth_provider.dart';
 import 'package:frontend/user/Passenger/bus%20details/providers/bus_details_provider.dart';
 import 'package:go_router/go_router.dart';

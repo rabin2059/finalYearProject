@@ -39,6 +39,7 @@ app.get("/socket-status", (req, res) => {
 
 const activeUsers = new Map();
 const userSocketMapping = new Map();
+const activeBuses = new Map();
 
 io.on("connection", (socket) => {
   const transport = socket.conn.transport.name;
@@ -495,6 +496,29 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("register-driver", ({ vehicleId }) => {
+    logger.info(`Driver registered for vehicle ${vehicleId}`);
+    activeBuses.set(vehicleId, { socketId: socket.id, location: null });
+
+    const activeDriverList = Array.from(activeBuses.keys());
+    console.log(activeDriverList)
+    socket.emit("active_buses", activeDriverList);
+  });
+  
+  socket.on("get_active_buses", () => {
+    const activeDriverList = Array.from(activeBuses.keys());
+    console.log(activeDriverList)
+    logger.info(`Sending active buses: ${activeDriverList}`);
+    socket.emit("active_buses", activeDriverList);
+  });
+
+  socket.on("driver-location", ({ vehicleId, lat, lng }) => {
+    if (activeBuses.has(vehicleId)) {
+      activeBuses.get(vehicleId).location = { lat, lng };
+      io.emit("vehicle-location", { vehicleId, lat, lng });
+    }
+  });
+
   socket.on("logout", (userId) => {
     try {
       userId = userId.toString();
@@ -526,6 +550,13 @@ io.on("connection", (socket) => {
           socket.broadcast.emit("user_status", { userId, status: "offline" });
         }
       }
+      for (const [vehicleId, data] of activeBuses.entries()) {
+        if (data.socketId === socket.id) {
+          activeBuses.delete(vehicleId);
+          logger.info(`Vehicle ${vehicleId} removed from active buses`);
+          break;
+        }
+      }
     } catch (error) {
       logger.error(`Error during disconnect handling: ${error.message}`);
     }
@@ -536,4 +567,4 @@ io.on("connection", (socket) => {
   });
 });
 
-module.exports = { app, server, io, activeUsers };
+module.exports = { app, server, io, activeUsers, activeBuses };

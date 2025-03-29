@@ -45,6 +45,7 @@ router.post("/addVehicle", driverController.addVehicle);
 router.post("/createRoute", driverController.createRoute);
 router.get("/getVehicles", driverController.getVehicles);
 router.get("/getSingleVehicle", driverController.getSingleVehicle);
+router.get("/getMyRoute", driverController.getMyRoute);
 
 // bookings
 router.post("/booking", bookController.booking);
@@ -55,6 +56,7 @@ router.get("/getBookingByDate", bookController.getBookingByDate);
 
 // vehicle related
 router.get("/getVehiclesRoute", vehicleController.getRoute);
+router.get("/getActiveBuses", vehicleController.getActiveBuses);
 
 // payment related
 router.post("/initialize", paymentController.initialzeKhalti);

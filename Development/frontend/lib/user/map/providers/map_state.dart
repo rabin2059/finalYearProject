@@ -1,5 +1,5 @@
 import 'package:latlong2/latlong.dart';
-import '../../../../data/models/map_model.dart';
+import '../../../data/models/map_model.dart';
 
 class MapState {
   final LatLng? userLocation; // ✅ Uses LatLng instead of LocationModel

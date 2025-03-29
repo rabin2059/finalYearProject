@@ -6,7 +6,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
 class MapService {
-  /// **1️⃣ Get Current User Location**
   Future<Position> getCurrentLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
@@ -38,14 +37,21 @@ class MapService {
     };
 
     final url = Uri.parse(
-        'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(query)}'
-        '&format=json'
-        '&limit=5'
-        '&countrycodes=np'
-        '&viewbox=${nepalBounds['viewbox']}'
-        '&bounded=${nepalBounds['bounded']}');
+      'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(query)}'
+      '&format=json'
+      '&limit=5'
+      '&countrycodes=np'
+      '&viewbox=${nepalBounds['viewbox']}'
+      '&bounded=${nepalBounds['bounded']}',
+    );
 
-    final response = await http.get(url);
+    final response = await http.get(
+      url,
+      headers: {
+        'User-Agent': 'MyFlutterApp/1.0 (rai2059rabin@gmail.com)', // REQUIRED!
+      },
+    );
+
     if (response.statusCode == 200) {
       return List<Map<String, dynamic>>.from(json.decode(response.body));
     } else {
@@ -76,6 +82,7 @@ class MapService {
   }
 
   Future<LatLng?> getLatLngFromLocation(String locationName) async {
+    print(locationName);
     final String baseUrl = 'https://nominatim.openstreetmap.org/search';
     final Uri url = Uri.parse(
         '$baseUrl?q=${Uri.encodeComponent(locationName)}&format=json&limit=1');

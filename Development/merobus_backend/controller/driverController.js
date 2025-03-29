@@ -80,7 +80,7 @@ const getRoutePoints = async (start, end) => {
   try {
     const response = await axios.get(url);
     const routePoints = response.data.paths[0].points.coordinates;
-    const routePointsLatLng = routePoints.map(([lon, lat]) => [lat, lon]); 
+    const routePointsLatLng = routePoints.map(([lon, lat]) => [lat, lon]);
 
     return getSampledPoints(routePointsLatLng, 5); // 5km intervals
   } catch (error) {
@@ -88,7 +88,6 @@ const getRoutePoints = async (start, end) => {
     return [];
   }
 };
-
 
 const calculateDistance = (point1, point2) => {
   const [lat1, lon1] = point1;
@@ -300,4 +299,41 @@ const getSingleVehicle = async (req, res) => {
   }
 };
 
-module.exports = { addVehicle, createRoute, getVehicles, getSingleVehicle };
+const getMyRoute = async (req, res) => {
+  try {
+    const { id } = req.query;
+    if (!id) {
+      return res.status(400).json({ message: "Vehicle ID is required" });
+    }
+
+    const route = await prisma.route.findFirst({
+      where: {
+        vehicleID: parseInt(id),
+      },
+      select: {
+        startPoint: true,
+        endPoint: true,
+      },
+    });
+    console.log(route);
+    if (!route) {
+      return res
+        .status(404)
+        .json({ message: "No route found for this vehicle" });
+    }
+
+    res.status(200).json({ route });
+  } catch (error) {
+    res
+      .status(404)
+      .json({ message: "Could not found the route" + error.message });
+  }
+};
+
+module.exports = {
+  addVehicle,
+  createRoute,
+  getVehicles,
+  getSingleVehicle,
+  getMyRoute,
+};
