@@ -57,7 +57,7 @@ class _PassState extends State<PassChange> {
             SizedBox(height: 10.h),
             CustomTextField(
               hint: '********',
-              icon: CupertinoIcons.lock,
+              prefixIcon: CupertinoIcons.lock,
               suffixIcon: CupertinoIcons.eye_slash,
               controller: passwordController,
             ),
@@ -71,7 +71,7 @@ class _PassState extends State<PassChange> {
             SizedBox(height: 10.h),
             CustomTextField(
               hint: '********',
-              icon: CupertinoIcons.lock,
+              prefixIcon: CupertinoIcons.lock,
               suffixIcon: CupertinoIcons.eye_slash,
               controller: confirmPasswordController,
             ),

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/components/CustomTextField.dart';
-import 'package:frontend/components/CustomButton.dart'; // Import CustomButton
+import 'package:frontend/components/CustomButton.dart';
 import 'package:frontend/core/constants.dart';
 import 'package:frontend/user/authentication/login/providers/auth_provider.dart';
 import 'package:go_router/go_router.dart';
@@ -19,25 +19,18 @@ class AddVehicle extends ConsumerStatefulWidget {
 }
 
 class _AddVehicleState extends ConsumerState<AddVehicle> {
-  String _selectedVehicleType = 'Taxi'; // Default type
-  String _userType = 'Single'; // Default user type
+  String _selectedVehicleType = 'Taxi';
+  String _userType = 'Single';
   final TextEditingController _organizationController = TextEditingController();
   final TextEditingController _vehicleModelController = TextEditingController();
-  final TextEditingController _vehicleNumberController =
-      TextEditingController();
+  final TextEditingController _vehicleNumberController = TextEditingController();
   final TextEditingController _departureController = TextEditingController();
   final TextEditingController _arrivalController = TextEditingController();
 
-  Set<String> _selectedSeats = {}; // Store selected seats
-
-  @override
-  void initState() {
-    super.initState();
-  }
+  Set<String> _selectedSeats = {};
 
   Future<void> addVehicle() async {
-    final authState =
-        ref.read(authProvider).userId; // ✅ Use `read` instead of `watch`
+    final authState = ref.read(authProvider).userId;
     try {
       final url = Uri.parse("$apiBaseUrl/addVehicle");
 
@@ -47,8 +40,7 @@ class _AddVehicleState extends ConsumerState<AddVehicle> {
         "vehicleType": _selectedVehicleType,
         "departure": _departureController.text,
         "arrivalTime": _arrivalController.text,
-        "registerAs":
-            _userType == "Single" ? "Single" : _organizationController.text,
+        "registerAs": _userType == "Single" ? "Single" : _organizationController.text,
         "ownerId": authState,
         "seatNo": _selectedSeats.map((seat) => int.parse(seat)).toList()
       };
@@ -64,10 +56,9 @@ class _AddVehicleState extends ConsumerState<AddVehicle> {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = json.decode(response.body); // ✅ Decode response JSON
+        final data = json.decode(response.body);
         print('Vehicle added successfully: $data');
-        final vehicleId =
-            data['vehicle']['id'].toString(); // ✅ Convert int to string
+        final vehicleId = data['vehicle']['id'].toString();
 
         context.pushReplacementNamed('addRoute',
             pathParameters: {'id': vehicleId});
@@ -79,7 +70,6 @@ class _AddVehicleState extends ConsumerState<AddVehicle> {
     }
   }
 
-  /// **Navigates to SelectSeatsScreen**
   Future<void> _navigateToSeatSelection() async {
     final selectedSeats = await Navigator.push(
       context,
@@ -101,23 +91,27 @@ class _AddVehicleState extends ConsumerState<AddVehicle> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Add Vehicle'),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+        title: Text(
+          'Add Vehicle',
+          style: TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.bold,
+          ),
         ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.black87),
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(10.0),
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Register As:",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              _buildSectionTitle("Register As"),
+              SizedBox(height: 10.h),
               Row(
                 children: [
                   _buildUserTypeButton('Single'),
@@ -125,22 +119,18 @@ class _AddVehicleState extends ConsumerState<AddVehicle> {
                   _buildUserTypeButton('Organization'),
                 ],
               ),
-              SizedBox(height: 10.h),
-              if (_userType == 'Organization')
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Organization Name",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    CustomTextField(
-                      controller: _organizationController,
-                      hint: 'Enter Organization Name',
-                    ),
-                    SizedBox(height: 10.h),
-                  ],
+              if (_userType == 'Organization') ...[
+                SizedBox(height: 15.h),
+                _buildSectionTitle("Organization Name"),
+                CustomTextField(
+                  controller: _organizationController,
+                  hint: 'Enter Organization Name',
+                  prefixIcon: Icons.business,
                 ),
-              Text("Vehicle Type",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              ],
+              SizedBox(height: 15.h),
+              _buildSectionTitle("Vehicle Type"),
+              SizedBox(height: 10.h),
               Row(
                 children: [
                   _buildVehicleTypeButton('Taxi'),
@@ -148,59 +138,55 @@ class _AddVehicleState extends ConsumerState<AddVehicle> {
                   _buildVehicleTypeButton('Bus'),
                 ],
               ),
+              SizedBox(height: 15.h),
+              _buildSectionTitle("Vehicle Details"),
               SizedBox(height: 10.h),
-              Text("Vehicle Model",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
               CustomTextField(
-                hint: 'Model',
+                hint: 'Vehicle Model',
                 controller: _vehicleModelController,
+                prefixIcon: Icons.directions_car,
               ),
-              SizedBox(height: 10.h),
-              Text("Vehicle No.",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              SizedBox(height: 15.h),
               CustomTextField(
-                hint: 'Vehicle No.',
+                hint: 'Vehicle Number',
                 controller: _vehicleNumberController,
+                prefixIcon: Icons.numbers,
               ),
-              SizedBox(height: 20.h),
-              Text("Departure Time",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              SizedBox(height: 15.h),
+              _buildSectionTitle("Timing"),
+              SizedBox(height: 10.h),
               CustomTextField(
                 hint: 'Departure Time',
                 controller: _departureController,
+                prefixIcon: Icons.access_time,
               ),
-              SizedBox(height: 20.h),
-              Text("Arrival Time",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              SizedBox(height: 15.h),
               CustomTextField(
                 hint: 'Arrival Time',
                 controller: _arrivalController,
+                prefixIcon: Icons.alarm,
               ),
               SizedBox(height: 20.h),
-
-              // **Select Seats Button**
               Center(
                 child: CustomButton(
                   text: _selectedSeats.isEmpty
                       ? "Select Seats of Vehicle"
-                      : "Seats Selected",
+                      : "Seats Selected (${_selectedSeats.length})",
                   width: 300.w,
                   onPressed: _navigateToSeatSelection,
                   color: _selectedSeats.isEmpty
-                      ? Colors.grey
-                      : Colors.blue, // Dynamic color
+                      ? Colors.grey.shade300
+                      : Colors.green.shade400,
                 ),
               ),
-
               SizedBox(height: 20.h),
-
-              CustomButton(
-                text: "Submit",
-                // width: 200.w,
-                onPressed: () {
-                  addVehicle();
-                },
-                color: Colors.green,
+              Center(
+                child: CustomButton(
+                  text: "Submit Vehicle",
+                  width: 300.w,
+                  onPressed: addVehicle,
+                  color: Colors.green.shade600,
+                ),
               ),
             ],
           ),
@@ -209,36 +195,110 @@ class _AddVehicleState extends ConsumerState<AddVehicle> {
     );
   }
 
-  /// **Builds Vehicle Type Selection Buttons (Taxi or Bus)**
-  Widget _buildVehicleTypeButton(String type) {
-    return Expanded(
-      child: CustomButton(
-        text: type,
-        onPressed: () {
-          setState(() {
-            _selectedVehicleType = type;
-            _selectedSeats
-                .clear(); // Reset selected seats when changing vehicle type
-          });
-        },
-        color: _selectedVehicleType == type ? Colors.green : Colors.grey[300],
-        textColor: _selectedVehicleType == type ? Colors.white : Colors.black,
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 16.sp,
+        fontWeight: FontWeight.bold,
+        color: Colors.black87,
       ),
     );
   }
 
-  /// **Builds User Type Selection Buttons (Single or Organization)**
+  Widget _buildVehicleTypeButton(String type) {
+    return Expanded(
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 300),
+        decoration: BoxDecoration(
+          color: _selectedVehicleType == type 
+              ? Colors.green.shade400 
+              : Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: _selectedVehicleType == type
+              ? [
+                  BoxShadow(
+                    color: Colors.green.shade200,
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  )
+                ]
+              : [],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(10),
+            onTap: () {
+              setState(() {
+                _selectedVehicleType = type;
+                _selectedSeats.clear();
+              });
+            },
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 12.h),
+              child: Center(
+                child: Text(
+                  type,
+                  style: TextStyle(
+                    color: _selectedVehicleType == type 
+                        ? Colors.white 
+                        : Colors.black87,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildUserTypeButton(String type) {
     return Expanded(
-      child: CustomButton(
-        text: type,
-        onPressed: () {
-          setState(() {
-            _userType = type;
-          });
-        },
-        color: _userType == type ? Colors.orange : Colors.grey[300],
-        textColor: _userType == type ? Colors.white : Colors.black,
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 300),
+        decoration: BoxDecoration(
+          color: _userType == type 
+              ? Colors.orange.shade400 
+              : Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: _userType == type
+              ? [
+                  BoxShadow(
+                    color: Colors.orange.shade200,
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  )
+                ]
+              : [],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(10),
+            onTap: () {
+              setState(() {
+                _userType = type;
+              });
+            },
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 12.h),
+              child: Center(
+                child: Text(
+                  type,
+                  style: TextStyle(
+                    color: _userType == type 
+                        ? Colors.white 
+                        : Colors.black87,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
