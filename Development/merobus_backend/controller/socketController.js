@@ -496,18 +496,25 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("register-driver", ({ vehicleId }) => {
+  socket.on("register-driver", (data) => {
+    const { vehicleId } = data;
+
     logger.info(`Driver registered for vehicle ${vehicleId}`);
-    activeBuses.set(vehicleId, { socketId: socket.id, location: null });
+
+    activeBuses.set(vehicleId, {
+      socketId: socket.id,
+      location: null,
+      isActive: true,
+      lastUpdated: new Date(),
+    });
 
     const activeDriverList = Array.from(activeBuses.keys());
-    console.log(activeDriverList)
     socket.emit("active_buses", activeDriverList);
   });
-  
+
   socket.on("get_active_buses", () => {
     const activeDriverList = Array.from(activeBuses.keys());
-    console.log(activeDriverList)
+    console.log(activeDriverList);
     logger.info(`Sending active buses: ${activeDriverList}`);
     socket.emit("active_buses", activeDriverList);
   });
