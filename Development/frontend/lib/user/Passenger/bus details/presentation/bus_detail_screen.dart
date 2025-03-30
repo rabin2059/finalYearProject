@@ -98,8 +98,7 @@ class _BusDetailScreenState extends ConsumerState<BusDetailScreen> {
                   SizedBox(height: 40.h),
                   CustomButton(
                     text: "Book Seat",
-                    onPressed: () =>
-                        context.pushNamed('/book', pathParameters: {
+                    onPressed: () => context.goNamed('book', pathParameters: {
                       'id': widget.busId.toString(),
                     }),
                   ),

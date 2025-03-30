@@ -57,6 +57,7 @@ router.get("/getBookingByDate", bookController.getBookingByDate);
 // vehicle related
 router.get("/getVehiclesRoute", vehicleController.getRoute);
 router.get("/getActiveBuses", vehicleController.getActiveBuses);
+router.get("/getMyPolylines", vehicleController.getMyPolylines);
 
 // payment related
 router.post("/initialize", paymentController.initialzeKhalti);
