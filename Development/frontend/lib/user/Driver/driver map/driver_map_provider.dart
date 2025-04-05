@@ -13,8 +13,7 @@ final driverLiveLocationProvider =
 });
 
 class DriverLiveLocationService extends ChangeNotifier {
-  final SocketService _socketService =
-      SocketService(baseUrl: "$socketBaseUrl");
+  final SocketService _socketService = SocketService(baseUrl: socketBaseUrl);
 
   bool _isSharing = false;
   StreamSubscription<Position>? _positionStream;
@@ -28,7 +27,6 @@ class DriverLiveLocationService extends ChangeNotifier {
   }
 
   void startSharing(int vehicleId) async {
-    // Step 1: Check if location services are enabled
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       throw Exception("Location services are disabled.");
@@ -72,7 +70,8 @@ class DriverLiveLocationService extends ChangeNotifier {
     notifyListeners();
   }
 
-  void stopSharing() async {
+  void stopSharing(int vehicleId) async {
+    _socketService.removeRegisteredDriver(vehicleId);
     await _positionStream?.cancel();
     _positionStream = null;
     _isSharing = false;
@@ -80,7 +79,6 @@ class DriverLiveLocationService extends ChangeNotifier {
   }
 
   void disposeService() {
-    stopSharing();
     _socketService.dispose();
   }
 }

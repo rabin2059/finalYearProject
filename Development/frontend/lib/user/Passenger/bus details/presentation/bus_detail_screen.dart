@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/core/shared_prefs_utils.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
@@ -98,9 +99,7 @@ class _BusDetailScreenState extends ConsumerState<BusDetailScreen> {
                   SizedBox(height: 40.h),
                   CustomButton(
                     text: "Book Seat",
-                    onPressed: () => context.goNamed('book', pathParameters: {
-                      'id': widget.busId.toString(),
-                    }),
+                    onPressed: () => context.pushNamed('/book', pathParameters: {'id': widget.busId.toString()} ),
                   ),
                   SizedBox(height: 10.h),
                   CustomButton(
@@ -165,17 +164,29 @@ class _BusDetailScreenState extends ConsumerState<BusDetailScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(vehicle?.departure ?? 'N/A',
-                  style: TextStyle(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary)),
+              Text(
+                vehicle?.departure != null
+                    ? DateFormat.jm()
+                        .format(DateTime.parse(vehicle!.departure!))
+                    : 'N/A',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
               Text('-'),
-              Text(vehicle?.arrivalTime ?? 'N/A',
-                  style: TextStyle(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary)),
+              Text(
+                vehicle?.arrivalTime != null
+                    ? DateFormat.jm()
+                        .format(DateTime.parse(vehicle!.arrivalTime!))
+                    : 'N/A',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                ),
+              ),
             ],
           ),
           SizedBox(height: 10.h),

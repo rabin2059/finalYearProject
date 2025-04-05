@@ -84,7 +84,7 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
   ),
   GoRoute(
       name: '/book',
-      path: '/book/:id', // ✅ Accepts a dynamic ID
+      path: '/book/:id', 
       builder: (context, state) {
         final id = int.parse(state.pathParameters['id'] ?? '0');
         return BookingScreen(busId: id);

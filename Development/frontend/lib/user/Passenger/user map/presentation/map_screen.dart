@@ -71,15 +71,13 @@ class _MapScreensState extends ConsumerState<MapScreens> {
   void _initSocketService() {
     _socketService = SocketService(baseUrl: socketBaseUrl);
     _socketService?.connect("user-${DateTime.now().millisecondsSinceEpoch}");
-
+ 
     _socketService?.onVehicleLocation = (vehicleId, lat, lng) {
       if (!mounted) return;
       setState(() {
         _vehicleLocations[vehicleId] = LatLng(lat, lng);
-        if (_selectedVehicleId != null) {
-          _updateVehicleMarkers();
-        }
       });
+      _updateVehicleMarkers();
     };
     _socketService?.onActiveBusesReceived.addListener(() {
       if (!mounted) return;
@@ -146,14 +144,16 @@ class _MapScreensState extends ConsumerState<MapScreens> {
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () {
+              onTap: () async {
+                final details = await _calculateDistanceAndTime(location);
                 setState(() {
                   _selectedDriver = {
                     'name': vehicle['driver']['name'] ?? 'Unknown Driver',
                     'vehicleInfo':
                         '${vehicle['vehicleModel']} - ${vehicle['vehicleType']} (ID: $_selectedVehicleId)',
-                    'rating': 4.5, // Placeholder
-                    'distance': 'On route',
+                    'rating': 4.5,
+                  'distance': details['distance'] ?? 'Unknown',
+                    'duration': details['duration'] ?? '',
                   };
                   _showDriverInfo = !_showDriverInfo;
                 });
@@ -208,6 +208,19 @@ class _MapScreensState extends ConsumerState<MapScreens> {
         _showVehicleList = false; // Close vehicle list when selected
         // _showDriverInfo = true; // Removed to prevent immediate driver info display
       });
+      
+      final userLocation = ref.read(mapProvider).userLocation;
+      if (userLocation != null) {
+      final bounds = LatLngBounds(ref.read(mapProvider).userLocation!, location);
+        bounds.extend(userLocation);
+        bounds.extend(location);
+        final center = LatLng(
+          (bounds.north + bounds.south) / 2,
+          (bounds.east + bounds.west) / 2,
+        );
+        final zoom = _getZoomForBounds(bounds);
+        _controller.move(center, zoom);
+      }
 
       _updateVehicleMarkers();
       _controller.move(location, 15);
@@ -706,9 +719,27 @@ class _MapScreensState extends ConsumerState<MapScreens> {
     if (event is MapEventMove) {
       setState(() {
         _currentZoom = _controller.camera.zoom;
-        _showMarker =
-            _currentZoom >= 12; // Show markers when zoom level is 12 or higher
+        _showMarker = _currentZoom >= 12; // Show markers when zoom level is 12 or higher
       });
+    }
+  }
+
+  Future<Map<String, String>> _calculateDistanceAndTime(LatLng driverLocation) async {
+    final userLocation = ref.read(mapProvider).userLocation;
+    if (userLocation == null) return {'distance': 'Unknown', 'duration': ''};
+
+    final distance = Distance().as(LengthUnit.Kilometer, userLocation, driverLocation);
+    String distanceStr = "${distance.toStringAsFixed(1)} km";
+
+    // Approximate time assuming 30km/h average speed
+    final timeInMinutes = (distance / 30) * 60;
+    String timeStr = "${timeInMinutes.round()} mins";
+
+    if (userLocation.latitude > driverLocation.latitude ||
+        userLocation.longitude > driverLocation.longitude) {
+      return {'distance': distanceStr, 'duration': timeStr};
+    } else {
+      return {'distance': distanceStr, 'duration': ''}; // ahead
     }
   }
 
@@ -834,7 +865,9 @@ class _MapScreensState extends ConsumerState<MapScreens> {
                                       color: Colors.grey, size: 16.r),
                                   SizedBox(width: 4.w),
                                   Text(
-                                    _selectedDriver!['distance'] ?? '',
+                                    _selectedDriver!['duration'] != null && _selectedDriver!['duration'].toString().isNotEmpty
+                                        ? '${_selectedDriver!['distance']} • ETA: ${_selectedDriver!['duration']}'
+                                        : '${_selectedDriver!['distance']}',
                                     style: TextStyle(fontSize: 14.sp),
                                   ),
                                 ],

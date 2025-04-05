@@ -547,6 +547,13 @@ class SocketService {
     }
   }
 
+  void removeRegisteredDriver(int vehicleId) {
+    if (isConnected) {
+      _log('Removing registered driver with vehicleId: $vehicleId');
+      _socket!.emit('remove-registered-driver', {'vehicleId': vehicleId});
+    }
+  }
+
   void requestActiveBuses() {
     if (isConnected) {
       _log('Requesting list of active buses');

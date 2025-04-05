@@ -512,6 +512,17 @@ io.on("connection", (socket) => {
     socket.emit("active_buses", activeDriverList);
   });
 
+  socket.on("remove-registered-driver", (data) => {
+    const { vehicleId } = data;
+ 
+    logger.info(`Removing registered driver for vehicle ${vehicleId}`);
+ 
+    activeBuses.delete(vehicleId);
+ 
+    const activeDriverList = Array.from(activeBuses.keys());
+    socket.emit("active_buses", activeDriverList);
+  });
+
   socket.on("get_active_buses", () => {
     const activeDriverList = Array.from(activeBuses.keys());
     console.log(activeDriverList);
