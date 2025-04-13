@@ -3,7 +3,7 @@ const prisma = require("../utils/prisma");
 
 // Initialize Firebase Admin if not already initialized
 if (!admin.apps.length) {
-  const serviceAccount = require("../configs/serviceAcountKey.json");
+  const serviceAccount = require("../configs/serviceAccountKey.json");
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
   });

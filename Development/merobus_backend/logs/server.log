@@ -3567,3 +3567,4 @@ Unknown field `ChatGroup` for include statement on model `User`. Available optio
 2025-04-13 16:55:41 [info]: Client disconnected: SA7coDFJlhBLw9yDAAAB, reason: client namespace disconnect
 2025-04-13 16:55:57 [info]: New client connected: krnpTFvVYV15mUHjAAAD (transport: websocket)
 2025-04-13 16:55:57 [info]: User 2 logged in via socket krnpTFvVYV15mUHjAAAD (transport: websocket)
+2025-04-13 17:33:24 [info]: Server running on http://localhost:3089
