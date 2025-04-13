@@ -203,7 +203,7 @@ class _DriverSettingScreenState extends ConsumerState<DriverSettingScreen> {
                 _menuButton(CupertinoIcons.person_3, 'About Us', '/addRoute'),
                 SizedBox(height: 16.h),
                 _menuButton(
-                    CupertinoIcons.exclamationmark_circle, 'Help', '/help'),
+                    CupertinoIcons.exclamationmark_circle, 'Chat', '/Chat'),
                 SizedBox(height: 16.h),
                 _menuButton(Icons.settings, 'Settings', '/settings'),
                 SizedBox(height: 16.h),

@@ -1,3 +1,4 @@
+const admin = require("firebase-admin");
 const prisma = require("../utils/prisma.js");
 const {
   initializeKhaltiPayment,
@@ -87,6 +88,32 @@ const makePayment = async (req, res) => {
       where: { id: parseInt(paymentCheck.bookingId) },
       data: { status: "CONFIRMED" },
     });
+
+    const booking = await prisma.booking.findUnique({
+      where: { id: parseInt(paymentCheck.bookingId) },
+    });
+
+    const user = await prisma.user.findUnique({
+      where: { id: parseInt(paymentCheck.userId) },
+    });
+
+    if (user?.fcmToken) {
+      await admin.messaging().send({
+        token: user.fcmToken,
+        data: {
+          title: "Payment Success",
+          body: `Your payment for booking #${booking.id} has been confirmed.`,
+        },
+      });
+
+      await prisma.notification.create({
+        data: {
+          userId: user.id,
+          title: "Payment Success",
+          body: `Your payment for booking #${booking.id} has been confirmed.`,
+        },
+      });
+    }
 
     return res.status(200).json({
       message: "Payment made successfully",

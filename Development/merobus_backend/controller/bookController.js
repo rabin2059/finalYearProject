@@ -1,4 +1,5 @@
 const prisma = require("../utils/prisma.js");
+const admin = require("firebase-admin");
 
 const booking = async (req, res) => {
   try {
@@ -59,6 +60,26 @@ const booking = async (req, res) => {
           seatNo: seat,
         })),
       });
+
+      const user = await tx.user.findUnique({ where: { id: userId } });
+
+      if (user?.fcmToken) {
+        await admin.messaging().send({
+          token: user.fcmToken,
+          notification: {
+            title: "Booking Confirmed",
+            body: `Your seat(s) ${seatNumbers.join(", ")} on vehicle ${vehicleId} are confirmed.`,
+          },
+        });
+
+        await tx.notification.create({
+          data: {
+            userId,
+            title: "Booking Confirmed",
+            body: `Your seat(s) ${seatNumbers.join(", ")} on vehicle ${vehicleId} are confirmed.`,
+          },
+        });
+      }
 
       return { newBooking, bookedSeats: seatNumbers };
     });

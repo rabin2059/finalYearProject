@@ -14,19 +14,24 @@ const addVehicle = async (req, res) => {
       departure,
       arrivalTime,
     } = req.body;
-    console.log(req.body);
 
     const result = await prisma.$transaction(async (tx) => {
-      // ✅ Check if vehicle already exists
       const existingVehicle = await tx.vehicle.findFirst({
         where: { vehicleNo },
       });
 
-      if (existingVehicle) {
-        throw new Error("Vehicle already exists"); // Auto rollback on error
+      const existingUser = await tx.vehicle.findFirst({
+        where: { ownerId },
+      });
+
+      if (existingUser) {
+        throw new Error("User already has a registered vehicle");
       }
 
-      // ✅ Create vehicle
+      if (existingVehicle) {
+        throw new Error("Vehicle already exists");
+      }
+
       const newVehicle = await tx.vehicle.create({
         data: {
           vehicleNo,
@@ -39,13 +44,12 @@ const addVehicle = async (req, res) => {
         },
       });
 
-      // ✅ Insert seats only if provided
       let newSeats = [];
-      if (seatNo.length) {
+      if (seatNo?.length) {
         newSeats = await tx.vehicleSeat.createMany({
           data: seatNo.map((seat) => ({
             vehicleId: newVehicle.id,
-            seatNo: seat, // ✅ Ensure correct field mapping
+            seatNo: seat,
           })),
         });
       }
@@ -60,16 +64,25 @@ const addVehicle = async (req, res) => {
       },
     });
 
+    await prisma.userChatGroup.create({
+      data: {
+        userId: result.newVehicle.ownerId,
+        chatGroupId: chatGroup.id,
+      },
+    });
+
     res.status(201).json({
       message: "Vehicle and seats added successfully",
       vehicle: result.newVehicle,
       seats: seatNo || [],
+      chatGroup,
     });
   } catch (error) {
     console.error("Error adding vehicle:", error);
-    res
-      .status(500)
-      .json({ message: "Error adding vehicle", error: error.message });
+    res.status(500).json({
+      message: "Error adding vehicle",
+      error: error.message,
+    });
   }
 };
 
@@ -265,7 +278,7 @@ const getSingleVehicle = async (req, res) => {
     }
 
     const vehicle = await prisma.vehicle.findUnique({
-      where: { id: parseInt(id) }, // Ensure ID is an integer
+      where: { id: parseInt(id) }, 
       include: {
         owner: true, // Fetch owner details
         VehicleSeat: { select: { seatNo: true } }, // Fetch seats

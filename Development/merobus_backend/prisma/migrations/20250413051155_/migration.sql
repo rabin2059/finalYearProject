@@ -29,26 +29,31 @@ CREATE TABLE `Vehicle` (
     `registerAs` VARCHAR(191) NOT NULL,
     `departure` TIME NOT NULL,
     `arrivalTime` TIME NOT NULL,
-    `actualDeparture` TIME NOT NULL,
-    `actualArrivalTime` TIME NOT NULL,
-    `timingCategory` ENUM('early', 'onTime', 'late') NULL,
+    `actualDeparture` TIME NULL,
+    `actualArrival` TIME NULL,
+    `timingCategory` ENUM('early', 'onTime', 'late', 'earlyStartLateArrival', 'lateStartEarlyArrival') NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
     `ownerId` INTEGER NOT NULL,
-    `categoryId` INTEGER NULL,
 
     UNIQUE INDEX `Vehicle_vehicleNo_key`(`vehicleNo`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `VehicleCategory` (
+CREATE TABLE `VehiclePerformance` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `name` VARCHAR(191) NOT NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `vehicleId` INTEGER NOT NULL,
+    `category` ENUM('early', 'onTime', 'late', 'earlyStartLateArrival', 'lateStartEarlyArrival') NOT NULL,
+    `totalTrips` INTEGER NOT NULL DEFAULT 0,
+    `earlyCount` INTEGER NOT NULL DEFAULT 0,
+    `onTimeCount` INTEGER NOT NULL DEFAULT 0,
+    `lateCount` INTEGER NOT NULL DEFAULT 0,
+    `earlyStartLateArrivalCount` INTEGER NOT NULL DEFAULT 0,
+    `lateStartEarlyArrivalCount` INTEGER NOT NULL DEFAULT 0,
+    `generatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
-    UNIQUE INDEX `VehicleCategory_name_key`(`name`),
+    UNIQUE INDEX `VehiclePerformance_vehicleId_key`(`vehicleId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -203,17 +208,14 @@ CREATE TABLE `DriverRating` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `VehiclePerformance` (
+CREATE TABLE `Notification` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `vehicleId` INTEGER NOT NULL,
-    `category` ENUM('early', 'onTime', 'late') NOT NULL,
-    `totalTrips` INTEGER NOT NULL,
-    `earlyCount` INTEGER NOT NULL,
-    `onTimeCount` INTEGER NOT NULL,
-    `lateCount` INTEGER NOT NULL,
-    `generatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `userId` INTEGER NOT NULL,
+    `title` VARCHAR(191) NOT NULL,
+    `body` VARCHAR(191) NOT NULL,
+    `isRead` BOOLEAN NOT NULL DEFAULT false,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
-    UNIQUE INDEX `VehiclePerformance_vehicleId_key`(`vehicleId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -230,7 +232,7 @@ CREATE TABLE `_UserChatGroups` (
 ALTER TABLE `Vehicle` ADD CONSTRAINT `Vehicle_ownerId_fkey` FOREIGN KEY (`ownerId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Vehicle` ADD CONSTRAINT `Vehicle_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `VehicleCategory`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `VehiclePerformance` ADD CONSTRAINT `VehiclePerformance_vehicleId_fkey` FOREIGN KEY (`vehicleId`) REFERENCES `Vehicle`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Route` ADD CONSTRAINT `Route_vehicleID_fkey` FOREIGN KEY (`vehicleID`) REFERENCES `Vehicle`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -281,7 +283,7 @@ ALTER TABLE `DriverStatus` ADD CONSTRAINT `DriverStatus_driverId_fkey` FOREIGN K
 ALTER TABLE `DriverRating` ADD CONSTRAINT `DriverRating_driverId_fkey` FOREIGN KEY (`driverId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `VehiclePerformance` ADD CONSTRAINT `VehiclePerformance_vehicleId_fkey` FOREIGN KEY (`vehicleId`) REFERENCES `Vehicle`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `Notification` ADD CONSTRAINT `Notification_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `_UserChatGroups` ADD CONSTRAINT `_UserChatGroups_A_fkey` FOREIGN KEY (`A`) REFERENCES `ChatGroup`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;

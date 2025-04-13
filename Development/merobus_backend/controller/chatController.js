@@ -3,21 +3,21 @@ const prisma = require("../utils/prisma");
 const { logger } = require("../utils/logger");
 const { activeUsers } = require("./socketController");
 
-// Get all chat groups for a user
 const getUserChatGroups = async (req, res) => {
   try {
     const { userId } = req.params;
-
+    console.log(req.params);
     if (!userId) {
       return res.status(400).json({ error: "User ID is required" });
     }
 
-    // Find all chat groups where the user is a member
+    const numericUserId = parseInt(userId);
     const chatGroups = await prisma.chatGroup.findMany({
       where: {
-        users: {
+        UserChatGroup: {
           some: {
-            id: parseInt(userId),
+            userId: numericUserId,
+            isActive: true,
           },
         },
       },
@@ -41,7 +41,8 @@ const getUserChatGroups = async (req, res) => {
       },
     });
 
-    // Transform data to match expected response format
+    console.log(chatGroups);
+
     const formattedGroups = chatGroups.map((group) => ({
       id: group.id,
       name: group.name,
@@ -65,7 +66,6 @@ const getUserChatGroups = async (req, res) => {
   }
 };
 
-// Get messages for a specific chat group
 const getChatGroupMessages = async (req, res) => {
   try {
     const { groupId } = req.params;

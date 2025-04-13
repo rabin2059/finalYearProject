@@ -1,4 +1,5 @@
 const express = require("express");
+const admin = require("firebase-admin");
 const http = require("http");
 const socketIO = require("socket.io");
 const { logger } = require("../utils/logger");
@@ -268,6 +269,35 @@ io.on("connection", (socket) => {
           isRead: newMessage.isRead,
           senderName: newMessage.sender?.username || "Unknown User",
         });
+        const senderUser = await prisma.user.findUnique({
+          where: { id: parseInt(senderId) },
+        });
+
+        for (const user of chatGroupWithUsers.users) {
+          if (user.id !== parseInt(senderId)) {
+            const recipient = await prisma.user.findUnique({
+              where: { id: user.id },
+            });
+
+            if (recipient?.fcmToken) {
+              await admin.messaging().send({
+                token: recipient.fcmToken,
+                data: {
+                  title: "New Message",
+                  body: `${senderUser?.username || "Someone"}: ${text}`,
+                },
+              });
+
+              await prisma.notification.create({
+                data: {
+                  userId: user.id,
+                  title: "New Message",
+                  body: `${senderUser?.username || "Someone"}: ${text}`,
+                },
+              });
+            }
+          }
+        }
       } catch (dbError) {
         logger.error(`Database error: ${dbError.message}`);
         socket.emit("error", {

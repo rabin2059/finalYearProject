@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart'; // Make sure to add this package
@@ -50,7 +52,7 @@ class _AdminRequestScreenState extends ConsumerState<AdminRequestScreen> {
   List<dynamic> _getFilteredUsers(List<dynamic> users) {
     return users.where((user) {
       return user.role?.toUpperCase() == 'USER' &&
-             user.status?.toLowerCase() == 'onhold';
+          user.status?.toLowerCase() == 'onhold';
     }).toList();
   }
 
@@ -68,12 +70,13 @@ class _AdminRequestScreenState extends ConsumerState<AdminRequestScreen> {
   @override
   Widget build(BuildContext context) {
     final adminState = ref.watch(adminProvider);
-    final allPendingUsers = adminState.users != null ? _getFilteredUsers(adminState.users!) : [];
+    final allPendingUsers =
+        adminState.users != null ? _getFilteredUsers(adminState.users!) : [];
     final searchedUsers = allPendingUsers.where((user) {
       final query = _searchQuery.toLowerCase();
       return (user.username?.toLowerCase().contains(query) ?? false) ||
-             (user.email?.toLowerCase().contains(query) ?? false) ||
-             (user.phone?.toLowerCase().contains(query) ?? false);
+          (user.email?.toLowerCase().contains(query) ?? false) ||
+          (user.phone?.toLowerCase().contains(query) ?? false);
     }).toList();
     final uniqueRoles =
         adminState.users != null ? _getUniqueRoles(adminState.users!) : ['All'];
@@ -143,7 +146,7 @@ class _AdminRequestScreenState extends ConsumerState<AdminRequestScreen> {
 
                 // User list
                 Expanded(
-                child: searchedUsers.isEmpty
+                  child: searchedUsers.isEmpty
                       ? _buildEmptyState()
                       : RefreshIndicator(
                           onRefresh: _refreshData,
@@ -340,9 +343,23 @@ class _AdminRequestScreenState extends ConsumerState<AdminRequestScreen> {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           TextButton(
-                            onPressed: () {
-                              // TODO: Implement approve functionality
-                              print('Approved ${user.username}');
+                            onPressed: () async {
+                              final response = await http.put(
+                                Uri.parse(
+                                    '$apiBaseUrl/validDriverRole'),
+                                headers: {'Content-Type': 'application/json'},
+                                body: jsonEncode({
+                                  'status': 'approved',
+                                  'id': user.id,
+                                }),
+                              );
+
+                              if (response.statusCode == 200) {
+                                print('User approved successfully');
+                                await fetchAllUser(); // Refresh the list
+                              } else {
+                                print('Failed to approve: ${response.body}');
+                              }
                             },
                             style: TextButton.styleFrom(
                               foregroundColor: Colors.green,
@@ -351,8 +368,23 @@ class _AdminRequestScreenState extends ConsumerState<AdminRequestScreen> {
                           ),
                           SizedBox(width: 8),
                           TextButton(
-                            onPressed: () {
-                              print('Rejected ${user.username}');
+                            onPressed: () async {
+                              final response = await http.put(
+                                Uri.parse(
+                                    '$apiBaseUrl/validDriverRole'),
+                                headers: {'Content-Type': 'application/json'},
+                                body: jsonEncode({
+                                  'status': 'decline',
+                                  'id': user.id,
+                                }),
+                              );
+
+                              if (response.statusCode == 200) {
+                                print('User rejected successfully');
+                                await fetchAllUser();
+                              } else {
+                                print('Failed to reject: ${response.body}');
+                              }
                             },
                             style: TextButton.styleFrom(
                               foregroundColor: Colors.red,

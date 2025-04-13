@@ -19,7 +19,6 @@ const requestRole = async (req, res) => {
       },
     });
     console.log(user.role);
-    // Check if user exists
     if (!user) {
       return res.status(404).json({ message: "User not found." });
     }

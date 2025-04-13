@@ -36,6 +36,8 @@ model User {
 
   ratings            DriverRating[]
   driverStatus       DriverStatus?
+
+  Notification Notification[]
 }
 
 enum Role {
@@ -241,4 +243,15 @@ model DriverRating {
   review             String?          @db.Text
   forApp             Boolean          @default(false)
   createdAt          DateTime         @default(now())
+}
+
+// New model for notifications
+model Notification {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  title     String
+  body      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
 }

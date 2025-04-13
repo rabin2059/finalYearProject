@@ -11,6 +11,7 @@ const paymentController = require("../controller/paymentController.js");
 const categoryController = require("../controller/categoryController.js");
 const chatController = require("../controller/chatController.js");
 const protectRoute = require("../middleware/authMiddleware.js");
+const notificationController = require("../controller/notificationController.js");
 const upload = require("../configs/storage.js");
 
 // Authentication routes
@@ -119,3 +120,10 @@ router.get(
 // category related
 router.post("/startTrip", categoryController.startTrip);
 router.post("/endTrip", categoryController.endTrip);
+
+router.post("/sendNotification", notificationController.sendNotification);
+router.post("/logNotification", notificationController.logNotification);
+router.get(
+  "/getUserNotifications",
+  notificationController.getUserNotifications
+);
