@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import '../../../../components/AppColors.dart';
 import '../providers/bus_list_provider.dart';
 
@@ -34,52 +35,78 @@ class _BusScreenState extends ConsumerState<BusScreen> {
     final busState = ref.watch(busProvider);
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.all(10.w),
+        child: RefreshIndicator(
+          onRefresh: _fetchBusData,
+          color: AppColors.primary,
           child: Column(
             children: [
-              _buildSearchFields(),
-              SizedBox(height: 10.h),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Buses',
-                    style:
-                        TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w700),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      context.pushNamed('/bookings');
-                    },
-                    child: Container(
-                      height: 30.h,
-                      // width: 40.w,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(5.r),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 10.w, vertical: 2.h),
-                        child: Row(
-                          children: [
-                            Icon(
-                              CupertinoIcons.doc_checkmark_fill,
-                              size: 16.h,
-                            ),
-                            Text(
-                              "Booking",
-                              style: TextStyle(
-                                  fontSize: 16.sp, fontWeight: FontWeight.bold),
-                            )
-                          ],
-                        ),
+              _buildHeader(),
+              SizedBox(height: 16.h),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                child: _buildSearchFields(),
+              ),
+              SizedBox(height: 20.h),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Available Buses',
+                      style: TextStyle(
+                        fontSize: 18.sp, 
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
                       ),
                     ),
-                  )
-                ],
+                    GestureDetector(
+                      onTap: () {
+                        context.pushNamed('/bookings');
+                      },
+                      child: Container(
+                        height: 36.h,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(18.r),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16.w, 
+                            vertical: 4.h
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                CupertinoIcons.doc_checkmark_fill,
+                                size: 16.h,
+                                color: Colors.white,
+                              ),
+                              SizedBox(width: 6.w),
+                              Text(
+                                "My Bookings",
+                                style: TextStyle(
+                                  fontSize: 14.sp, 
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
               ),
               SizedBox(height: 10.h),
               Expanded(
@@ -92,31 +119,168 @@ class _BusScreenState extends ConsumerState<BusScreen> {
     );
   }
 
+  /// Builds app header
+  Widget _buildHeader() {
+    return Container(
+      padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 16.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Find Your",
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: Colors.black54,
+                ),
+              ),
+              Text(
+                "Perfect Bus Route",
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
+          ),
+          const Spacer(),
+          CircleAvatar(
+            backgroundColor: AppColors.primary.withOpacity(0.1),
+            radius: 18.r,
+            child: Icon(
+              Icons.person_outline,
+              color: AppColors.primary,
+              size: 22.sp,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Builds Search Fields with a Loading Indicator
   Widget _buildSearchFields() {
     final busState = ref.watch(busProvider);
 
     return Container(
-      height: 50.h,
-      padding: EdgeInsets.symmetric(horizontal: 8.w),
+      padding: EdgeInsets.all(6.w),
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.primary),
-        borderRadius: BorderRadius.circular(10.r),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Row(
+      child: Column(
         children: [
-          _buildSearchTextField('From'),
-          busState.loading
-              ? Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.w),
-                  child: SizedBox(
-                    height: 18.h,
-                    width: 18.w,
-                    child: const CircularProgressIndicator(strokeWidth: 2),
+          Container(
+            height: 50.h,
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8.r),
+              color: Colors.grey.shade50,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.location_on_outlined,
+                  color: AppColors.primary,
+                  size: 20.sp,
+                ),
+                SizedBox(width: 10.w),
+                _buildSearchTextField('From'),
+              ],
+            ),
+          ),
+          SizedBox(height: 10.h),
+          Container(
+            height: 50.h,
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8.r),
+              color: Colors.grey.shade50,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.location_on_outlined,
+                  color: Colors.redAccent,
+                  size: 20.sp,
+                ),
+                SizedBox(width: 10.w),
+                _buildSearchTextField('To'),
+              ],
+            ),
+          ),
+          SizedBox(height: 12.h),
+          Container(
+            width: double.infinity,
+            height: 48.h,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary,
+                  Color.fromARGB(255, 61, 153, 223),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(8.r),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: ElevatedButton(
+              onPressed: _fetchBusData,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                foregroundColor: Colors.white,
+                elevation: 0,
+              ),
+              child: busState.loading
+                ? SizedBox(
+                    height: 20.h,
+                    width: 20.w,
+                    child: const CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.search),
+                      SizedBox(width: 8.w),
+                      Text(
+                        "Find Buses",
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
-                )
-              : const Icon(CupertinoIcons.arrow_2_circlepath),
-          _buildSearchTextField('To'),
+            ),
+          ),
         ],
       ),
     );
@@ -125,18 +289,14 @@ class _BusScreenState extends ConsumerState<BusScreen> {
   /// Search TextField Component
   Widget _buildSearchTextField(String hint) {
     return Expanded(
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 5.w),
-        child: TextFormField(
-          decoration: InputDecoration(
-            hintText: hint,
-            filled: true,
-            fillColor: Colors.transparent,
-            hintStyle: TextStyle(fontSize: 15.sp),
-            border: InputBorder.none,
-            contentPadding:
-                EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-          ),
+      child: TextFormField(
+        decoration: InputDecoration(
+          hintText: hint,
+          filled: true,
+          fillColor: Colors.transparent,
+          hintStyle: TextStyle(fontSize: 15.sp, color: Colors.grey),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.zero,
         ),
       ),
     );
@@ -144,15 +304,20 @@ class _BusScreenState extends ConsumerState<BusScreen> {
 
   /// Builds Bus List UI
   Widget _buildBusList(busState) {
-    if (busState.loading) {
-      return const Center(child: CircularProgressIndicator());
+    if (busState.loading && busState.buses.isEmpty) {
+      return _buildLoadingShimmer();
     }
 
     if (busState.errorMessage.isNotEmpty) {
       return _buildErrorWidget(busState.errorMessage);
     }
 
+    if (busState.buses.isEmpty) {
+      return _buildEmptyState();
+    }
+
     return ListView.builder(
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
       itemCount: busState.buses.length,
       itemBuilder: (context, index) {
         final bus = busState.buses[index];
@@ -165,21 +330,168 @@ class _BusScreenState extends ConsumerState<BusScreen> {
     );
   }
 
+  /// Loading shimmer effect
+  Widget _buildLoadingShimmer() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      child: ListView.builder(
+        itemCount: 5,
+        itemBuilder: (context, index) {
+          return Container(
+            margin: EdgeInsets.only(bottom: 16.h),
+            height: 130.h,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12.r),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 80.w,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(12.r),
+                      bottomLeft: Radius.circular(12.r),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.all(12.w),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          width: 150.w,
+                          height: 18.h,
+                          color: Colors.grey.shade200,
+                        ),
+                        Container(
+                          width: 100.w,
+                          height: 16.h,
+                          color: Colors.grey.shade200,
+                        ),
+                        Container(
+                          width: 180.w,
+                          height: 16.h,
+                          color: Colors.grey.shade200,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Container(
+                  width: 60.w,
+                  color: Colors.grey.shade100,
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Empty state widget
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.directions_bus_outlined,
+            size: 80.sp,
+            color: Colors.grey.shade400,
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            "No buses available",
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            "Try changing your search criteria",
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: Colors.grey,
+            ),
+          ),
+          SizedBox(height: 24.h),
+          ElevatedButton(
+            onPressed: _fetchBusData,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+            ),
+            child: Text(
+              "Refresh",
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Error Widget with Retry Button
   Widget _buildErrorWidget(String message) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(message,
+          Icon(
+            Icons.error_outline,
+            size: 60.sp,
+            color: Colors.redAccent,
+          ),
+          SizedBox(height: 16.h),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24.w),
+            child: Text(
+              message,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16.sp, color: Colors.red)),
-          SizedBox(height: 10.h),
-          ElevatedButton(
+              style: TextStyle(
+                fontSize: 16.sp, 
+                color: Colors.red.shade800
+              ),
+            ),
+          ),
+          SizedBox(height: 24.h),
+          ElevatedButton.icon(
             onPressed: _fetchBusData,
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: Text("Retry",
-                style: TextStyle(fontSize: 14.sp, color: Colors.white)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+            ),
+            icon: const Icon(Icons.refresh),
+            label: Text(
+              "Try Again",
+              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -195,111 +507,260 @@ class _BusScreenState extends ConsumerState<BusScreen> {
       return location.split(',').first.trim();
     }
 
-    return GestureDetector(
-      onTap: () {
-        context
-            .pushNamed('/busDetail', pathParameters: {'id': bus.id.toString()});
-      },
-      child: Card(
+    DateTime? departureTime;
+    DateTime? arrivalTime;
+    
+    try {
+      if (bus.departure != null) {
+        departureTime = DateTime.parse(bus.departure!);
+      }
+      if (bus.arrivalTime != null) {
+        arrivalTime = DateTime.parse(bus.arrivalTime!);
+      }
+    } catch (e) {
+      debugPrint("Error parsing date: $e");
+    }
+
+    final startLocation = getFirstWord(route?.startPoint);
+    final endLocation = getFirstWord(route?.endPoint);
+
+    return Container(
+      margin: EdgeInsets.only(bottom: 16.h),
+      decoration: BoxDecoration(
         color: Colors.white,
-        margin: EdgeInsets.symmetric(vertical: 8.h),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.r),
-        ),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-          child:
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            _buildBusIcon(),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 10.w),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Top colored part
+          Container(
+            padding: EdgeInsets.all(16.w),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(16.r),
+                topRight: Radius.circular(16.r),
+              ),
+            ),
+            child: Row(
+              children: [
+                _buildBusIcon(),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        bus.model ?? 'Unknown Bus',
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      SizedBox(height: 2.h),
+                      Text(
+                        bus.vehicleNo ?? 'N/A',
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20.r),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.star,
+                        color: Colors.amber,
+                        size: 16.sp,
+                      ),
+                      SizedBox(width: 4.w),
+                      Text(
+                        '4.5',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Main content
+          Padding(
+            padding: EdgeInsets.all(16.w),
+            child: Column(
+              children: [
+                // Journey time visualization
+                Row(
                   children: [
-                    Row(children: [
-                      Text(bus.model ?? 'Unknown Bus',
-                          style: TextStyle(
-                              fontSize: 15.sp,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textSecondary)),
-                      Text('-'),
-                      Text(bus.vehicleNo ?? 'N/A',
-                          style: TextStyle(
-                              fontSize: 15.sp,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textSecondary)),
-                    ]),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    // Start time
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(bus.departure ?? 'N/A',
-                            style: TextStyle(
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary)),
-                        Text('-'),
-                        Text(bus.arrivalTime ?? 'N/A',
-                            style: TextStyle(
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textSecondary)),
+                        Text(
+                          departureTime != null
+                              ? DateFormat.jm().format(departureTime)
+                              : 'N/A',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        SizedBox(height: 2.h),
+                        Text(
+                          startLocation,
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: Colors.black54,
+                          ),
+                        ),
                       ],
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    
+                    Expanded(
+                      child: Center(
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                              height: 2.h,
+                              color: Colors.grey.shade300,
+                            ),
+                            Icon(
+                              Icons.directions_bus,
+                              color: AppColors.primary,
+                              size: 18.sp,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    
+                    // End time
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(getFirstWord(route?.startPoint),
-                            style: TextStyle(fontSize: 14.sp)),
-                        Text('-'),
-                        Text(getFirstWord(route?.endPoint),
-                            style: TextStyle(fontSize: 14.sp)),
+                        Text(
+                          arrivalTime != null
+                              ? DateFormat.jm().format(arrivalTime)
+                              : 'N/A',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        SizedBox(height: 2.h),
+                        Text(
+                          endLocation,
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: Colors.black54,
+                          ),
+                        ),
                       ],
                     ),
                   ],
                 ),
-              ),
+                
+                SizedBox(height: 16.h),
+                
+                // Price and book button
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Price per seat",
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        Text(
+                          "रु ${route?.fare ?? 0}",
+                          style: TextStyle(
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        context.pushNamed('/busDetail', 
+                            pathParameters: {'id': bus.id.toString()});
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                      ),
+                      child: Text(
+                        "View Detail",
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            _buildPriceAndRating(route?.fare ?? 0),
-          ]),
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildBusIcon() {
     return Container(
-      height: 50.h,
-      width: 50.w,
-      decoration: const BoxDecoration(
+      height: 44.h,
+      width: 44.w,
+      decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: AppColors.primary,
-      ),
-      child: const Icon(CupertinoIcons.bus, color: Colors.white),
-    );
-  }
-
-  /// Price and Rating UI
-  Widget _buildPriceAndRating(int fare) {
-    return Column(
-      children: [
-        Text("Rs. $fare",
-            style: TextStyle(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.green)),
-        SizedBox(height: 5.h),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 2.h),
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(5.r),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
-          child: Text('⭐️ 4.5',
-              style: TextStyle(fontSize: 12.sp, color: Colors.white),
-              textAlign: TextAlign.center),
-        ),
-      ],
+        ],
+      ),
+      child: Icon(
+        CupertinoIcons.bus,
+        color: Colors.white,
+        size: 22.sp,
+      ),
     );
   }
 }

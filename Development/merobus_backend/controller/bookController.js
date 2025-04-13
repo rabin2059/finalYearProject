@@ -75,7 +75,7 @@ const booking = async (req, res) => {
 
 const getBookings = async (req, res) => {
   try {
-    const { id } = req.query;
+    const { id, page = 1 } = req.query;
     const bookings = await prisma.booking.findMany({
       where: {
         userId: parseInt(id),
@@ -83,6 +83,8 @@ const getBookings = async (req, res) => {
       include: {
         bookingSeats: true,
       },
+      take: 5,
+      skip: (parseInt(page) - 1) * 5,
     });
 
     return res.status(200).json({ booking: bookings });
@@ -112,7 +114,7 @@ const getSingleBooking = async (req, res) => {
 
 const getBookingsByVehicle = async (req, res) => {
   try {
-    const { vehicleId } = req.query;
+    const { vehicleId, page = 1 } = req.query;
     console.log(vehicleId);
     const bookings = await prisma.booking.findMany({
       where: {
@@ -121,6 +123,8 @@ const getBookingsByVehicle = async (req, res) => {
       include: {
         bookingSeats: true,
       },
+      take: 5,
+      skip: (parseInt(page) - 1) * 5,
     });
 
     return res.status(200).json({ bookingByVehicle: bookings });
@@ -132,7 +136,7 @@ const getBookingsByVehicle = async (req, res) => {
 
 const getBookingByDate = async (req, res) => {
   try {
-    const { date, vehicleId } = req.query;
+    const { date, vehicleId, page = 1 } = req.query;
     console.log(req.query);
 
     if (!date) {
@@ -167,6 +171,8 @@ const getBookingByDate = async (req, res) => {
       include: {
         bookingSeats: true,
       },
+      take: 5,
+      skip: (parseInt(page) - 1) * 5,
     });
 
     res.status(200).json(bookings);

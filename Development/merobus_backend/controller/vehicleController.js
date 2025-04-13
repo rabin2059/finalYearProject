@@ -5,7 +5,6 @@ const { activeBuses } = require("./socketController.js");
 
 const getRoute = async (req, res) => {
   try {
-    const { activeBuses } = require("./socketController.js");
     const { startLat, startLng, endLat, endLng } = req.query;
 
     if (!startLat || !startLng || !endLat || !endLng) {
@@ -35,21 +34,10 @@ const getRoute = async (req, res) => {
       },
     });
 
-    // Attach live location to each vehicle
-    routes.forEach((route) => {
-      if (route.vehicle && activeBuses.has(route.vehicle.id)) {
-        route.vehicle.location = activeBuses.get(route.vehicle.id).location;
-      }
-    });
-
-    console.log("Fetched Routes:", routes);
-
     const validRoutes = routes.filter((route) => {
       if (!route.polyline) return false;
 
       const decodedPolyline = polyline.decode(route.polyline);
-      console.log(`Decoded Polyline for route ${route.name}:`, decodedPolyline);
-
       const routeLine = turf.lineString(
         decodedPolyline.map(([lat, lng]) => [lng, lat])
       );
@@ -68,42 +56,25 @@ const getRoute = async (req, res) => {
       const endDistance =
         turf.distance(turf.point(endPoint), closestEnd) * 1000;
 
-      console.log(`Route: ${route.name}`);
-      console.log(`Start Distance: ${startDistance.toFixed(2)} meters`);
-      console.log(`End Distance: ${endDistance.toFixed(2)} meters`);
+      const thresholdDistance = 100000; // 100 km
 
-      const thresholdDistance = 100000;
-      const isStartNearRoute = startDistance <= thresholdDistance;
-      const isEndNearRoute = endDistance <= thresholdDistance;
-
-      return isStartNearRoute && isEndNearRoute;
+      return (
+        startDistance <= thresholdDistance && endDistance <= thresholdDistance
+      );
     });
 
-    console.log("Valid Routes:", validRoutes);
-
-    if (validRoutes.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No vehicles pass through both locations" });
-    }
-
     const vehiclesWithLiveData = validRoutes.map((route) => {
-      const routeBuses = Array.from(activeBuses.entries())
-        .filter(
-          ([_, busInfo]) => busInfo.routeId == route.id && busInfo.isActive
-        )
-        .map(([busId, busInfo]) => ({
-          busId,
-          busNumber: busInfo.busNumber,
-          driverName: busInfo.driverName,
-          location: busInfo.location || null,
-          lastUpdated: busInfo.lastUpdated || null,
-        }));
+      const vehicleId = route.vehicle?.id;
+      const busData = activeBuses.get(vehicleId);
+
+      const isActive = !!busData;
+      const location = busData?.location || null;
+      const lastUpdated = busData?.lastUpdated || null;
 
       return {
         routeId: route.id,
         routeName: route.name,
-        vehicleId: route.vehicle.id,
+        vehicleId: vehicleId,
         vehicleModel: route.vehicle.model,
         vehicleType: route.vehicle.vehicleType,
         driver: {
@@ -113,28 +84,28 @@ const getRoute = async (req, res) => {
           phone: route.vehicle.owner.phone,
         },
         polyline: route.polyline,
-        activeBuses: routeBuses,
-        hasActiveBuses: routeBuses.length > 0,
+        activeBuses: isActive
+          ? [
+              {
+                vehicleId,
+                location,
+                lastUpdated,
+              },
+            ]
+          : [],
+        hasActiveBuses: isActive,
       };
     });
 
     vehiclesWithLiveData.sort((a, b) => {
       if (a.hasActiveBuses && !b.hasActiveBuses) return -1;
       if (!a.hasActiveBuses && b.hasActiveBuses) return 1;
-
-      if (a.hasActiveBuses && b.hasActiveBuses) {
-        return b.activeBuses.length - a.activeBuses.length;
-      }
-
       return 0;
     });
 
     return res.status(200).json({
       vehicles: vehiclesWithLiveData,
-      totalBuses: vehiclesWithLiveData.reduce(
-        (acc, route) => acc + route.activeBuses.length,
-        0
-      ),
+      totalBuses: vehiclesWithLiveData.filter((v) => v.hasActiveBuses).length,
     });
   } catch (error) {
     console.error("Error fetching available vehicles:", error);
@@ -227,7 +198,53 @@ function calculateNearbyBuses(latitude, longitude, radius, routeId) {
   return nearbyBuses.sort((a, b) => a.distance - b.distance);
 }
 
+const getMyPolylines = async (req, res) => {
+  try {
+    const { vehicleId } = req.query;
+    if (!vehicleId) {
+      return res.status(400).json({ message: "Vehicle ID is required" });
+    }
+    const vehicle = await prisma.vehicle.findUnique({
+      where: { id: parseInt(vehicleId) },
+      select: {
+        routes: {
+          select: {
+            id: true,
+            name: true,
+            polyline: true,
+          },
+        },
+      },
+    });
+    if (!vehicle) {
+      return res.status(404).json({ message: "Vehicle not found" });
+    }
+    const routes = vehicle.routes.map((route) => ({
+      id: route.id,
+      name: route.name,
+      polyline: route.polyline,
+    }));
+    if (routes.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No routes found for this vehicle" });
+    }
+    const decodedPolylines = routes.map((route) => {
+      const decoded = polyline.decode(route.polyline);
+      return {
+        ...route,
+        coordinates: decoded.map(([lat, lng]) => [lng, lat]),
+      };
+    });
+    res.status(200).json({ routes: decodedPolylines });
+  } catch (error) {
+    console.error("Error fetching user's polylines:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   getRoute,
   getActiveBuses,
+  getMyPolylines,
 };

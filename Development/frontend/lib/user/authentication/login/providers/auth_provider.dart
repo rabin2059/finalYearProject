@@ -29,6 +29,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
       state = newState;
 
+      await SharedPrefsUtil.saveTripStatus("false"); // Trip not started yet
+
       if (state.isLoggedIn && state.userId != null) {
         _disconnectSocket();
         socketService.connect(state.userId.toString());

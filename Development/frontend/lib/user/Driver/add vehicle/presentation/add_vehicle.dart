@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,7 @@ import 'package:frontend/user/authentication/login/providers/auth_provider.dart'
 import 'package:go_router/go_router.dart';
 import 'select_seats_screen.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 class AddVehicle extends ConsumerStatefulWidget {
   const AddVehicle({super.key});
@@ -26,10 +28,21 @@ class _AddVehicleState extends ConsumerState<AddVehicle> {
   final TextEditingController _vehicleNumberController = TextEditingController();
   final TextEditingController _departureController = TextEditingController();
   final TextEditingController _arrivalController = TextEditingController();
+  bool _isLoading = false;
 
   Set<String> _selectedSeats = {};
 
   Future<void> addVehicle() async {
+    // Form validation before sending request
+    if (!_isFormValid()) {
+      _showErrorMessage("Please fill all required fields and select seats");
+      return;
+    }
+    
+    setState(() {
+      _isLoading = true;
+    });
+    
     final authState = ref.read(authProvider).userId;
     try {
       final url = Uri.parse("$apiBaseUrl/addVehicle");
@@ -55,6 +68,10 @@ class _AddVehicleState extends ConsumerState<AddVehicle> {
         },
       );
 
+      setState(() {
+        _isLoading = false;
+      });
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
         print('Vehicle added successfully: $data');
@@ -64,10 +81,47 @@ class _AddVehicleState extends ConsumerState<AddVehicle> {
             pathParameters: {'id': vehicleId});
       } else {
         print('Failed to add vehicle: ${response.body}');
+        _showErrorMessage("Failed to add vehicle. Please try again.");
       }
     } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
       print('Error adding vehicle: $e');
+      _showErrorMessage("An error occurred. Please check your connection.");
     }
+  }
+
+  bool _isFormValid() {
+    // Check if organization name is filled when organization type is selected
+    if (_userType == 'Organization' && _organizationController.text.isEmpty) {
+      return false;
+    }
+    
+    // Check if other required fields are filled
+    if (_vehicleModelController.text.isEmpty ||
+        _vehicleNumberController.text.isEmpty ||
+        _departureController.text.isEmpty ||
+        _arrivalController.text.isEmpty ||
+        _selectedSeats.isEmpty) {
+      return false;
+    }
+    
+    return true;
+  }
+
+  void _showErrorMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red.shade700,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        margin: EdgeInsets.all(10),
+      ),
+    );
   }
 
   Future<void> _navigateToSeatSelection() async {
@@ -88,120 +142,275 @@ class _AddVehicleState extends ConsumerState<AddVehicle> {
     }
   }
 
+  // Clock time picker
+  Future<void> _selectTime(TextEditingController controller) async {
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Colors.green.shade600,
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
+            ),
+            dialogBackgroundColor: Colors.white,
+          ),
+          child: child!,
+        );
+      },
+    );
+    
+    if (pickedTime != null) {
+      // Format time for display and backend
+      final now = DateTime.now().add(Duration(days: Random().nextInt(30)));
+      final selectedDateTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        pickedTime.hour,
+        pickedTime.minute,
+      );
+      
+      // Format for backend with full ISO 8601 DateTime string
+      final formattedTime = DateFormat("yyyy-MM-ddTHH:mm:ss'Z'").format(selectedDateTime.toUtc());
+      
+      setState(() {
+        controller.text = formattedTime;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: Text(
           'Add Vehicle',
           style: TextStyle(
             color: Colors.black87,
             fontWeight: FontWeight.bold,
+            fontSize: 18.sp,
           ),
         ),
         backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Colors.black87),
+        elevation: 2,
+        iconTheme: const IconThemeData(color: Colors.black87),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildSectionTitle("Register As"),
-              SizedBox(height: 10.h),
-              Row(
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildUserTypeButton('Single'),
-                  SizedBox(width: 20.w),
-                  _buildUserTypeButton('Organization'),
+                  _buildSectionCard(
+                    title: "Register As",
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            _buildUserTypeButton('Single'),
+                            SizedBox(width: 20.w),
+                            _buildUserTypeButton('Organization'),
+                          ],
+                        ),
+                        if (_userType == 'Organization') ...[
+                          SizedBox(height: 20.h),
+                          CustomTextField(
+                            controller: _organizationController,
+                            hint: 'Enter Organization Name',
+                            prefixIcon: Icons.business,
+                            backgroundColor: Colors.grey.shade50,
+                            borderColor: Colors.grey.shade200,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  
+                  SizedBox(height: 20.h),
+                  
+                  _buildSectionCard(
+                    title: "Vehicle Type",
+                    child: Row(
+                      children: [
+                        _buildVehicleTypeButton('Taxi'),
+                        SizedBox(width: 20.w),
+                        _buildVehicleTypeButton('Bus'),
+                      ],
+                    ),
+                  ),
+                  
+                  SizedBox(height: 20.h),
+                  
+                  _buildSectionCard(
+                    title: "Vehicle Details",
+                    child: Column(
+                      children: [
+                        CustomTextField(
+                          hint: 'Vehicle Model',
+                          controller: _vehicleModelController,
+                          prefixIcon: Icons.directions_car,
+                          backgroundColor: Colors.grey.shade50,
+                          borderColor: Colors.grey.shade200,
+                        ),
+                        SizedBox(height: 15.h),
+                        CustomTextField(
+                          hint: 'Vehicle Number',
+                          controller: _vehicleNumberController,
+                          prefixIcon: Icons.confirmation_number,
+                          backgroundColor: Colors.grey.shade50,
+                          borderColor: Colors.grey.shade200,
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  SizedBox(height: 20.h),
+                  
+                  _buildSectionCard(
+                    title: "Timing",
+                    child: Column(
+                      children: [
+                        _buildTimePickerField(
+                          controller: _departureController,
+                          label: "Departure Time",
+                          icon: Icons.access_time,
+                        ),
+                        SizedBox(height: 15.h),
+                        _buildTimePickerField(
+                          controller: _arrivalController,
+                          label: "Arrival Time",
+                          icon: Icons.alarm,
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  SizedBox(height: 20.h),
+                  
+                  _buildSectionCard(
+                    title: "Select Seats",
+                    child: Column(
+                      children: [
+                        CustomButton(
+                          text: _selectedSeats.isEmpty
+                              ? "Select Seats of Vehicle"
+                              : "Seats Selected (${_selectedSeats.length})",
+                          width: double.infinity,
+                          onPressed: _navigateToSeatSelection,
+                          color: _selectedSeats.isEmpty
+                              ? Colors.grey.shade300
+                              : Colors.green.shade400,
+                          boxShadow: _selectedSeats.isEmpty
+                              ? []
+                              : [
+                                  BoxShadow(
+                                    color: Colors.green.shade200,
+                                    blurRadius: 10,
+                                    offset: Offset(0, 4),
+                                  )
+                                ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  SizedBox(height: 30.h),
+                  
+                  CustomButton(
+                    text: "Submit Vehicle",
+                    width: double.infinity,
+                    onPressed: addVehicle,
+                    color: Colors.green.shade600,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.green.shade200,
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      )
+                    ],
+                    height: 50.h,
+                    fontSize: 16.sp,
+                  ),
+                  
+                  SizedBox(height: 20.h),
                 ],
               ),
-              if (_userType == 'Organization') ...[
-                SizedBox(height: 15.h),
-                _buildSectionTitle("Organization Name"),
-                CustomTextField(
-                  controller: _organizationController,
-                  hint: 'Enter Organization Name',
-                  prefixIcon: Icons.business,
-                ),
-              ],
-              SizedBox(height: 15.h),
-              _buildSectionTitle("Vehicle Type"),
-              SizedBox(height: 10.h),
-              Row(
-                children: [
-                  _buildVehicleTypeButton('Taxi'),
-                  SizedBox(width: 20.w),
-                  _buildVehicleTypeButton('Bus'),
-                ],
-              ),
-              SizedBox(height: 15.h),
-              _buildSectionTitle("Vehicle Details"),
-              SizedBox(height: 10.h),
-              CustomTextField(
-                hint: 'Vehicle Model',
-                controller: _vehicleModelController,
-                prefixIcon: Icons.directions_car,
-              ),
-              SizedBox(height: 15.h),
-              CustomTextField(
-                hint: 'Vehicle Number',
-                controller: _vehicleNumberController,
-                prefixIcon: Icons.numbers,
-              ),
-              SizedBox(height: 15.h),
-              _buildSectionTitle("Timing"),
-              SizedBox(height: 10.h),
-              CustomTextField(
-                hint: 'Departure Time',
-                controller: _departureController,
-                prefixIcon: Icons.access_time,
-              ),
-              SizedBox(height: 15.h),
-              CustomTextField(
-                hint: 'Arrival Time',
-                controller: _arrivalController,
-                prefixIcon: Icons.alarm,
-              ),
-              SizedBox(height: 20.h),
-              Center(
-                child: CustomButton(
-                  text: _selectedSeats.isEmpty
-                      ? "Select Seats of Vehicle"
-                      : "Seats Selected (${_selectedSeats.length})",
-                  width: 300.w,
-                  onPressed: _navigateToSeatSelection,
-                  color: _selectedSeats.isEmpty
-                      ? Colors.grey.shade300
-                      : Colors.green.shade400,
-                ),
-              ),
-              SizedBox(height: 20.h),
-              Center(
-                child: CustomButton(
-                  text: "Submit Vehicle",
-                  width: 300.w,
-                  onPressed: addVehicle,
-                  color: Colors.green.shade600,
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+          
+          // Loading overlay
+          if (_isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.5),
+              child: Center(
+                child: Container(
+                  padding: EdgeInsets.all(20.w),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16.r),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.green.shade600),
+                      ),
+                      SizedBox(height: 16.h),
+                      Text(
+                        "Adding Vehicle...",
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 16.sp,
-        fontWeight: FontWeight.bold,
-        color: Colors.black87,
+  Widget _buildSectionCard({
+    required String title,
+    required Widget child,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          Divider(height: 24.h),
+          child,
+        ],
       ),
     );
   }
@@ -237,16 +446,27 @@ class _AddVehicleState extends ConsumerState<AddVehicle> {
             },
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 12.h),
-              child: Center(
-                child: Text(
-                  type,
-                  style: TextStyle(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    type == 'Taxi' ? Icons.local_taxi : Icons.directions_bus,
                     color: _selectedVehicleType == type 
                         ? Colors.white 
                         : Colors.black87,
-                    fontWeight: FontWeight.bold,
+                    size: 16.sp,
                   ),
-                ),
+                  SizedBox(width: 8.w),
+                  Text(
+                    type,
+                    style: TextStyle(
+                      color: _selectedVehicleType == type 
+                          ? Colors.white 
+                          : Colors.black87,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -285,19 +505,92 @@ class _AddVehicleState extends ConsumerState<AddVehicle> {
             },
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 12.h),
-              child: Center(
-                child: Text(
-                  type,
-                  style: TextStyle(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    type == 'Single' ? Icons.person : Icons.business,
                     color: _userType == type 
                         ? Colors.white 
                         : Colors.black87,
-                    fontWeight: FontWeight.bold,
+                    size: 16.sp,
                   ),
-                ),
+                  SizedBox(width: 8.w),
+                  Text(
+                    type,
+                    style: TextStyle(
+                      color: _userType == type 
+                          ? Colors.white 
+                          : Colors.black87,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildTimePickerField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+  }) {
+    // Format time for display if set
+    String displayText = 'Select Time';
+    if (controller.text.isNotEmpty) {
+      try {
+        final dateTime = DateTime.parse(controller.text);
+        displayText = DateFormat('h:mm a').format(dateTime);
+      } catch (e) {
+        displayText = controller.text;
+      }
+    }
+    
+    return InkWell(
+      onTap: () => _selectTime(controller),
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(8.r),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: Colors.grey.shade700,
+              size: 20.sp,
+            ),
+            SizedBox(width: 12.w),
+            Text(
+              displayText,
+              style: TextStyle(
+                color: controller.text.isEmpty ? 
+                    Colors.grey.shade500 : 
+                    Colors.black87,
+                fontSize: 14.sp,
+              ),
+            ),
+            Spacer(),
+            if (controller.text.isNotEmpty)
+              Container(
+                padding: EdgeInsets.all(4.w),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade100,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.check,
+                  color: Colors.green.shade700,
+                  size: 12.sp,
+                ),
+              ),
+          ],
         ),
       ),
     );

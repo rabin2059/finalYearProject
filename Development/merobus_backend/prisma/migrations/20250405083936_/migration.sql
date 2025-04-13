@@ -27,13 +27,28 @@ CREATE TABLE `Vehicle` (
     `model` VARCHAR(191) NOT NULL,
     `vehicleType` VARCHAR(191) NOT NULL,
     `registerAs` VARCHAR(191) NOT NULL,
-    `departure` VARCHAR(191) NOT NULL,
-    `arrivalTime` VARCHAR(191) NOT NULL,
+    `departure` TIME NOT NULL,
+    `arrivalTime` TIME NOT NULL,
+    `actualDeparture` TIME NOT NULL,
+    `actualArrivalTime` TIME NOT NULL,
+    `timingCategory` ENUM('early', 'onTime', 'late') NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
     `ownerId` INTEGER NOT NULL,
+    `categoryId` INTEGER NULL,
 
     UNIQUE INDEX `Vehicle_vehicleNo_key`(`vehicleNo`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `VehicleCategory` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(191) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `VehicleCategory_name_key`(`name`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -44,7 +59,7 @@ CREATE TABLE `Route` (
     `startPoint` VARCHAR(191) NOT NULL,
     `endPoint` VARCHAR(191) NOT NULL,
     `fare` DOUBLE NOT NULL,
-    `polyline` TEXT NOT NULL,
+    `polyline` TEXT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
     `vehicleID` INTEGER NULL,
@@ -97,6 +112,7 @@ CREATE TABLE `Booking` (
     `status` ENUM('PENDING', 'CONFIRMED', 'CANCELLED') NOT NULL DEFAULT 'PENDING',
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
+    `durationTaken` INTEGER NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -128,8 +144,8 @@ CREATE TABLE `Payment` (
 -- CreateTable
 CREATE TABLE `ChatGroup` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `vehicleId` INTEGER NOT NULL,
     `name` VARCHAR(191) NOT NULL,
+    `vehicleId` INTEGER NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -139,18 +155,82 @@ CREATE TABLE `ChatGroup` (
 -- CreateTable
 CREATE TABLE `Message` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `text` VARCHAR(191) NOT NULL,
+    `text` TEXT NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
     `senderId` INTEGER NOT NULL,
     `chatGroupId` INTEGER NOT NULL,
-    `isRead` BOOLEAN NOT NULL,
+    `isRead` BOOLEAN NOT NULL DEFAULT false,
+    `readAt` DATETIME(3) NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+-- CreateTable
+CREATE TABLE `UserChatGroup` (
+    `userId` INTEGER NOT NULL,
+    `chatGroupId` INTEGER NOT NULL,
+    `joinedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `isActive` BOOLEAN NOT NULL DEFAULT true,
+
+    PRIMARY KEY (`userId`, `chatGroupId`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `DriverStatus` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `driverId` INTEGER NOT NULL,
+    `liveLatitude` DOUBLE NULL,
+    `liveLongitude` DOUBLE NULL,
+    `estimatedReachTime` DATETIME(3) NULL,
+    `sharedRoute` TEXT NULL,
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `DriverStatus_driverId_key`(`driverId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `DriverRating` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `driverId` INTEGER NOT NULL,
+    `rating` INTEGER NOT NULL,
+    `review` TEXT NULL,
+    `forApp` BOOLEAN NOT NULL DEFAULT false,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `VehiclePerformance` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `vehicleId` INTEGER NOT NULL,
+    `category` ENUM('early', 'onTime', 'late') NOT NULL,
+    `totalTrips` INTEGER NOT NULL,
+    `earlyCount` INTEGER NOT NULL,
+    `onTimeCount` INTEGER NOT NULL,
+    `lateCount` INTEGER NOT NULL,
+    `generatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    UNIQUE INDEX `VehiclePerformance_vehicleId_key`(`vehicleId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `_UserChatGroups` (
+    `A` INTEGER NOT NULL,
+    `B` INTEGER NOT NULL,
+
+    UNIQUE INDEX `_UserChatGroups_AB_unique`(`A`, `B`),
+    INDEX `_UserChatGroups_B_index`(`B`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 -- AddForeignKey
 ALTER TABLE `Vehicle` ADD CONSTRAINT `Vehicle_ownerId_fkey` FOREIGN KEY (`ownerId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Vehicle` ADD CONSTRAINT `Vehicle_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `VehicleCategory`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Route` ADD CONSTRAINT `Route_vehicleID_fkey` FOREIGN KEY (`vehicleID`) REFERENCES `Vehicle`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -180,10 +260,31 @@ ALTER TABLE `Payment` ADD CONSTRAINT `Payment_bookingId_fkey` FOREIGN KEY (`book
 ALTER TABLE `Payment` ADD CONSTRAINT `Payment_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `ChatGroup` ADD CONSTRAINT `ChatGroup_vehicleId_fkey` FOREIGN KEY (`vehicleId`) REFERENCES `Vehicle`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `ChatGroup` ADD CONSTRAINT `ChatGroup_vehicleId_fkey` FOREIGN KEY (`vehicleId`) REFERENCES `Vehicle`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Message` ADD CONSTRAINT `Message_senderId_fkey` FOREIGN KEY (`senderId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Message` ADD CONSTRAINT `Message_chatGroupId_fkey` FOREIGN KEY (`chatGroupId`) REFERENCES `ChatGroup`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `UserChatGroup` ADD CONSTRAINT `UserChatGroup_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `UserChatGroup` ADD CONSTRAINT `UserChatGroup_chatGroupId_fkey` FOREIGN KEY (`chatGroupId`) REFERENCES `ChatGroup`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `DriverStatus` ADD CONSTRAINT `DriverStatus_driverId_fkey` FOREIGN KEY (`driverId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `DriverRating` ADD CONSTRAINT `DriverRating_driverId_fkey` FOREIGN KEY (`driverId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `VehiclePerformance` ADD CONSTRAINT `VehiclePerformance_vehicleId_fkey` FOREIGN KEY (`vehicleId`) REFERENCES `Vehicle`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `_UserChatGroups` ADD CONSTRAINT `_UserChatGroups_A_fkey` FOREIGN KEY (`A`) REFERENCES `ChatGroup`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `_UserChatGroups` ADD CONSTRAINT `_UserChatGroups_B_fkey` FOREIGN KEY (`B`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;

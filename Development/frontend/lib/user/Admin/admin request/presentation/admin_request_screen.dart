@@ -4,17 +4,16 @@ import 'package:flutter_screenutil/flutter_screenutil.dart'; // Make sure to add
 import 'package:frontend/user/Admin/admin%20home/provider/admin_provider.dart';
 import '../../../../core/constants.dart';
 
-class AdminHomeScreen extends ConsumerStatefulWidget {
-  const AdminHomeScreen({super.key});
+class AdminRequestScreen extends ConsumerStatefulWidget {
+  const AdminRequestScreen({super.key});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
-      _AdminHomeScreenState();
+      _AdminRequestScreenState();
 }
 
-class _AdminHomeScreenState extends ConsumerState<AdminHomeScreen> {
+class _AdminRequestScreenState extends ConsumerState<AdminRequestScreen> {
   bool _isRefreshing = false;
-  String _filterRole = 'All';
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
@@ -50,21 +49,8 @@ class _AdminHomeScreenState extends ConsumerState<AdminHomeScreen> {
 
   List<dynamic> _getFilteredUsers(List<dynamic> users) {
     return users.where((user) {
-      if (user.role?.toUpperCase() == 'ADMIN') return false;
-      // First apply role filter
-      if (_filterRole != 'All' && user.role != _filterRole) {
-        return false;
-      }
-
-      // Then apply search query if it exists
-      if (_searchQuery.isNotEmpty) {
-        final query = _searchQuery.toLowerCase();
-        return (user.username?.toLowerCase().contains(query) ?? false) ||
-            (user.email?.toLowerCase().contains(query) ?? false) ||
-            (user.phone?.toLowerCase().contains(query) ?? false);
-      }
-
-      return true;
+      return user.role?.toUpperCase() == 'USER' &&
+             user.status?.toLowerCase() == 'onhold';
     }).toList();
   }
 
@@ -82,8 +68,13 @@ class _AdminHomeScreenState extends ConsumerState<AdminHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final adminState = ref.watch(adminProvider);
-    final filteredUsers =
-        adminState.users != null ? _getFilteredUsers(adminState.users!) : [];
+    final allPendingUsers = adminState.users != null ? _getFilteredUsers(adminState.users!) : [];
+    final searchedUsers = allPendingUsers.where((user) {
+      final query = _searchQuery.toLowerCase();
+      return (user.username?.toLowerCase().contains(query) ?? false) ||
+             (user.email?.toLowerCase().contains(query) ?? false) ||
+             (user.phone?.toLowerCase().contains(query) ?? false);
+    }).toList();
     final uniqueRoles =
         adminState.users != null ? _getUniqueRoles(adminState.users!) : ['All'];
 
@@ -124,41 +115,6 @@ class _AdminHomeScreenState extends ConsumerState<AdminHomeScreen> {
                       SizedBox(height: 12),
 
                       // Role filter chips
-                      SizedBox(
-                        height: 40,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: uniqueRoles.length,
-                          itemBuilder: (context, index) {
-                            final role = uniqueRoles[index];
-                            final isSelected = role == _filterRole;
-
-                            return Padding(
-                              padding: EdgeInsets.only(right: 8),
-                              child: FilterChip(
-                                label: Text(role),
-                                selected: isSelected,
-                                onSelected: (selected) {
-                                  setState(() {
-                                    _filterRole = role;
-                                  });
-                                },
-                                backgroundColor: Colors.white,
-                                selectedColor: Colors.blue[100],
-                                checkmarkColor: Colors.blue[800],
-                                labelStyle: TextStyle(
-                                  color: isSelected
-                                      ? Colors.blue[800]
-                                      : Colors.black87,
-                                  fontWeight: isSelected
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -171,18 +127,14 @@ class _AdminHomeScreenState extends ConsumerState<AdminHomeScreen> {
                       _buildStatCard(
                           context,
                           Icons.people,
-                          (adminState.users
-                                  ?.where((user) => user.role?.toUpperCase() != 'ADMIN')
-                                  .length
-                                  .toString() ??
-                              '0'),
-                          'Total Users',
+                          allPendingUsers.length.toString(),
+                          'Total Requests',
                           Colors.blue),
                       SizedBox(width: 12),
                       _buildStatCard(
                           context,
                           Icons.person_outline,
-                          filteredUsers.length.toString(),
+                          searchedUsers.length.toString(),
                           'Filtered',
                           Colors.green),
                     ],
@@ -191,15 +143,15 @@ class _AdminHomeScreenState extends ConsumerState<AdminHomeScreen> {
 
                 // User list
                 Expanded(
-                  child: filteredUsers.isEmpty
+                child: searchedUsers.isEmpty
                       ? _buildEmptyState()
                       : RefreshIndicator(
                           onRefresh: _refreshData,
                           child: ListView.builder(
                             padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
-                            itemCount: filteredUsers.length,
+                            itemCount: searchedUsers.length,
                             itemBuilder: (context, index) {
-                              final user = filteredUsers[index];
+                              final user = searchedUsers[index];
                               return _buildUserCard(user);
                             },
                           ),
@@ -380,6 +332,32 @@ class _AdminHomeScreenState extends ConsumerState<AdminHomeScreen> {
                               fontSize: 14,
                               color: Colors.grey[600],
                             ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () {
+                              // TODO: Implement approve functionality
+                              print('Approved ${user.username}');
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.green,
+                            ),
+                            child: Text('Approve'),
+                          ),
+                          SizedBox(width: 8),
+                          TextButton(
+                            onPressed: () {
+                              print('Rejected ${user.username}');
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.red,
+                            ),
+                            child: Text('Reject'),
                           ),
                         ],
                       ),
@@ -594,7 +572,7 @@ class _AdminHomeScreenState extends ConsumerState<AdminHomeScreen> {
           ),
           SizedBox(height: 8),
           Text(
-            _searchQuery.isNotEmpty || _filterRole != 'All'
+            _searchQuery.isNotEmpty
                 ? 'Try changing your search or filter'
                 : 'Add users to get started',
             style: TextStyle(

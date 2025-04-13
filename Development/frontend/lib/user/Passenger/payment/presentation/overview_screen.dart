@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -8,6 +7,8 @@ import 'package:frontend/user/Passenger/payment/provider/payment_provider.dart';
 import 'package:frontend/user/Passenger/booking%20lists/providers/book_list_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../../core/constants.dart';
 
 class OverviewScreen extends ConsumerStatefulWidget {
@@ -100,7 +101,7 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
 
                             SizedBox(height: 20.h),
 
-                            // **Map View Placeholder - Takes Most of Remaining Space**
+                            // **Map View**
                             Expanded(
                               child: Container(
                                 width: double.infinity,
@@ -108,12 +109,16 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
                                   color: Colors.grey.shade300,
                                   borderRadius: BorderRadius.circular(12.r),
                                 ),
-                                child: Center(
-                                  child: Text(
-                                    "Map View Placeholder",
-                                    style: TextStyle(
-                                        fontSize: 16.sp, color: Colors.black54),
+                                child: FlutterMap(
+                                  options: MapOptions(
+                                    
                                   ),
+                                  children: [
+                                    TileLayer(
+                                      urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                      subdomains: ['a', 'b', 'c'],
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -225,6 +230,7 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
 
   /// **Reusable Row Widget for Booking Details**
   Widget _buildDetailRow(String title, String value) {
+    final displayValue = value.split(',').take(2).join(', ');
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 6.h),
       child: Row(
@@ -237,12 +243,18 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
                 fontWeight: FontWeight.w600,
                 color: Colors.black87),
           ),
-          Text(
-            value,
-            style: TextStyle(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w500,
-                color: Colors.black54),
+          SizedBox(
+            width: 150.w,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Text(
+                displayValue,
+                style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black54),
+              ),
+            ),
           ),
         ],
       ),

@@ -8,6 +8,7 @@ const driverController = require("../controller/driverController.js");
 const bookController = require("../controller/bookController.js");
 const vehicleController = require("../controller/vehicleController.js");
 const paymentController = require("../controller/paymentController.js");
+const categoryController = require("../controller/categoryController.js");
 const chatController = require("../controller/chatController.js");
 const protectRoute = require("../middleware/authMiddleware.js");
 const upload = require("../configs/storage.js");
@@ -57,6 +58,7 @@ router.get("/getBookingByDate", bookController.getBookingByDate);
 // vehicle related
 router.get("/getVehiclesRoute", vehicleController.getRoute);
 router.get("/getActiveBuses", vehicleController.getActiveBuses);
+router.get("/getMyPolylines", vehicleController.getMyPolylines);
 
 // payment related
 router.post("/initialize", paymentController.initialzeKhalti);
@@ -113,3 +115,7 @@ router.get(
   protectRoute,
   chatController.chatGroupOfVehicle
 );
+
+// category related
+router.post("/startTrip", categoryController.startTrip);
+router.post("/endTrip", categoryController.endTrip);

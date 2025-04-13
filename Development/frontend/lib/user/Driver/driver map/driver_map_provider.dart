@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/core/constants.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -12,8 +13,7 @@ final driverLiveLocationProvider =
 });
 
 class DriverLiveLocationService extends ChangeNotifier {
-  final SocketService _socketService =
-      SocketService(baseUrl: "http://localhost:3089");
+  final SocketService _socketService = SocketService(baseUrl: socketBaseUrl);
 
   bool _isSharing = false;
   StreamSubscription<Position>? _positionStream;
@@ -27,6 +27,26 @@ class DriverLiveLocationService extends ChangeNotifier {
   }
 
   void startSharing(int vehicleId) async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      throw Exception("Location services are disabled.");
+    }
+
+    // Step 2: Check and request permissions
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.denied) {
+      throw Exception("Location permissions are denied.");
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      throw Exception("Location permissions are permanently denied.");
+    }
+
+    // Step 3: Connect and start sending location
     connect(vehicleId);
     _socketService.registerDriver(vehicleId);
 
@@ -41,17 +61,17 @@ class DriverLiveLocationService extends ChangeNotifier {
       final lat = position.latitude;
       final lng = position.longitude;
 
-      _currentLocation = LatLng(lat, lng); // ✅ Update the location
+      _currentLocation = LatLng(lat, lng);
       _socketService.sendDriverLocation(vehicleId, lat, lng);
-
-      notifyListeners(); // ✅ Notify UI
+      notifyListeners();
     });
 
     _isSharing = true;
     notifyListeners();
   }
 
-  void stopSharing() async {
+  void stopSharing(int vehicleId) async {
+    _socketService.removeRegisteredDriver(vehicleId);
     await _positionStream?.cancel();
     _positionStream = null;
     _isSharing = false;
@@ -59,7 +79,6 @@ class DriverLiveLocationService extends ChangeNotifier {
   }
 
   void disposeService() {
-    stopSharing();
     _socketService.dispose();
   }
 }

@@ -5,6 +5,7 @@ class SharedPrefsUtil {
   static const String tokenExpiryKey = 'tokenExpiry';
   static const String refreshTokenKey = 'refreshToken';
   static const String roleKey = 'currentRole';
+  static const String tripStatusKey = 'tripStatus';
 
   static Future<void> saveToken(String token, DateTime expiry) async {
     final prefs = await SharedPreferences.getInstance();
@@ -38,6 +39,16 @@ class SharedPrefsUtil {
   static Future<String?> getRole() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(roleKey);
+  }
+
+  static Future<void> saveTripStatus(String status) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(tripStatusKey, status);
+  }
+
+  static Future<String?> getTripStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(tripStatusKey);
   }
 
   static clearAll() {

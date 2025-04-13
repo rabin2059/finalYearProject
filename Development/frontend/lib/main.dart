@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(
             fontFamily: GoogleFonts.roboto().fontFamily,
             useMaterial3: true,
-            scaffoldBackgroundColor: Colors.white, // Set background to white
+            scaffoldBackgroundColor: Colors.white,
           ),
           routerDelegate: goRouter.routerDelegate,
           routeInformationParser: goRouter.routeInformationParser,

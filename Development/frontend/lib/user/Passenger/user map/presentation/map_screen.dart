@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/core/constants.dart';
+import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../../components/AppColors.dart';
 import '../../../../components/CustomButton.dart';
@@ -68,19 +69,15 @@ class _MapScreensState extends ConsumerState<MapScreens> {
   }
 
   void _initSocketService() {
-    _socketService = SocketService(baseUrl: "http://localhost:3089");
+    _socketService = SocketService(baseUrl: socketBaseUrl);
     _socketService?.connect("user-${DateTime.now().millisecondsSinceEpoch}");
-
-    // Set up vehicle location callback
+ 
     _socketService?.onVehicleLocation = (vehicleId, lat, lng) {
       if (!mounted) return;
       setState(() {
         _vehicleLocations[vehicleId] = LatLng(lat, lng);
-        // Only update markers if a vehicle is selected
-        if (_selectedVehicleId != null) {
-          _updateVehicleMarkers();
-        }
       });
+      _updateVehicleMarkers();
     };
     _socketService?.onActiveBusesReceived.addListener(() {
       if (!mounted) return;
@@ -95,7 +92,6 @@ class _MapScreensState extends ConsumerState<MapScreens> {
   }
 
   void _clearMapState() {
-    // Reset map state in provider
     final mapNotifier = ref.read(mapProvider.notifier);
     mapNotifier.clearRoute();
 
@@ -123,40 +119,6 @@ class _MapScreensState extends ConsumerState<MapScreens> {
         _currentZoom = 13.0);
   }
 
-  Future<void> searchVehicles() async {
-    if (_startCoordinates == null || _endCoordinates == null) return;
-
-    try {
-      final url = Uri.parse(
-          "$apiBaseUrl/getVehiclesRoute?startLat=${_startCoordinates!.latitude}&startLng=${_startCoordinates!.longitude}&endLat=${_endCoordinates!.latitude}&endLng=${_endCoordinates!.longitude}");
-      final response = await http.get(url);
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = json.decode(response.body);
-        final allVehicles =
-            List<Map<String, dynamic>>.from(data['vehicles'] ?? []);
-
-        _vehicles = allVehicles;
-
-        _filteredVehicles = allVehicles.where((vehicle) {
-          final driverId = vehicle['driver']?['id'];
-          return _activeSocketUsers.contains('driver-$driverId');
-        }).toList();
-
-        _selectedVehicleId = null;
-        _vehicleMarkers.clear();
-
-        setState(() {
-          _showVehicleList = true;
-          _vehiclesLoaded = true;
-        });
-      }
-    } catch (e) {
-      print('Error fetching vehicles: $e');
-    }
-    return;
-  }
-
   void _updateVehicleMarkers() {
     _vehicleMarkers.clear();
 
@@ -182,16 +144,18 @@ class _MapScreensState extends ConsumerState<MapScreens> {
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () {
+              onTap: () async {
+                final details = await _calculateDistanceAndTime(location);
                 setState(() {
                   _selectedDriver = {
                     'name': vehicle['driver']['name'] ?? 'Unknown Driver',
                     'vehicleInfo':
                         '${vehicle['vehicleModel']} - ${vehicle['vehicleType']} (ID: $_selectedVehicleId)',
-                    'rating': 4.5, // Placeholder
-                    'distance': 'On route',
+                    'rating': 4.5,
+                  'distance': details['distance'] ?? 'Unknown',
+                    'duration': details['duration'] ?? '',
                   };
-                  _showDriverInfo = true;
+                  _showDriverInfo = !_showDriverInfo;
                 });
               },
               child: Container(
@@ -220,29 +184,45 @@ class _MapScreensState extends ConsumerState<MapScreens> {
   }
 
   void _selectVehicle(dynamic vehicle) {
-    final isLive =
-        vehicle['activeBuses'] != null && vehicle['activeBuses'].isNotEmpty;
-    if (!isLive) return; // Don't select inactive vehicles
-
     final vehicleId = vehicle['vehicleId'].toString();
-    final location = _vehicleLocations[vehicleId];
 
-    if (location != null) {
+    if (vehicle['hasActiveBuses'] == true &&
+        vehicle['activeBuses'] != null &&
+        vehicle['activeBuses'].isNotEmpty) {
+      final busData = vehicle['activeBuses'][0];
+      final location = LatLng(
+        busData['location']['lat'],
+        busData['location']['lng'],
+      );
+
       setState(() {
         _selectedVehicleId = vehicleId;
+        _vehicleLocations[vehicleId] = location;
         _selectedDriver = {
           'name': vehicle['driver']['name'] ?? 'Unknown Driver',
           'vehicleInfo':
               '${vehicle['vehicleModel']} - ${vehicle['vehicleType']} (ID: $vehicleId)',
-          'rating': 4.5, // Placeholder
+          'rating': 4.5,
           'distance': 'On route',
         };
-        _showDriverInfo = true;
+        _showVehicleList = false; // Close vehicle list when selected
+        // _showDriverInfo = true; // Removed to prevent immediate driver info display
       });
+      
+      final userLocation = ref.read(mapProvider).userLocation;
+      if (userLocation != null) {
+      final bounds = LatLngBounds(ref.read(mapProvider).userLocation!, location);
+        bounds.extend(userLocation);
+        bounds.extend(location);
+        final center = LatLng(
+          (bounds.north + bounds.south) / 2,
+          (bounds.east + bounds.west) / 2,
+        );
+        final zoom = _getZoomForBounds(bounds);
+        _controller.move(center, zoom);
+      }
 
       _updateVehicleMarkers();
-
-      // Center the map on the selected vehicle
       _controller.move(location, 15);
     }
   }
@@ -487,8 +467,7 @@ class _MapScreensState extends ConsumerState<MapScreens> {
                                 Divider(height: 1),
                             itemBuilder: (context, index) {
                               final vehicle = _filteredVehicles[index];
-                              final isLive = vehicle['activeBuses'] != null &&
-                                  vehicle['activeBuses'].isNotEmpty;
+                              final isLive = vehicle['hasActiveBuses'] == true;
                               final vehicleId = vehicle['vehicleId'].toString();
                               final isSelected =
                                   vehicleId == _selectedVehicleId;
@@ -740,24 +719,43 @@ class _MapScreensState extends ConsumerState<MapScreens> {
     if (event is MapEventMove) {
       setState(() {
         _currentZoom = _controller.camera.zoom;
-        _showMarker =
-            _currentZoom >= 12; // Show markers when zoom level is 12 or higher
+        _showMarker = _currentZoom >= 12; // Show markers when zoom level is 12 or higher
       });
     }
   }
 
-  Future<void> _handleFindNowPress(MapNotifier mapNotifier) async {
-    _socketService?.requestActiveBuses(); 
-    await Future.delayed(
-        Duration(milliseconds: 500)); // Wait briefly for updates
+  Future<Map<String, String>> _calculateDistanceAndTime(LatLng driverLocation) async {
+    final userLocation = ref.read(mapProvider).userLocation;
+    if (userLocation == null) return {'distance': 'Unknown', 'duration': ''};
 
-    final activeDriverIds =
-        _activeSocketUsers.map((id) => id.replaceFirst('driver-', '')).toSet();
+    final distance = Distance().as(LengthUnit.Kilometer, userLocation, driverLocation);
+    String distanceStr = "${distance.toStringAsFixed(1)} km";
+
+    // Approximate time assuming 30km/h average speed
+    final timeInMinutes = (distance / 30) * 60;
+    String timeStr = "${timeInMinutes.round()} mins";
+
+    if (userLocation.latitude > driverLocation.latitude ||
+        userLocation.longitude > driverLocation.longitude) {
+      return {'distance': distanceStr, 'duration': timeStr};
+    } else {
+      return {'distance': distanceStr, 'duration': ''}; // ahead
+    }
+  }
+
+  Future<void> _handleFindNowPress(MapNotifier mapNotifier) async {
+    final startCoordinates =
+        await mapNotifier.getCoordinatesFromAddress(_startController.text);
+    final endCoordinates =
+        await mapNotifier.getCoordinatesFromAddress(_endController.text);
+    if (startCoordinates == null || endCoordinates == null) return;
 
     try {
-      final url = Uri.parse("$apiBaseUrl/getAllVehicles");
-      final response = await http.get(url);
+      final url = Uri.parse(
+          "$apiBaseUrl/getVehiclesRoute?startLat=${startCoordinates.latitude}&startLng=${startCoordinates.longitude}&endLat=${endCoordinates.latitude}&endLng=${endCoordinates.longitude}");
 
+      final response = await http.get(url);
+      _socketService?.requestActiveBuses();
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
         final allVehicles =
@@ -765,11 +763,8 @@ class _MapScreensState extends ConsumerState<MapScreens> {
 
         _vehicles = allVehicles;
 
-        _filteredVehicles = allVehicles.where((vehicle) {
-          final driverId = vehicle['driver']?['id'];
-          if (driverId == null) return false;
-          return activeDriverIds.contains(driverId.toString());
-        }).toList();
+        _filteredVehicles =
+            allVehicles; // show all vehicles, active and inactive
 
         _vehicleMarkers.clear();
 
@@ -870,7 +865,9 @@ class _MapScreensState extends ConsumerState<MapScreens> {
                                       color: Colors.grey, size: 16.r),
                                   SizedBox(width: 4.w),
                                   Text(
-                                    _selectedDriver!['distance'] ?? '',
+                                    _selectedDriver!['duration'] != null && _selectedDriver!['duration'].toString().isNotEmpty
+                                        ? '${_selectedDriver!['distance']} • ETA: ${_selectedDriver!['duration']}'
+                                        : '${_selectedDriver!['distance']}',
                                     style: TextStyle(fontSize: 14.sp),
                                   ),
                                 ],
@@ -885,7 +882,9 @@ class _MapScreensState extends ConsumerState<MapScreens> {
                       text: "Book Now",
                       color: AppColors.primary,
                       onPressed: () {
-                        // Add booking functionality here
+                        context.pushNamed('/book', pathParameters: {
+                          'id': _selectedVehicleId ?? '',
+                        });
                       },
                     ),
                   ],
