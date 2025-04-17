@@ -3568,3 +3568,129 @@ Unknown field `ChatGroup` for include statement on model `User`. Available optio
 2025-04-13 16:55:57 [info]: New client connected: krnpTFvVYV15mUHjAAAD (transport: websocket)
 2025-04-13 16:55:57 [info]: User 2 logged in via socket krnpTFvVYV15mUHjAAAD (transport: websocket)
 2025-04-13 17:33:24 [info]: Server running on http://localhost:3089
+2025-04-14 15:38:54 [info]: Server running on http://localhost:3089
+2025-04-17 08:09:40 [info]: Server running on http://localhost:3089
+2025-04-17 08:10:11 [info]: Server running on http://localhost:3089
+2025-04-17 08:10:17 [info]: Server running on http://localhost:3089
+2025-04-17 08:10:19 [info]: Server running on http://localhost:3089
+2025-04-17 08:10:21 [info]: Server running on http://localhost:3089
+2025-04-17 08:10:26 [info]: Server running on http://localhost:3089
+2025-04-17 08:10:37 [info]: Server running on http://localhost:3089
+2025-04-17 08:10:45 [info]: Server running on http://localhost:3089
+2025-04-17 08:21:51 [info]: Server running on http://localhost:3089
+2025-04-17 08:24:00 [info]: Server running on http://localhost:3089
+2025-04-17 08:24:02 [info]: Server running on http://localhost:3089
+2025-04-17 08:24:39 [info]: Server running on http://localhost:3089
+2025-04-17 08:25:47 [info]: Server running on http://localhost:3089
+2025-04-17 08:26:11 [info]: Server running on http://localhost:3089
+2025-04-17 08:49:29 [info]: New client connected: qRyXuRBexawWsljxAAAB (transport: websocket)
+2025-04-17 08:49:29 [info]: User 2 logged in via socket qRyXuRBexawWsljxAAAB (transport: websocket)
+2025-04-17 08:51:28 [info]: Server running on http://localhost:3089
+2025-04-17 08:51:32 [info]: New client connected: bgz9PuO-31lPgd_tAAAB (transport: websocket)
+2025-04-17 08:51:33 [info]: User 2 logged in via socket bgz9PuO-31lPgd_tAAAB (transport: websocket)
+2025-04-17 08:51:46 [info]: Server running on http://localhost:3089
+2025-04-17 08:51:51 [info]: New client connected: MvfLJHbwmejjvYFrAAAB (transport: websocket)
+2025-04-17 08:51:51 [info]: User 2 logged in via socket MvfLJHbwmejjvYFrAAAB (transport: websocket)
+2025-04-17 08:52:01 [info]: Server running on http://localhost:3089
+2025-04-17 08:52:03 [info]: New client connected: 7aroYb1ySuxA5NxNAAAB (transport: websocket)
+2025-04-17 08:52:03 [info]: User 2 logged in via socket 7aroYb1ySuxA5NxNAAAB (transport: websocket)
+2025-04-17 08:52:37 [info]: Client disconnected: 7aroYb1ySuxA5NxNAAAB, reason: transport close
+2025-04-17 08:53:13 [info]: New client connected: m7wdwmQb4oo_vVKYAAAD (transport: websocket)
+2025-04-17 08:53:13 [info]: User 2 logged in via socket m7wdwmQb4oo_vVKYAAAD (transport: websocket)
+2025-04-17 08:53:41 [info]: Server running on http://localhost:3089
+2025-04-17 08:53:57 [info]: New client connected: fXLYkjsH6XVDImzEAAAB (transport: websocket)
+2025-04-17 08:53:57 [info]: User 2 logged in via socket fXLYkjsH6XVDImzEAAAB (transport: websocket)
+2025-04-17 08:56:44 [info]: Client disconnected: fXLYkjsH6XVDImzEAAAB, reason: transport close
+2025-04-17 08:57:09 [info]: New client connected: QhqrK5ymXxpouCPyAAAD (transport: websocket)
+2025-04-17 08:57:09 [info]: User 2 logged in via socket QhqrK5ymXxpouCPyAAAD (transport: websocket)
+2025-04-17 09:01:03 [info]: Client disconnected: QhqrK5ymXxpouCPyAAAD, reason: transport close
+2025-04-17 09:06:51 [info]: New client connected: PEIKCXVE7WA_U5NYAAAF (transport: websocket)
+2025-04-17 09:06:51 [info]: User 2 logged in via socket PEIKCXVE7WA_U5NYAAAF (transport: websocket)
+2025-04-17 09:12:26 [info]: Server running on http://localhost:3089
+2025-04-17 09:12:27 [info]: New client connected: W292i3AtG3OA66_EAAAB (transport: websocket)
+2025-04-17 09:12:28 [info]: User 2 logged in via socket W292i3AtG3OA66_EAAAB (transport: websocket)
+2025-04-17 09:17:07 [info]: Server running on http://localhost:3089
+2025-04-17 09:17:10 [info]: New client connected: s2PgpdvJUMsbqs5LAAAB (transport: websocket)
+2025-04-17 09:17:10 [info]: User 2 logged in via socket s2PgpdvJUMsbqs5LAAAB (transport: websocket)
+2025-04-17 09:17:12 [info]: Server running on http://localhost:3089
+2025-04-17 09:17:14 [info]: New client connected: k578mttvMg0c3Tk-AAAB (transport: websocket)
+2025-04-17 09:17:14 [info]: User 2 logged in via socket k578mttvMg0c3Tk-AAAB (transport: websocket)
+2025-04-17 09:17:26 [info]: Server running on http://localhost:3089
+2025-04-17 09:17:27 [info]: New client connected: 31aDTHFxsOz0YNn6AAAB (transport: websocket)
+2025-04-17 09:17:28 [info]: Server running on http://localhost:3089
+2025-04-17 09:17:35 [info]: Server running on http://localhost:3089
+2025-04-17 09:17:36 [info]: Server running on http://localhost:3089
+2025-04-17 09:17:37 [info]: New client connected: 1PEnbjR0CLo3uQ3kAAAB (transport: websocket)
+2025-04-17 09:17:42 [info]: Server running on http://localhost:3089
+2025-04-17 09:17:46 [info]: New client connected: qMGRdlpjGgszqAIuAAAB (transport: websocket)
+2025-04-17 09:17:46 [info]: User 2 logged in via socket qMGRdlpjGgszqAIuAAAB (transport: websocket)
+2025-04-17 09:21:23 [info]: Server running on http://localhost:3089
+2025-04-17 09:21:24 [info]: New client connected: 8XZgQPj01O8sghL4AAAB (transport: websocket)
+2025-04-17 09:21:24 [info]: User 2 logged in via socket 8XZgQPj01O8sghL4AAAB (transport: websocket)
+2025-04-17 09:23:02 [info]: New client connected: iOk7mcuWKn5A8dIeAAAD (transport: websocket)
+2025-04-17 09:23:03 [info]: User 2 logged in via socket iOk7mcuWKn5A8dIeAAAD (transport: websocket)
+2025-04-17 09:23:04 [info]: Client disconnected: 8XZgQPj01O8sghL4AAAB, reason: transport close
+2025-04-17 09:35:54 [info]: Sending active buses: 
+2025-04-17 09:36:04 [info]: Client disconnected: iOk7mcuWKn5A8dIeAAAD, reason: client namespace disconnect
+2025-04-17 09:36:05 [info]: New client connected: ybZW8VA-VqGP_aG6AAAF (transport: websocket)
+2025-04-17 09:36:05 [info]: User user-1744861864399 logged in via socket ybZW8VA-VqGP_aG6AAAF (transport: websocket)
+2025-04-17 09:36:13 [info]: Client disconnected: ybZW8VA-VqGP_aG6AAAF, reason: client namespace disconnect
+2025-04-17 09:42:37 [info]: Server running on http://localhost:3089
+2025-04-17 09:42:39 [info]: Server running on http://localhost:3089
+2025-04-17 09:42:43 [info]: Server running on http://localhost:3089
+2025-04-17 09:42:45 [info]: Server running on http://localhost:3089
+2025-04-17 09:42:52 [info]: Server running on http://localhost:3089
+2025-04-17 09:42:57 [info]: Server running on http://localhost:3089
+2025-04-17 09:43:02 [info]: Server running on http://localhost:3089
+2025-04-17 09:43:02 [info]: Server running on http://localhost:3089
+2025-04-17 10:07:57 [info]: New client connected: wtP6VbhrH06boPcvAAAB (transport: websocket)
+2025-04-17 10:07:58 [info]: User 1 logged in via socket wtP6VbhrH06boPcvAAAB (transport: websocket)
+2025-04-17 10:08:41 [info]: Client disconnected: wtP6VbhrH06boPcvAAAB, reason: transport close
+2025-04-17 10:17:09 [info]: New client connected: -i5Z0DBKl7cqYPEHAAAD (transport: websocket)
+2025-04-17 10:17:09 [info]: User 1 logged in via socket -i5Z0DBKl7cqYPEHAAAD (transport: websocket)
+2025-04-17 10:24:26 [info]: User 1 logged out
+2025-04-17 10:24:26 [info]: Client disconnected: -i5Z0DBKl7cqYPEHAAAD, reason: client namespace disconnect
+2025-04-17 10:27:19 [info]: New client connected: GHSSuHqevdvlqOFrAAAF (transport: websocket)
+2025-04-17 10:27:19 [info]: User 1 logged in via socket GHSSuHqevdvlqOFrAAAF (transport: websocket)
+2025-04-17 10:34:24 [info]: Server running on http://localhost:3089
+2025-04-17 10:34:25 [info]: New client connected: h-BCs8ujAhL3fYhpAAAB (transport: websocket)
+2025-04-17 10:34:25 [info]: User 1 logged in via socket h-BCs8ujAhL3fYhpAAAB (transport: websocket)
+2025-04-17 10:34:28 [info]: Server running on http://localhost:3089
+2025-04-17 10:34:29 [info]: New client connected: 3FxHWukh4eqijkqGAAAB (transport: websocket)
+2025-04-17 10:34:29 [info]: User 1 logged in via socket 3FxHWukh4eqijkqGAAAB (transport: websocket)
+2025-04-17 10:34:33 [info]: Server running on http://localhost:3089
+2025-04-17 10:34:34 [info]: New client connected: dARTlNRXGIJsCE4tAAAB (transport: websocket)
+2025-04-17 10:34:35 [info]: User 1 logged in via socket dARTlNRXGIJsCE4tAAAB (transport: websocket)
+2025-04-17 10:34:40 [info]: Server running on http://localhost:3089
+2025-04-17 10:34:42 [info]: New client connected: 0C_tHf8P17Zsjw3oAAAB (transport: websocket)
+2025-04-17 10:34:42 [info]: User 1 logged in via socket 0C_tHf8P17Zsjw3oAAAB (transport: websocket)
+2025-04-17 10:34:52 [info]: Server running on http://localhost:3089
+2025-04-17 10:34:53 [info]: New client connected: yZuCmSStqaYfxUKKAAAB (transport: websocket)
+2025-04-17 10:34:53 [info]: User 1 logged in via socket yZuCmSStqaYfxUKKAAAB (transport: websocket)
+2025-04-17 10:35:14 [info]: Server running on http://localhost:3089
+2025-04-17 10:35:15 [info]: New client connected: Vd-R134j6C8VQsGmAAAB (transport: websocket)
+2025-04-17 10:35:15 [info]: User 1 logged in via socket Vd-R134j6C8VQsGmAAAB (transport: websocket)
+2025-04-17 10:35:21 [info]: Server running on http://localhost:3089
+2025-04-17 10:35:22 [info]: New client connected: ie_tQX8_X0W4t7R-AAAB (transport: websocket)
+2025-04-17 10:35:22 [info]: User 1 logged in via socket ie_tQX8_X0W4t7R-AAAB (transport: websocket)
+2025-04-17 10:35:27 [info]: Server running on http://localhost:3089
+2025-04-17 10:35:28 [info]: Server running on http://localhost:3089
+2025-04-17 10:35:28 [info]: New client connected: tabaeI4IDhxbHnOZAAAB (transport: websocket)
+2025-04-17 10:35:29 [info]: User 1 logged in via socket tabaeI4IDhxbHnOZAAAB (transport: websocket)
+2025-04-17 10:35:34 [info]: Server running on http://localhost:3089
+2025-04-17 10:35:37 [info]: New client connected: iQHd6jjsOqIOeuXMAAAB (transport: websocket)
+2025-04-17 10:35:37 [info]: User 1 logged in via socket iQHd6jjsOqIOeuXMAAAB (transport: websocket)
+2025-04-17 10:46:23 [info]: Client disconnected: iQHd6jjsOqIOeuXMAAAB, reason: transport close
+2025-04-17 10:52:09 [info]: New client connected: TK4ngviwIBUA4usaAAAD (transport: websocket)
+2025-04-17 10:52:09 [info]: User 1 logged in via socket TK4ngviwIBUA4usaAAAD (transport: websocket)
+2025-04-17 11:00:04 [info]: Client disconnected: TK4ngviwIBUA4usaAAAD, reason: transport close
+2025-04-17 11:05:08 [info]: New client connected: _GAwxFtHTzF4z42zAAAF (transport: websocket)
+2025-04-17 11:05:09 [info]: User 1 logged in via socket _GAwxFtHTzF4z42zAAAF (transport: websocket)
+2025-04-17 11:08:39 [info]: Client disconnected: _GAwxFtHTzF4z42zAAAF, reason: client namespace disconnect
+2025-04-17 11:08:53 [info]: New client connected: qIIGjfDYwbcLdJ7YAAAH (transport: websocket)
+2025-04-17 11:08:53 [info]: User 1 logged in via socket qIIGjfDYwbcLdJ7YAAAH (transport: websocket)
+2025-04-17 11:19:43 [info]: Client disconnected: qIIGjfDYwbcLdJ7YAAAH, reason: transport close
+2025-04-17 11:29:30 [info]: New client connected: c1fi4XpaWF06cVstAAAJ (transport: websocket)
+2025-04-17 11:29:30 [info]: User 1 logged in via socket c1fi4XpaWF06cVstAAAJ (transport: websocket)
+2025-04-17 11:53:50 [info]: Client disconnected: c1fi4XpaWF06cVstAAAJ, reason: transport close
+2025-04-17 12:24:39 [info]: Server running on http://localhost:3089

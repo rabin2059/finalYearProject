@@ -71,4 +71,48 @@ const getUser = async (req, res) => {
   }
 };
 
-module.exports = { updateUser, getUser };
+const passengerHomePage = async (req, res) => {
+  try {
+    const userId = parseInt(req.query.userId, 10);
+    if (!userId) {
+      return res.status(400).json({ message: 'userId query parameter is required' });
+    }
+
+    // 1. Fetch basic user info
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        images: true,    // matches your HomeScreen’s userImage
+      },
+    });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // 2. Count total bookings (used for “Recent Trips” card)
+    const recentTrips = await prisma.booking.count({
+      where: { userId },
+    });
+
+    // 3. Sum of all fares as total expenditure
+    const expenditureAgg = await prisma.booking.aggregate({
+      _sum: { totalFare: true },
+      where: { userId },
+    });
+    const totalExpend = expenditureAgg._sum.totalFare ?? 0;
+
+    return res.status(200).json({
+      user,
+      recentTrips,
+      totalExpend,
+    });
+  } catch (error) {
+    console.error('Error in passengerHomePage:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+module.exports = { updateUser, getUser, passengerHomePage };

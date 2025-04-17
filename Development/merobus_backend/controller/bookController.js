@@ -63,25 +63,24 @@ const booking = async (req, res) => {
 
       const user = await tx.user.findUnique({ where: { id: userId } });
 
-      if (user?.fcmToken) {
-        await admin.messaging().send({
-          token: user.fcmToken,
-          notification: {
-            title: "Booking Confirmed",
-            body: `Your seat(s) ${seatNumbers.join(", ")} on vehicle ${vehicleId} are confirmed.`,
-          },
-        });
-
-        await tx.notification.create({
-          data: {
-            userId,
-            title: "Booking Confirmed",
-            body: `Your seat(s) ${seatNumbers.join(", ")} on vehicle ${vehicleId} are confirmed.`,
-          },
-        });
-      }
-
       return { newBooking, bookedSeats: seatNumbers };
+    });
+    // After booking transaction, send push notification and save it
+    const notificationTitle = "Booking Confirmed";
+    const notificationBody = `Your seat(s) ${result.bookedSeats.join(", ")} on vehicle ${vehicleId} are confirmed.`;
+
+    const bookingUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { fcmToken: true },
+    });
+    if (bookingUser?.fcmToken) {
+      await admin.messaging().send({
+        token: bookingUser.fcmToken,
+        notification: { title: notificationTitle, body: notificationBody },
+      });
+    }
+    await prisma.notification.create({
+      data: { userId, title: notificationTitle, body: notificationBody },
     });
     console.log("yes booked", result);
     return res.status(201).json({

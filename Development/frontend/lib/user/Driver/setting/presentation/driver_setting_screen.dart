@@ -5,19 +5,19 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/core/role.dart';
 import 'package:frontend/user/Passenger/profile/presentation/profile_screen.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../../../components/AppColors.dart';
 import '../../../../components/CustomButton.dart';
 import '../../../../core/constants.dart';
 import '../../../Passenger/setting/providers/setting_provider.dart';
 import '../../../authentication/login/presentation/login_screen.dart';
 import '../../../authentication/login/providers/auth_provider.dart';
+import '../../vehicle details/provider/vehicle_details_provider.dart';
 
 class DriverSettingScreen extends ConsumerStatefulWidget {
   const DriverSettingScreen({super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() =>
+  ConsumerState<DriverSettingScreen> createState() =>
       _DriverSettingScreenState();
 }
 
@@ -29,6 +29,16 @@ class _DriverSettingScreenState extends ConsumerState<DriverSettingScreen> {
     super.initState();
     _initializeUserRole();
     _fetchUserData();
+    final userId = ref.read(authProvider).userId;
+    if (userId != null) {
+      ref.read(settingProvider.notifier).fetchUsers(userId).then((_) {
+        final settingState = ref.read(settingProvider);
+        if (settingState.users.isNotEmpty) {
+          final vehicleId = settingState.users.first.vehicleId;
+          ref.read(vehicleProvider.notifier).loadVehicle(vehicleId);
+        }
+      });
+    }
   }
 
   void _initializeUserRole() {
@@ -41,6 +51,9 @@ class _DriverSettingScreenState extends ConsumerState<DriverSettingScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final settingState = ref.watch(settingProvider);
+    final vehicleState = ref.watch(vehicleProvider);
+    final hasVehicle = vehicleState.vehicle != null;
+    print(hasVehicle);
 
     if (!authState.isLoggedIn) {
       return const LoginScreen();
@@ -51,7 +64,7 @@ class _DriverSettingScreenState extends ConsumerState<DriverSettingScreen> {
         child: Column(
           children: [
             _buildProfileHeader(settingState),
-            _buildMenuOptions(),
+            _buildMenuOptions(hasVehicle),
           ],
         ),
       ),
@@ -181,7 +194,7 @@ class _DriverSettingScreenState extends ConsumerState<DriverSettingScreen> {
   }
 
   /// **Builds the settings menu**
-  Widget _buildMenuOptions() {
+  Widget _buildMenuOptions(bool hasVehicle) {
     double half = MediaQuery.of(context).size.width / 2.2; // Half width
     return Padding(
       padding: EdgeInsets.all(16.h),
@@ -198,7 +211,9 @@ class _DriverSettingScreenState extends ConsumerState<DriverSettingScreen> {
             child: Column(
               children: [
                 SizedBox(height: 16.h),
-                _menuButton(CupertinoIcons.bus, 'Add Vehicle', '/addVehicle'),
+                hasVehicle
+                  ? _menuButton(CupertinoIcons.bus, 'View Vehicle', '/viewVehicle')
+                  : _menuButton(CupertinoIcons.bus, 'Add Vehicle', '/addVehicle'),
                 SizedBox(height: 16.h),
                 _menuButton(CupertinoIcons.person_3, 'About Us', '/addRoute'),
                 SizedBox(height: 16.h),

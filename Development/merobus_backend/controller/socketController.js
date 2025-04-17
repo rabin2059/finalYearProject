@@ -282,7 +282,7 @@ io.on("connection", (socket) => {
             if (recipient?.fcmToken) {
               await admin.messaging().send({
                 token: recipient.fcmToken,
-                data: {
+                notification: {
                   title: "New Message",
                   body: `${senderUser?.username || "Someone"}: ${text}`,
                 },

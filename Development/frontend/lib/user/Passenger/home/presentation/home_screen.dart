@@ -1,13 +1,18 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/components/AppColors.dart';
 import 'package:frontend/components/CustomButton.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:frontend/core/constants.dart';
 import 'package:frontend/user/Passenger/user%20map/presentation/map_screen.dart';
+import '../provider/passenger_provider.dart';
 import 'package:frontend/user/authentication/login/providers/auth_provider.dart';
 import 'package:go_router/go_router.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import '../../setting/providers/setting_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -18,10 +23,18 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+
   @override
   void initState() {
     super.initState();
-    _fetchUserData(); // Fetch user data on init
+    _fetchUserData().then((_) {
+      _saveFcmTokenToServer();
+      final authState = ref.read(authProvider);
+      final userId = authState.userId;
+      if (userId != null) {
+        ref.read(passengerProvider.notifier).fetchHomeData(userId);
+      }
+    });
   }
 
   Future<void> _fetchUserData() async {
@@ -42,26 +55,55 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
+  /// Retrieve stored FCM token and send it to backend
+  Future<void> _saveFcmTokenToServer() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('fcmToken');
+      final authState = ref.read(authProvider);
+      final userId = authState.userId;
+
+      if (token != null && userId != null) {
+        final response = await http.put(
+          Uri.parse('$apiBaseUrl/saveToken'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'userId': userId.toString(),
+            'fcmToken': token,
+          }),
+        );
+        if (response.statusCode == 200) {
+          debugPrint('FCM token saved successfully');
+        } else {
+          debugPrint('Failed to save FCM token: ${response.body}');
+        }
+      } else {
+        debugPrint('No token or userId to save');
+      }
+    } catch (e) {
+      debugPrint('Error saving FCM token: \$e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
-    final settingState = ref.watch(settingProvider);
-
-    // Fetch the first user data (if available)
-    final hasUser = settingState.users.isNotEmpty;
-    final user = hasUser ? settingState.users[0] : null;
-    final userName = hasUser ? user!.username : "Guest";
-    final userEmail = hasUser ? user!.email ?? "No Email" : "guest@example.com";
-    final userImage = hasUser && user!.images != null
-        ? user.images!
-        : "assets/profile.png"; // Default image if none available
+    final passengerState = ref.watch(passengerProvider);
+    final homeData = passengerState.homeData;
+    final hasData = homeData != null;
+    final userName = hasData ? homeData!.user!.username : "Guest";
+    final userEmail = hasData ? homeData.user!.email ?? "No Email" : "guest@example.com";
+    final userImage = hasData && homeData.user!.images != null
+        ? homeData.user!.images!
+        : "assets/profile.png";
+    final recentTripsValue = hasData ? homeData.recentTrips.toString() : "0";
+    final totalExpendValue = hasData ? "₹${homeData.totalExpend}" : "₹0";
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildHeader(userName!, userEmail, userImage), // User Profile Section
+            _buildHeader(userName!, userEmail, userImage, recentTripsValue, totalExpendValue), // User Profile Section
             _buildPopularDestinations(), // Popular Destinations Carousel
             _buildQuickActions(context), // Quick Actions Grid
             _buildFeaturedServices(context), // Featured Services
@@ -102,7 +144,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   /// Premium header with gradient and user info
-  Widget _buildHeader(String name, String email, String imageUrl) {
+  Widget _buildHeader(String name, String email, String imageUrl, String recentTripsValue, String totalExpendValue) {
     return Container(
       padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
       decoration: BoxDecoration(
@@ -151,7 +193,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: CircleAvatar(
                     radius: 40.r,
                     backgroundImage: AssetImage(imageUrl),
-                    onBackgroundImageError: (_, __) => const Icon(Icons.person, size: 40),
+                    onBackgroundImageError: (_, __) =>
+                        const Icon(Icons.person, size: 40),
                     backgroundColor: Colors.white.withOpacity(0.2),
                   ),
                 ),
@@ -198,7 +241,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ],
             ),
           ),
-          
+
           // Quick status cards
           Padding(
             padding: EdgeInsets.only(left: 20.w, right: 20.w, bottom: 20.h),
@@ -208,7 +251,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: _buildStatusCard(
                     icon: Icons.history,
                     title: "Recent Trips",
-                    value: "5",
+                  value: recentTripsValue,
                   ),
                 ),
                 SizedBox(width: 16.w),
@@ -216,7 +259,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: _buildStatusCard(
                     icon: Icons.wallet,
                     title: "Wallet Balance",
-                    value: "₹1,200",
+                  value: totalExpendValue,
                   ),
                 ),
               ],
@@ -226,7 +269,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
-  
+
   /// Build status card
   Widget _buildStatusCard({
     required IconData icon,
@@ -289,7 +332,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   /// Build popular destinations carousel
   Widget _buildPopularDestinations() {
     final destinations = [
-      {'name': 'Kathmandu', 'image': 'assets/kathmandu.jpg', 'buses': '45 buses'},
+      {
+        'name': 'Kathmandu',
+        'image': 'assets/kathmandu.jpg',
+        'buses': '45 buses'
+      },
       {'name': 'Pokhara', 'image': 'assets/pokhara.jpg', 'buses': '32 buses'},
       {'name': 'Chitwan', 'image': 'assets/chitwan.jpg', 'buses': '18 buses'},
     ];
@@ -355,7 +402,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           height: 140.h,
                           width: 200.w,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
                             height: 140.h,
                             width: 200.w,
                             color: Colors.grey.shade300,
@@ -432,10 +480,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   /// Quick action buttons in grid layout
   Widget _buildQuickActions(BuildContext context) {
     final actions = [
-      {'title': 'Book Ticket', 'icon': Icons.confirmation_number_outlined, 'color': Colors.blue},
-      {'title': 'Track Bus', 'icon': Icons.location_on_outlined, 'color': Colors.red},
-      {'title': 'My Tickets', 'icon': Icons.receipt_long_outlined, 'color': Colors.green},
-      {'title': 'Offers', 'icon': Icons.local_offer_outlined, 'color': Colors.orange},
+      {
+        'title': 'Book Ticket',
+        'icon': Icons.confirmation_number_outlined,
+        'color': Colors.blue
+      },
+      {
+        'title': 'Track Bus',
+        'icon': Icons.location_on_outlined,
+        'color': Colors.red
+      },
+      {
+        'title': 'My Tickets',
+        'icon': Icons.receipt_long_outlined,
+        'color': Colors.green
+      },
+      {
+        'title': 'Offers',
+        'icon': Icons.local_offer_outlined,
+        'color': Colors.orange
+      },
     ];
 
     return Padding(
@@ -511,7 +575,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
-  
+
   /// Featured services section
   Widget _buildFeaturedServices(BuildContext context) {
     return Padding(
@@ -528,7 +592,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ),
           SizedBox(height: 16.h),
-          
+
           // Service Request
           _buildServiceCard(
             title: "Request a Ride",
@@ -539,9 +603,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               // Implement ride request feature
             },
           ),
-          
+
           SizedBox(height: 16.h),
-          
+
           // View ride history
           _buildServiceCard(
             title: "View Ride History",
@@ -552,9 +616,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               // Implement ride history feature
             },
           ),
-          
+
           SizedBox(height: 16.h),
-          
+
           // Edit Profile
           _buildServiceCard(
             title: "Edit Profile",
@@ -569,7 +633,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
-  
+
   /// Service card widget
   Widget _buildServiceCard({
     required String title,

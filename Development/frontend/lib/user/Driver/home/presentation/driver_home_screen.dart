@@ -5,154 +5,98 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/core/constants.dart';
-import 'package:frontend/user/Driver/driver%20map/driver_map_screen.dart';
-import 'package:frontend/user/Passenger/bus%20details/providers/bus_details_provider.dart';
+import 'package:frontend/user/Driver/driver map/driver_map_screen.dart';
+import 'package:frontend/user/Passenger/bus details/providers/bus_details_provider.dart';
 import 'package:frontend/user/authentication/login/providers/auth_provider.dart';
 import 'package:http/http.dart' as http;
 import '../../../../components/AppColors.dart';
 import '../../../../components/CustomButton.dart';
 import '../../../../data/services/map_service.dart';
 import '../../../Passenger/setting/providers/setting_provider.dart';
+import '../../vehicle details/provider/vehicle_details_provider.dart';
+import '../provider/driver_provider.dart';
 
 class DriverHomeScreen extends ConsumerStatefulWidget {
   const DriverHomeScreen({super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() =>
+  ConsumerState<DriverHomeScreen> createState() =>
       _DriverHomeScreenState();
 }
 
 class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
   String? startPoint;
   String? endPoint;
-  int? vehicleId;
-  bool isLoading = true;
-  Map<String, dynamic> driverStats = {
-    'totalTrips': 0,
-    'totalEarnings': 0,
-    'rating': 0.0,
-    'status': 'Offline'
-  };
 
   @override
   void initState() {
     super.initState();
-    _initializeDriverData();
-  }
-
-  Future<void> _initializeDriverData() async {
-    try {
-      setState(() {
-        isLoading = true;
+    final userId = ref.read(authProvider).userId;
+    if (userId != null) {
+      // Load profile/user data
+      ref.read(settingProvider.notifier).fetchUsers(userId).then((_) {
+        final settingState = ref.read(settingProvider);
+        if (settingState.users.isNotEmpty) {
+          final vehicleId = settingState.users[0].vehicleId;
+          ref.read(vehicleProvider.notifier).loadVehicle(vehicleId);
+        }
       });
-
-      final settingNotifier = ref.read(settingProvider.notifier);
-      final authState = ref.read(authProvider);
-      final userId = authState.userId;
-
-      if (userId != null) {
-        await settingNotifier.fetchUsers(userId);
-        final vehicle = ref.read(settingProvider).users[0];
-        vehicleId = vehicle.vehicleId;
-
-        await Future.delayed(const Duration(milliseconds: 500));
-        setState(() {
-          driverStats = {
-            'totalTrips': 287,
-            'totalEarnings': 43550,
-            'rating': 4.8,
-            'status': 'Online'
-          };
-        });
-      }
-    } catch (e) {
-      debugPrint('Error initializing driver data: $e');
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
+      // Load driver stats
+      ref.read(driverProvider.notifier).fetchDriverData(userId);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final settingState = ref.watch(settingProvider);
-
     final hasUser = settingState.users.isNotEmpty;
     final user = hasUser ? settingState.users[0] : null;
+    final vehicleId = hasUser ? user!.vehicleId : "N/A";
     final userName = hasUser ? user!.username : "Guest";
     final userEmail = hasUser ? user!.email ?? "No Email" : "guest@example.com";
     final userImage =
         hasUser && user!.images != null ? user.images! : "assets/profile.png";
 
+    final driverState = ref.watch(driverProvider);
+    final vehicleState = ref.watch(vehicleProvider);
+
+
+    final stats = driverState.driverData?.driverStats;
+    final hasStats = stats != null;
+    final totalTripsValue    = hasStats ? stats!.totalTrips.toString()   : '0';
+    final totalEarningsValue = hasStats ? 'Rs.${stats!.totalEarnings}'    : 'Rs.0';
+    final ratingValue        = hasStats ? stats!.rating.toString()       : '0.0';
+    final statusValue        = hasStats ? stats!.status                  : 'Offline';
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       body: RefreshIndicator(
-        onRefresh: _initializeDriverData,
+        onRefresh: () async {
+          final userId = ref.read(authProvider).userId;
+          if (userId != null) {
+            await ref.read(settingProvider.notifier).fetchUsers(userId);
+            await ref.read(driverProvider.notifier).fetchDriverData(userId);
+          }
+        },
         color: AppColors.primary,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
-              _buildHeader(userName!, userEmail, userImage),
-              _buildStatusCard(),
-              _buildStatsRow(),
-              _buildActionCards(),
-              _buildRecentTripsList(),
-              SizedBox(height: 100.h), // Space for FAB
+              _buildHeader(userName!, userEmail, userImage, statusValue!),
+              _buildStatusCard(vehicleId),
+              _buildStatsRow(totalTripsValue, totalEarningsValue, ratingValue),
+              _buildActionCards(vehicleId),
             ],
           ),
-        ),
-      ),
-      floatingActionButton: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withOpacity(0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-          borderRadius: BorderRadius.circular(30.r),
-        ),
-        child: FloatingActionButton.extended(
-          onPressed: () {
-            if (vehicleId != null) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => DriverMapScreen(
-                    vehicleId: vehicleId!,
-                  ),
-                ),
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text("Failed to load route"),
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.r),
-                  ),
-                ),
-              );
-            }
-          },
-          icon: const Icon(Icons.map_outlined),
-          label: Text(
-            "Open Route Map",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14.sp,
-            ),
-          ),
-          backgroundColor: AppColors.primary,
         ),
       ),
     );
   }
 
-  Widget _buildHeader(String name, String email, String imageUrl) {
+
+  Widget _buildHeader(
+      String name, String email, String imageUrl, String status) {
     return Container(
       padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
       decoration: BoxDecoration(
@@ -217,43 +161,39 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                         ),
                       ),
                       SizedBox(height: 8.h),
-                      Row(
-                        children: [
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 10.w,
-                              vertical: 4.h,
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 10.w,
+                          vertical: 4.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: status == 'approved'
+                              ? Colors.green
+                              : Colors.grey,
+                          borderRadius: BorderRadius.circular(20.r),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 8.w,
+                              height: 8.w,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
                             ),
-                            decoration: BoxDecoration(
-                              color: driverStats['status'] == 'Online'
-                                  ? Colors.green
-                                  : Colors.grey,
-                              borderRadius: BorderRadius.circular(20.r),
+                            SizedBox(width: 6.w),
+                            Text(
+                              "Online",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 8.w,
-                                  height: 8.w,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                SizedBox(width: 6.w),
-                                Text(
-                                  driverStats['status'],
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12.sp,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -266,7 +206,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     );
   }
 
-  Widget _buildStatusCard() {
+  Widget _buildStatusCard(dynamic vehicleId) {
     return Padding(
       padding: EdgeInsets.all(16.w),
       child: Container(
@@ -314,12 +254,13 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                       ),
                       SizedBox(height: 2.h),
                       Text(
-                        "Bus #${vehicleId ?? 'Loading...'}",
+                        "Bus ${vehicleId ?? 'Loading...'}",
                         style: TextStyle(
                           fontSize: 14.sp,
                           color: Colors.black54,
                         ),
                       ),
+                      
                     ],
                   ),
                   Spacer(),
@@ -351,8 +292,8 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                 children: [
                   Expanded(
                     child: Container(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 16.w, vertical: 12.h),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12.r),
@@ -360,22 +301,15 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            "From",
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              color: Colors.black54,
-                            ),
-                          ),
+                          Text("From",
+                              style: TextStyle(
+                                  fontSize: 12.sp, color: Colors.black54)),
                           SizedBox(height: 4.h),
-                          Text(
-                            startPoint ?? "Kathmandu",
-                            style: TextStyle(
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
+                          Text(startPoint ?? "Kathmandu",
+                              style: TextStyle(
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87)),
                         ],
                       ),
                     ),
@@ -383,8 +317,8 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                   SizedBox(width: 12.w),
                   Expanded(
                     child: Container(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 16.w, vertical: 12.h),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
                       decoration: BoxDecoration(
                         color: Colors.red.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12.r),
@@ -392,22 +326,15 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            "To",
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              color: Colors.black54,
-                            ),
-                          ),
+                          Text("To",
+                              style: TextStyle(
+                                  fontSize: 12.sp, color: Colors.black54)),
                           SizedBox(height: 4.h),
-                          Text(
-                            endPoint ?? "Pokhara",
-                            style: TextStyle(
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
+                          Text(endPoint ?? "Pokhara",
+                              style: TextStyle(
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87)),
                         ],
                       ),
                     ),
@@ -421,28 +348,29 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     );
   }
 
-  Widget _buildStatsRow() {
+  Widget _buildStatsRow(
+      String totalTripsValue, String totalEarningsValue, String ratingValue) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w),
       child: Row(
         children: [
           _buildStatCard(
             title: "Total Trips",
-            value: "${driverStats['totalTrips']}",
+            value: totalTripsValue,
             icon: Icons.route,
             iconColor: Colors.blue,
           ),
           SizedBox(width: 12.w),
           _buildStatCard(
             title: "Earnings",
-            value: "₹ ${driverStats['totalEarnings']}",
+            value: totalEarningsValue,
             icon: Icons.account_balance_wallet,
             iconColor: Colors.green,
           ),
           SizedBox(width: 12.w),
           _buildStatCard(
             title: "Rating",
-            value: "${driverStats['rating']}",
+            value: ratingValue,
             icon: Icons.star,
             iconColor: Colors.amber,
           ),
@@ -508,23 +436,21 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     );
   }
 
-  Widget _buildActionCards() {
+  Widget _buildActionCards(int vehicleId) {
     final actions = [
       {
         'title': 'Start Trip',
         'icon': Icons.play_circle_outline,
         'color': Colors.green,
         'action': () {
-          if (vehicleId != null) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => DriverMapScreen(
-                  vehicleId: vehicleId!,
-                ),
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DriverMapScreen(
+                vehicleId: vehicleId,
               ),
-            );
-          }
+            ),
+          );
         },
       },
       {
@@ -532,7 +458,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
         'icon': Icons.history,
         'color': Colors.blue,
         'action': () {
-          // View trip history
+          // TODO: implement trip history page
         },
       },
       {
@@ -540,7 +466,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
         'icon': Icons.person_outline,
         'color': Colors.purple,
         'action': () {
-          // Edit profile
+          // TODO: implement edit profile
         },
       },
     ];
@@ -572,7 +498,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
             itemBuilder: (context, index) {
               final action = actions[index];
               return GestureDetector(
-                onTap: action['action'] as Function(),
+                onTap: action['action'] as void Function(),
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -617,244 +543,6 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildRecentTripsList() {
-    final trips = [
-      {
-        'id': 'TR-7845',
-        'date': 'Today, 10:30 AM',
-        'from': 'Kathmandu',
-        'to': 'Pokhara',
-        'passengers': 32,
-        'earnings': 3850,
-      },
-      {
-        'id': 'TR-7832',
-        'date': 'Yesterday, 2:15 PM',
-        'from': 'Pokhara',
-        'to': 'Kathmandu',
-        'passengers': 29,
-        'earnings': 3480,
-      },
-      {
-        'id': 'TR-7823',
-        'date': '23 Mar, 9:00 AM',
-        'from': 'Kathmandu',
-        'to': 'Chitwan',
-        'passengers': 35,
-        'earnings': 4200,
-      },
-    ];
-
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Recent Trips",
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  // View all trips
-                },
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.primary,
-                ),
-                child: Text(
-                  "View All",
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 12.h),
-          ListView.builder(
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: trips.length,
-            itemBuilder: (context, index) {
-              final trip = trips[index];
-              return Container(
-                margin: EdgeInsets.only(bottom: 12.h),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16.r),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                ),
-                child: Padding(
-                  padding: EdgeInsets.all(16.w),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            trip['id'] as String,
-                            style: TextStyle(
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          Text(
-                            trip['date'] as String,
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              color: Colors.black54,
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 12.h),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildTripLocationInfo(
-                                  title: "From",
-                                  location: trip['from'] as String,
-                                  icon: Icons.circle,
-                                  iconColor: Colors.green,
-                                ),
-                                SizedBox(height: 8.h),
-                                _buildTripLocationInfo(
-                                  title: "To",
-                                  location: trip['to'] as String,
-                                  icon: Icons.location_on,
-                                  iconColor: Colors.red,
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            height: 50.h,
-                            width: 1,
-                            color: Colors.grey.shade200,
-                          ),
-                          SizedBox(width: 16.w),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildTripStat(
-                                label: "Passengers",
-                                value: "${trip['passengers']}",
-                                icon: Icons.people,
-                              ),
-                              SizedBox(height: 8.h),
-                              _buildTripStat(
-                                label: "Earnings",
-                                value: "₹ ${trip['earnings']}",
-                                icon: Icons.payments,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTripLocationInfo({
-    required String title,
-    required String location,
-    required IconData icon,
-    required Color iconColor,
-  }) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          color: iconColor,
-          size: 14.sp,
-        ),
-        SizedBox(width: 8.w),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 12.sp,
-                color: Colors.black54,
-              ),
-            ),
-            Text(
-              location,
-              style: TextStyle(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTripStat({
-    required String label,
-    required String value,
-    required IconData icon,
-  }) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          color: Colors.grey,
-          size: 14.sp,
-        ),
-        SizedBox(width: 6.w),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12.sp,
-                color: Colors.black54,
-              ),
-            ),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
-            ),
-          ],
-        ),
-      ],
     );
   }
 }

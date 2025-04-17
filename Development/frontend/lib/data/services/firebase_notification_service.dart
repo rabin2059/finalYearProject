@@ -1,8 +1,11 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/routes/global.dart';
+import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
@@ -20,12 +23,39 @@ class FirebaseNotificationService {
 
     final fcm = FirebaseMessaging.instance;
 
-    // Request permission (iOS & Android 13+)
-    await fcm.requestPermission();
+    NotificationSettings settings = await fcm.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
 
-    final token = await fcm.getToken();
-    debugPrint("FCM Token: $token");
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        String? apnsToken;
+        int retryCount = 0;
+        while (apnsToken == null && retryCount < 5) {
+          await Future.delayed(const Duration(seconds: 1));
+          apnsToken = await fcm.getAPNSToken();
+          retryCount++;
+        }
 
+        debugPrint("APNS Token: $apnsToken");
+      }
+
+      final token = await fcm.getToken();
+      debugPrint("FCM Token: $token");
+      // Persist FCM token locally for later upload to backend
+      final prefs = await SharedPreferences.getInstance();
+      if (token != null) {
+        await prefs.setString('fcmToken', token);
+      }
+    } else {
+      debugPrint("User declined notification permissions");
+    }
 
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
       'high_importance_channel',

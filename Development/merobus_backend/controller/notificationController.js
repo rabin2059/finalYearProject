@@ -86,8 +86,37 @@ const getUserNotifications = async (req, res) => {
   }
 };
 
+const saveFCMToken = async (req, res) => {
+  try {
+    const { userId, fcmToken } = req.body;
+    console.log(req.body)
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        id: parseInt(userId),
+      },
+    });
+
+    if (!existingUser) return res.status(404).json({message: "Not Found"})
+
+    const token = await prisma.user.update({
+      where: {
+        id: parseInt(userId),
+      },
+      data: {
+        fcmToken,
+      },
+    });
+
+    return res.status(200).json({ success: true, token });
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 module.exports = {
   sendNotification,
   logNotification,
   getUserNotifications,
+  saveFCMToken,
 };

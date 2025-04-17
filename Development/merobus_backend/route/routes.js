@@ -60,6 +60,7 @@ router.get("/getBookingByDate", bookController.getBookingByDate);
 router.get("/getVehiclesRoute", vehicleController.getRoute);
 router.get("/getActiveBuses", vehicleController.getActiveBuses);
 router.get("/getMyPolylines", vehicleController.getMyPolylines);
+router.get("/getVehicleDetails/:vehicleId", vehicleController.getVehicleDetails);
 
 // payment related
 router.post("/initialize", paymentController.initialzeKhalti);
@@ -127,3 +128,8 @@ router.get(
   "/getUserNotifications",
   notificationController.getUserNotifications
 );
+router.put("/saveToken", notificationController.saveFCMToken);
+
+router.get("/passengerData", userRelatedController.passengerHomePage);
+router.get("/driverData", driverController.driverHome);
+

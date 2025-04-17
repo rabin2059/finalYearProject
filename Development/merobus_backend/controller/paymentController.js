@@ -98,14 +98,16 @@ const makePayment = async (req, res) => {
     });
 
     if (user?.fcmToken) {
+      // Send FCM display notification
       await admin.messaging().send({
         token: user.fcmToken,
-        data: {
+        notification: {
           title: "Payment Success",
           body: `Your payment for booking #${booking.id} has been confirmed.`,
         },
       });
 
+      // Log to notifications table
       await prisma.notification.create({
         data: {
           userId: user.id,

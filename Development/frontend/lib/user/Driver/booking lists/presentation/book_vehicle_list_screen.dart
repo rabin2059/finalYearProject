@@ -6,6 +6,7 @@ import 'package:frontend/user/Passenger/bus%20details/providers/bus_details_prov
 import 'package:frontend/user/Passenger/setting/providers/setting_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../vehicle details/provider/vehicle_details_provider.dart';
 
 class BookVehicleListScreen extends ConsumerStatefulWidget {
   const BookVehicleListScreen({super.key});
@@ -15,67 +16,170 @@ class BookVehicleListScreen extends ConsumerStatefulWidget {
       _BookVehicleListScreenState();
 }
 
-class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
+class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> with SingleTickerProviderStateMixin {
   DateTime selectedDate = DateTime.now();
+  late AnimationController _animationController;
+  late Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _animation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    );
+    _animationController.forward();
+    
     Future.microtask(() => fetchBookings());
+  }
+  
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   void fetchBookings() {
     final vehicleId = ref.read(settingProvider).users[0].vehicleId;
-    print('Vehicle ID: $vehicleId');
     if (vehicleId != null) {
       ref.read(bookVehicleProvider.notifier).fetchBookingsByVehicle(vehicleId);
     }
   }
 
-  void fetchVehicleSeats() {
-    final seats = ref.read(busDetailsProvider).vehicle!.vehicleSeat;
+  List<List<String>> getSeatLayout(List<int?> totalSeats, Set<int> bookedSeats, Map<int, String> seatStatusMap) {
+    final vehicleState = ref.read(vehicleProvider);
+    final vehicleType = vehicleState.vehicle?.vehicleType ?? 'Bus';
+
+    List<List<String>> baseLayout = vehicleType == 'Bus'
+        ? [
+            ['X', 'X', '', 'X', 'X'],
+            ['X', 'X', '', 'X', 'X'],
+            ['X', 'X', '', 'X', 'X'],
+            ['X', 'X', '', 'X', 'X'],
+            // Add extra spacing after row 4
+            ['X', 'X', '', 'X', 'X'],
+            ['X', 'X', '', 'X', 'X'],
+            ['X', 'X', '', 'X', 'X'],
+            ['X', 'X', '', 'X', 'X'],
+            // Add extra spacing after row 8
+            ['X', 'X', '', 'X', 'X'],
+            ['X', 'X', 'X', 'X', 'X'], // Back row
+          ]
+        : [
+            ['X', 'X'],
+            ['X', 'X'],
+            ['X', 'X']
+          ];
+
+    int seatNumber = 1;
+    for (int i = 0; i < baseLayout.length; i++) {
+      for (int j = 0; j < baseLayout[i].length; j++) {
+        if (baseLayout[i][j] == 'X') {
+          if (totalSeats.contains(seatNumber)) {
+            String status = 'A'; // Available by default
+            if (bookedSeats.contains(seatNumber)) {
+              status = seatStatusMap[seatNumber] ?? 'B'; // Booked or specific status
+            }
+            baseLayout[i][j] = '$seatNumber:$status';
+          } else {
+            baseLayout[i][j] = '';
+          }
+          seatNumber++;
+        }
+      }
+    }
+    
+    // Remove rows that only have aisles or are fully empty
+    baseLayout = baseLayout.where((row) {
+      return row.any((cell) => cell.isNotEmpty && cell != '');
+    }).toList();
+
+    return baseLayout;
   }
 
   @override
   Widget build(BuildContext context) {
-    final bookingByVehicletate = ref.watch(bookVehicleProvider);
+    final bookingByVehicleState = ref.watch(bookVehicleProvider);
+    final primaryColor = Theme.of(context).primaryColor;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Bookings List'),
+        title: const Text(
+          'Bookings List',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: primaryColor,
         centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          _buildDateSelector(),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: bookingByVehicletate.isLoading
-                    ? _buildLoadingUI()
-                    : (bookingByVehicletate.bookingByVehicle == null ||
-                            bookingByVehicletate.bookingByVehicle!.isEmpty)
-                        ? _buildNoBookingsUI()
-                        : _buildBusLayoutWithBookings(
-                            bookingByVehicletate.bookingByVehicle!),
-              ),
-            ),
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.white),
+            onPressed: fetchBookings,
           ),
         ],
+      ),
+      body: FadeTransition(
+        opacity: _animation,
+        child: Stack(
+          children: [
+            Container(
+              height: 120.h,
+              decoration: BoxDecoration(
+                color: primaryColor,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(30.r),
+                  bottomRight: Radius.circular(30.r),
+                ),
+              ),
+            ),
+            SafeArea(
+              child: Column(
+                children: [
+                  SizedBox(height: 10.h),
+                  _buildDateSelector(),
+                  SizedBox(height: 15.h),
+                  Expanded(
+                    child: bookingByVehicleState.isLoading
+                        ? _buildLoadingUI()
+                        : (bookingByVehicleState.bookingByVehicle == null ||
+                                bookingByVehicleState.bookingByVehicle!.isEmpty)
+                            ? _buildNoBookingsUI()
+                            : _buildBusLayoutWithBookings(
+                                bookingByVehicleState.bookingByVehicle!),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildDateSelector() {
     return Container(
-      height: 70.h,
-      color: Colors.white,
-      padding: EdgeInsets.symmetric(vertical: 5.h),
+      height: 80.h,
+      margin: EdgeInsets.symmetric(horizontal: 15.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
       child: ListView.builder(
+        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 10.h),
         scrollDirection: Axis.horizontal,
         itemCount: 7,
         itemBuilder: (context, index) {
@@ -91,28 +195,42 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
                 selectedDate = date;
               });
             },
-            child: Container(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
               margin: EdgeInsets.symmetric(horizontal: 5.w),
-              padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 12.w),
+              padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 12.w),
               decoration: BoxDecoration(
-                color: isSelected ? Colors.blueAccent : Colors.white,
-                borderRadius: BorderRadius.circular(8.r),
-                border: Border.all(color: Colors.blueAccent),
+                color: isSelected ? Theme.of(context).primaryColor : Colors.white,
+                borderRadius: BorderRadius.circular(12.r),
+                border: Border.all(
+                  color: isSelected ? Theme.of(context).primaryColor : Colors.grey.shade300,
+                ),
+                boxShadow: isSelected ? [
+                  BoxShadow(
+                    color: Theme.of(context).primaryColor.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ] : null,
               ),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     DateFormat('E').format(date),
                     style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.blueAccent,
+                      color: isSelected ? Colors.white : Colors.grey.shade700,
                       fontWeight: FontWeight.bold,
+                      fontSize: 14.sp,
                     ),
                   ),
+                  SizedBox(height: 4.h),
                   Text(
                     DateFormat('MMM dd').format(date),
                     style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.blueAccent,
+                      color: isSelected ? Colors.white : Colors.black87,
                       fontWeight: FontWeight.bold,
+                      fontSize: 16.sp,
                     ),
                   ),
                 ],
@@ -137,259 +255,358 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
       return _buildNoBookingsUI();
     }
 
-    return Column(
-      children: [
-        SizedBox(height: 16.h),
-        _buildSeatLegend(),
-        SizedBox(height: 20.h),
-        Expanded(
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                _buildBusLayout(sortedBookings),
-                SizedBox(height: 16.h),
-              ],
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 20.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          SizedBox(height: 16.h),
+          _buildSeatLegend(),
+          SizedBox(height: 20.h),
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 15.w),
+                child: Column(
+                  children: [
+                    _buildBusLayout(sortedBookings),
+                    SizedBox(height: 16.h),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildSeatLegend() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _buildLegendItem(Colors.grey.shade300, "Available"),
-        SizedBox(width: 15.w),
-        _buildLegendItem(Colors.green.shade500, "Booked"),
-        SizedBox(width: 15.w),
-        _buildLegendItem(Colors.red.shade400, "Canceled"),
-      ],
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 15.w),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildLegendItem(Colors.grey.shade200, "Available"),
+          _buildLegendItem(Colors.green.shade500, "Booked"),
+          _buildLegendItem(Colors.red.shade400, "Canceled"),
+        ],
+      ),
     );
   }
 
   Widget _buildLegendItem(Color color, String label) {
     return Row(
-      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 16.w,
-          height: 16.h,
+          width: 24.w,
+          height: 24.h,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(4.r),
+            borderRadius: BorderRadius.circular(6.r),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.3),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
         ),
-        SizedBox(width: 4.w),
+        SizedBox(width: 8.w),
         Text(
           label,
-          style: TextStyle(fontSize: 12.sp, color: Colors.black87),
+          style: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w500,
+            color: Colors.black87,
+          ),
         ),
       ],
     );
   }
 
   Widget _buildBusLayout(List bookings) {
-    List<List<dynamic>> busLayout = [
-      ['X', 'X', '', 'X', 'X'],
-      ['X', 'X', '', 'X', 'X'],
-      ['X', 'X', '', 'X', 'X'],
-      ['X', 'X', '', 'X', 'X'],
-      ['X', 'X', '', 'X', 'X'],
-      ['X', 'X', '', 'X', 'X'],
-      ['X', 'X', '', 'X', 'X'],
-      ['X', 'X', '', 'X', 'X'],
-      ['X', 'X', '', 'X', 'X'],
-      ['X', 'X', 'X', 'X', 'X'],
-    ];
+    final vehicleState = ref.watch(vehicleProvider);
+    final seatObjects = vehicleState.vehicle?.vehicleSeat ?? [];
+    final seats = seatObjects.map((seat) => seat.seatNo).toList();
 
-    int seatNumber = 1;
-    for (int i = 0; i < busLayout.length; i++) {
-      for (int j = 0; j < busLayout[i].length; j++) {
-        if (busLayout[i][j] == 'X') {
-          var booking = bookings.length >= seatNumber
-              ? bookings[seatNumber % bookings.length]
-              : null;
-
-          if (booking != null) {
-            busLayout[i]
-                [j] = {'seat': seatNumber.toString(), 'booking': booking};
-          } else {
-            busLayout[i][j] = {'seat': seatNumber.toString(), 'booking': null};
-          }
-          seatNumber++;
-        }
+    // Create a set of booked seats and map of seat to status
+    final bookedSet = <int>{};
+    final seatStatusMap = <int, String>{};
+    
+    for (var booking in bookings) {
+      for (var seat in booking.bookingSeats) {
+        bookedSet.add(seat.seatNo);
+        seatStatusMap[seat.seatNo] = booking.status.toLowerCase() == 'canceled' ? 'C' : 'B';
       }
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 5,
-            offset: Offset(0, 2),
-          )
-        ],
-      ),
-      padding: EdgeInsets.all(16.w),
-      child: Column(
-        children: [
-          SizedBox(height: 20.h),
-          ...busLayout.map((row) {
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: row.map((seat) {
-                if (seat == '') {
-                  return SizedBox(width: 30.w);
-                }
+    if (seats.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: EdgeInsets.all(20.h),
+          child: Text(
+            'No seats configured for this vehicle',
+            style: TextStyle(
+              fontSize: 16.sp,
+              color: Colors.grey.shade700,
+            ),
+          ),
+        ),
+      );
+    }
 
-                var booking = seat['booking'];
-                var seatNum = seat['seat'];
-                Color seatColor = Colors.grey.shade300;
+    return Column(
+      children: [
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.airline_seat_recline_extra, color: Theme.of(context).primaryColor, size: 20.sp),
+                  SizedBox(width: 8.w),
+                  Text(
+                    "Driver",
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Icon(Icons.arrow_forward, color: Colors.grey, size: 16.sp),
+                  SizedBox(width: 5.w),
+                  Text(
+                    "Front",
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: 20.h),
+        _buildSeatLayoutView(getSeatLayout(seats, bookedSet, seatStatusMap), bookings),
+      ],
+    );
+  }
 
-                if (booking != null) {
-                  if (booking.status.toLowerCase() == 'canceled') {
-                    seatColor = Colors.red.shade400;
-                  } else {
-                    seatColor = Colors.green.shade500;
-                  }
-                }
+  Widget _buildSeatLayoutView(List<List<String>> layout, List bookings) {
+    return Column(
+      children: layout.asMap().entries.map((rowEntry) {
+        final rowIndex = rowEntry.key;
+        final row = rowEntry.value;
+        
+        final rowSpacing = rowIndex > 0 && rowIndex < layout.length - 1 ? 18.h : 12.h;
+        
+        final hasLeft = row.sublist(0, row.length ~/ 2).any((s) => s.isNotEmpty);
+        final hasRight = row.sublist((row.length ~/ 2) + 1).any((s) => s.isNotEmpty);
+        
+        MainAxisAlignment alignment = MainAxisAlignment.center;
+        if (hasLeft && !hasRight) {
+          alignment = MainAxisAlignment.start;
+        } else if (!hasLeft && hasRight) {
+          alignment = MainAxisAlignment.end;
+        }
 
-                return GestureDetector(
-                  onTap: () {
-                    if (booking != null &&
-                        booking.status.toLowerCase() != 'canceled') {
-                      context.pushNamed('/bookingDetails', pathParameters: {
-                        'bookId': booking.id.toString(),
-                        'userId': booking.userId.toString(),
-                      });
-                    }
-                  },
-                  child: Container(
-                    margin: EdgeInsets.all(4.w),
-                    width: 50.w,
-                    height: 50.h,
-                    decoration: BoxDecoration(
-                      color: seatColor,
-                      borderRadius: BorderRadius.circular(8.r),
-                      border: Border.all(
-                        color: booking != null
-                            ? Colors.black45
-                            : Colors.transparent,
-                        width: 1.5,
+        return Column(
+          children: [
+            Row(
+              mainAxisAlignment: alignment,
+              children: row.asMap().entries.map((seatEntry) {
+                final seatIndex = seatEntry.key;
+                final seatInfo = seatEntry.value;
+                
+                // Add additional space for aisle
+                final isAisle = seatInfo.isEmpty;
+                final horizontalPadding = isAisle ? 15.w : 6.w;
+
+                if (isAisle) {
+                  return Padding(
+                    padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                    child: Container(
+                      width: 30.w,
+                      height: 52.h,
+                      decoration: BoxDecoration(
+                        border: seatIndex == 2 ? Border(
+                          right: BorderSide(
+                            color: Colors.grey.shade300,
+                            width: 1,
+                            style: BorderStyle.solid,
+                          ),
+                        ) : null,
                       ),
                     ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      seatNum,
-                      style: TextStyle(
-                        color: seatColor == Colors.grey.shade300
-                            ? Colors.black87
-                            : Colors.white,
-                        fontWeight: FontWeight.bold,
+                  );
+                }
+
+                // Parse seat number and status
+                final parts = seatInfo.split(':');
+                final seatNumber = int.tryParse(parts[0]) ?? 0;
+                final status = parts.length > 1 ? parts[1] : 'A';
+
+                // Determine colors based on status
+                Color seatColor;
+                Color textColor;
+                if (status == 'C') {
+                  seatColor = Colors.red.shade400;
+                  textColor = Colors.white;
+                } else if (status == 'B') {
+                  seatColor = Colors.green.shade500;
+                  textColor = Colors.white;
+                } else {
+                  seatColor = Colors.grey.shade200;
+                  textColor = Colors.black87;
+                }
+
+                return Padding(
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                child: GestureDetector(
+                    onTap: () {
+                      if (status == 'B') {
+                        final matched = bookings.where((b) =>
+                          b.bookingSeats.any((bs) => bs.seatNo == seatNumber)
+                        ).toList();
+                        if (matched.isNotEmpty) {
+                          final booking = matched.first;
+                          context.pushNamed(
+                            '/bookingDetails',
+                            pathParameters: {
+                              'bookId': booking.id!.toString(),
+                              'userId': booking.userId.toString(),
+                            },
+                          );
+                        }
+                      }
+                    },
+                    child: Container(
+                      width: 52.w,
+                      height: 52.h,
+                      decoration: BoxDecoration(
+                        color: seatColor,
+                        borderRadius: BorderRadius.circular(10.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: seatColor.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            margin: EdgeInsets.only(top: 5.h),
+                            width: 42.w,
+                            height: 32.h,
+                            decoration: BoxDecoration(
+                              color: seatColor.withOpacity(0.7),
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(8.r),
+                                topRight: Radius.circular(8.r),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            margin: EdgeInsets.only(top: 30.h),
+                            width: 48.w,
+                            height: 16.h,
+                            decoration: BoxDecoration(
+                              color: seatColor.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(4.r),
+                            ),
+                          ),
+                          if (status == 'C')
+                            Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 18.sp,
+                            )
+                          else
+                            Text(
+                              seatNumber.toString(),
+                              style: TextStyle(
+                                color: textColor,
+                                fontSize: 15.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   ),
                 );
               }).toList(),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatusBadge(String status) {
-    Color statusColor;
-    switch (status.toLowerCase()) {
-      case 'confirmed':
-        statusColor = Colors.green;
-        break;
-      case 'pending':
-        statusColor = Colors.orange;
-        break;
-      case 'canceled':
-        statusColor = Colors.red;
-        break;
-      default:
-        statusColor = Colors.grey;
-    }
-
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 4, horizontal: 10),
-      decoration: BoxDecoration(
-        color: statusColor.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        status.toUpperCase(),
-        style: TextStyle(color: statusColor, fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-
-  Widget _buildLocationRow(IconData icon, String label, String value) {
-    return Row(
-      children: [
-        Icon(icon, color: Colors.blueAccent),
-        SizedBox(width: 8),
-        Text(
-          label,
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        SizedBox(width: 5),
-        Expanded(
-          child: Text(
-            value,
-            style: TextStyle(fontSize: 14),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
+            ),
+            SizedBox(height: rowSpacing),
+            
+            // Add a row divider except after the last row
+            if (rowIndex < layout.length - 1 && rowIndex % 4 == 3)
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 5.h, horizontal: 15.w),
+                child: Container(
+                  height: 1,
+                  color: Colors.grey.shade200,
+                ),
+              ),
+          ],
+        );
+      }).toList(),
     );
   }
 
   Widget _buildLoadingUI() {
-    return const Center(child: CircularProgressIndicator());
-  }
-
-  Widget _buildNoBookingsUI() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.directions_bus, size: 80, color: Colors.grey),
-          SizedBox(height: 10),
-          Text("No bookings found",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
-
-  void _showDeleteConfirmation(int bookingId) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Delete'),
-        content: const Text('Are you sure you want to delete this booking?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+          SizedBox(
+            width: 60.w,
+            height: 60.h,
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
+              strokeWidth: 3,
+            ),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _deleteBooking(bookingId);
-            },
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: Colors.red),
+          SizedBox(height: 20.h),
+          Text(
+            "Loading bookings...",
+            style: TextStyle(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey.shade700,
             ),
           ),
         ],
@@ -397,8 +614,61 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> {
     );
   }
 
-  void _deleteBooking(int bookingId) {
-    print('Deleting booking $bookingId');
-    // Implement your delete logic here
+  Widget _buildNoBookingsUI() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: EdgeInsets.all(20.w),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.directions_bus,
+              size: 80.sp,
+              color: Colors.grey.shade500,
+            ),
+          ),
+          SizedBox(height: 20.h),
+          Text(
+            "No bookings found",
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          SizedBox(height: 10.h),
+          Text(
+            "There are no bookings for this date",
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: Colors.grey.shade700,
+            ),
+          ),
+          SizedBox(height: 30.h),
+          ElevatedButton(
+            onPressed: fetchBookings,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).primaryColor,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+            ),
+            child: Text(
+              "Refresh",
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -278,7 +278,7 @@ const getSingleVehicle = async (req, res) => {
     }
 
     const vehicle = await prisma.vehicle.findUnique({
-      where: { id: parseInt(id) }, 
+      where: { id: parseInt(id) },
       include: {
         owner: true, // Fetch owner details
         VehicleSeat: { select: { seatNo: true } }, // Fetch seats
@@ -343,10 +343,68 @@ const getMyRoute = async (req, res) => {
   }
 };
 
+const driverHome = async (req, res) => {
+  try {
+    const userId = parseInt(req.query.userId, 10);
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ message: "userId query parameter is required" });
+    }
+
+    // 1. Fetch basic driver info
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        images: true,
+        status: true, // uses the `status` field on User (e.g. "Online"/"Offline")
+      },
+    });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // 2. Count all trips on vehicles this user owns
+    const totalTrips = await prisma.booking.count({
+      where: { vehicle: { ownerId: userId } },
+    });
+
+    // 3. Sum all fares on those trips
+    const earningsAgg = await prisma.booking.aggregate({
+      _sum: { totalFare: true },
+      where: { vehicle: { ownerId: userId } },
+    });
+    const totalEarnings = earningsAgg._sum.totalFare ?? 0;
+
+    // 4. Average driver rating
+    const ratingAgg = await prisma.driverRating.aggregate({
+      _avg: { rating: true },
+      where: { driverId: userId },
+    });
+    const rating = ratingAgg._avg.rating ?? 0;
+
+    const driverStats = {
+      totalTrips,
+      totalEarnings,
+      rating,
+      status: user.status ?? "Offline",
+    };
+
+    return res.status(200).json({ user, driverStats });
+  } catch (error) {
+    console.error("Error in driverHome:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   addVehicle,
   createRoute,
   getVehicles,
   getSingleVehicle,
   getMyRoute,
+  driverHome,
 };

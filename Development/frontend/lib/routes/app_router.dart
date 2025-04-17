@@ -7,6 +7,7 @@ import 'package:frontend/user/Driver/add%20route/presentation/add_route_screen.d
 import 'package:frontend/user/Driver/add%20vehicle/presentation/add_vehicle.dart';
 import 'package:frontend/user/Driver/booking%20users%20details/presentation/booking_user_details.dart';
 import 'package:frontend/user/Driver/chat/presentation/chat_driver_screen.dart';
+import 'package:frontend/user/Driver/vehicle%20details/presentation/view_vehicle_screen.dart';
 import 'package:frontend/user/Passenger/booking%20lists/presentation/booking_list_screen.dart';
 import 'package:frontend/user/Passenger/book%20vehicle/presentation/booking_screen.dart';
 import 'package:frontend/user/Passenger/bus%20details/presentation/bus_detail_screen.dart';
@@ -59,6 +60,10 @@ final goRouter = GoRouter(
         path: '/Chat',
         name: '/Chat',
         builder: (context, state) => const DriverChatGroupsScreen()),
+    GoRoute(
+        path: '/viewVehicle',
+        name: '/viewVehicle',
+        builder: (context, state) => const ViewVehicleScreen()),
     GoRoute(
         path: '/login',
         name: '/login',
