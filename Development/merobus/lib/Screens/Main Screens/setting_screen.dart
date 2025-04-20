@@ -168,6 +168,7 @@ class _SettingScreenState extends State<SettingScreen> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
+      print(token);
 
       if (token == null || token.isEmpty) {
         throw Exception("No token found");

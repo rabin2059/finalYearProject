@@ -3694,3 +3694,67 @@ Unknown field `ChatGroup` for include statement on model `User`. Available optio
 2025-04-17 11:29:30 [info]: User 1 logged in via socket c1fi4XpaWF06cVstAAAJ (transport: websocket)
 2025-04-17 11:53:50 [info]: Client disconnected: c1fi4XpaWF06cVstAAAJ, reason: transport close
 2025-04-17 12:24:39 [info]: Server running on http://localhost:3089
+2025-04-18 11:16:47 [error]: secretOrPrivateKey must have a value
+2025-04-18 11:17:05 [error]: secretOrPrivateKey must have a value
+2025-04-18 11:18:35 [error]: secretOrPrivateKey must have a value
+2025-04-19 11:06:17 [info]: Server running on http://localhost:3089
+2025-04-19 11:49:37 [info]: Server running on http://localhost:3089
+2025-04-19 11:49:43 [info]: Server running on http://localhost:3089
+2025-04-19 19:43:25 [info]: New client connected: IRah9D_iK53eQrh2AAAB (transport: websocket)
+2025-04-19 19:43:26 [info]: User 1 logged in via socket IRah9D_iK53eQrh2AAAB (transport: websocket)
+2025-04-19 20:11:16 [info]: Client disconnected: IRah9D_iK53eQrh2AAAB, reason: transport close
+2025-04-19 20:12:11 [info]: New client connected: tgoA1t2fKQdDABkaAAAD (transport: websocket)
+2025-04-19 20:12:11 [info]: User 1 logged in via socket tgoA1t2fKQdDABkaAAAD (transport: websocket)
+2025-04-19 20:15:02 [info]: Sending active buses: 
+2025-04-19 20:15:03 [info]: Client disconnected: tgoA1t2fKQdDABkaAAAD, reason: client namespace disconnect
+2025-04-19 20:36:03 [info]: Server running on http://localhost:3089
+2025-04-19 20:36:05 [info]: New client connected: ng4qRPhp21Kitc8DAAAB (transport: websocket)
+2025-04-19 20:36:05 [info]: User 2 logged in via socket ng4qRPhp21Kitc8DAAAB (transport: websocket)
+2025-04-19 20:46:23 [info]: Client disconnected: ng4qRPhp21Kitc8DAAAB, reason: transport close
+2025-04-19 20:46:42 [info]: New client connected: 6UTtt8DOP115V0WeAAAD (transport: websocket)
+2025-04-19 20:46:42 [info]: User 1 logged in via socket 6UTtt8DOP115V0WeAAAD (transport: websocket)
+2025-04-19 20:52:16 [info]: Client disconnected: 6UTtt8DOP115V0WeAAAD, reason: transport close
+2025-04-19 20:53:10 [info]: New client connected: IZdBJfONREOl3MrqAAAF (transport: websocket)
+2025-04-19 20:53:10 [info]: User 1 logged in via socket IZdBJfONREOl3MrqAAAF (transport: websocket)
+2025-04-19 21:00:58 [info]: Client disconnected: IZdBJfONREOl3MrqAAAF, reason: transport close
+2025-04-19 21:01:28 [info]: New client connected: SGR-NiTodRa2GudFAAAH (transport: websocket)
+2025-04-19 21:01:28 [info]: User 1 logged in via socket SGR-NiTodRa2GudFAAAH (transport: websocket)
+2025-04-19 21:01:42 [info]: Checking if user 1 is member of group 1
+2025-04-19 21:01:42 [info]: Fetching messages for group 1 since 2025-04-13T05:18:11.209Z
+2025-04-19 21:01:52 [info]: Message from user 1: Vuv
+2025-04-19 21:01:54 [info]: Checking if user 1 is member of group 1
+2025-04-19 21:01:55 [info]: Fetching messages for group 1 since 2025-04-13T05:18:11.209Z
+2025-04-19 21:01:59 [info]: Checking if user 1 is member of group 1
+2025-04-19 21:01:59 [info]: Fetching messages for group 1 since 2025-04-13T05:18:11.209Z
+2025-04-19 21:04:06 [info]: Client disconnected: SGR-NiTodRa2GudFAAAH, reason: transport close
+2025-04-20 07:43:29 [info]: Server running on http://localhost:3089
+2025-04-20 07:45:20 [info]: New client connected: lbkhiJrApkVjUf-MAAAB (transport: websocket)
+2025-04-20 07:45:20 [info]: User 1 logged in via socket lbkhiJrApkVjUf-MAAAB (transport: websocket)
+2025-04-20 07:46:06 [info]: Client disconnected: lbkhiJrApkVjUf-MAAAB, reason: transport close
+2025-04-20 07:52:17 [info]: New client connected: K_eRn1yNiFHNzH5lAAAD (transport: websocket)
+2025-04-20 07:53:27 [info]: Client disconnected: K_eRn1yNiFHNzH5lAAAD, reason: ping timeout
+2025-04-20 07:55:20 [info]: New client connected: YqUBeB2n2rh9O0mqAAAF (transport: websocket)
+2025-04-20 07:55:21 [info]: User 1 logged in via socket YqUBeB2n2rh9O0mqAAAF (transport: websocket)
+2025-04-20 07:55:25 [info]: User 1 logged out
+2025-04-20 07:55:25 [info]: Client disconnected: YqUBeB2n2rh9O0mqAAAF, reason: client namespace disconnect
+2025-04-20 08:18:25 [info]: New client connected: LrcrvEDKHQcl3x4cAAAH (transport: websocket)
+2025-04-20 08:18:26 [info]: User 5 logged in via socket LrcrvEDKHQcl3x4cAAAH (transport: websocket)
+2025-04-20 08:19:35 [info]: Client disconnected: LrcrvEDKHQcl3x4cAAAH, reason: ping timeout
+2025-04-20 09:12:11 [info]: Server running on http://localhost:3089
+2025-04-20 09:12:27 [info]: New client connected: nOiJcG9BVbZkJeUBAAAB (transport: websocket)
+2025-04-20 09:12:27 [info]: User 1 logged in via socket nOiJcG9BVbZkJeUBAAAB (transport: websocket)
+2025-04-20 09:13:46 [info]: Client disconnected: nOiJcG9BVbZkJeUBAAAB, reason: ping timeout
+2025-04-20 09:23:35 [info]: New client connected: 2IRgWjPOp_1HXBpyAAAD (transport: websocket)
+2025-04-20 09:23:35 [info]: User 1 logged in via socket 2IRgWjPOp_1HXBpyAAAD (transport: websocket)
+2025-04-20 09:27:57 [info]: Client disconnected: 2IRgWjPOp_1HXBpyAAAD, reason: transport close
+2025-04-20 09:29:15 [info]: New client connected: e8zSUrBWfwtevmY5AAAF (transport: websocket)
+2025-04-20 09:29:15 [info]: User 1 logged in via socket e8zSUrBWfwtevmY5AAAF (transport: websocket)
+2025-04-20 09:30:54 [info]: Driver registered for vehicle 1
+2025-04-20 09:31:04 [info]: User driver-1 logged in via socket e8zSUrBWfwtevmY5AAAF (transport: websocket)
+2025-04-20 09:31:04 [info]: Driver registered for vehicle 1
+2025-04-20 09:33:17 [info]: New client connected: UxHciDoJ8KD-4ewIAAAH (transport: websocket)
+2025-04-20 09:33:17 [info]: User 1 logged in via socket UxHciDoJ8KD-4ewIAAAH (transport: websocket)
+2025-04-20 09:33:17 [info]: User driver-1 logged in via socket UxHciDoJ8KD-4ewIAAAH (transport: websocket)
+2025-04-20 09:34:02 [info]: Client disconnected: UxHciDoJ8KD-4ewIAAAH, reason: transport close
+2025-04-20 09:34:19 [info]: Client disconnected: e8zSUrBWfwtevmY5AAAF, reason: ping timeout
+2025-04-20 09:34:19 [info]: Vehicle 1 removed from active buses

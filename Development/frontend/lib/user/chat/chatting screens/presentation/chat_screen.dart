@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:frontend/data/services/socket_service.dart';
 import 'package:frontend/core/constants.dart';
 
-import '../../../components/AppColors.dart';
+import '../../../../components/AppColors.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final int groupId;

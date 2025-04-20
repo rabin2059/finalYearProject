@@ -51,7 +51,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     final settingState = ref.watch(settingProvider);
     final hasUser = settingState.users.isNotEmpty;
     final user = hasUser ? settingState.users[0] : null;
-    final vehicleId = hasUser ? user!.vehicleId : "N/A";
+    final vehicleId = hasUser ? user!.vehicleId ?? -1 : -1;
     final userName = hasUser ? user!.username : "Guest";
     final userEmail = hasUser ? user!.email ?? "No Email" : "guest@example.com";
     final userImage =
@@ -66,7 +66,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     final totalTripsValue    = hasStats ? stats!.totalTrips.toString()   : '0';
     final totalEarningsValue = hasStats ? 'Rs.${stats!.totalEarnings}'    : 'Rs.0';
     final ratingValue        = hasStats ? stats!.rating.toString()       : '0.0';
-    final statusValue        = hasStats ? stats!.status                  : 'Offline';
+    final statusValue        = hasStats ? "Online"                 : 'Offline';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
@@ -167,7 +167,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                           vertical: 4.h,
                         ),
                         decoration: BoxDecoration(
-                          color: status == 'approved'
+                          color: status == 'Online'
                               ? Colors.green
                               : Colors.grey,
                           borderRadius: BorderRadius.circular(20.r),
@@ -185,7 +185,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                             ),
                             SizedBox(width: 6.w),
                             Text(
-                              "Online",
+                              status,
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 12.sp,

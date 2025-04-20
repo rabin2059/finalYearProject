@@ -27,6 +27,7 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
     final userId = ref.read(authProvider).userId;
     super.initState();
     Future.microtask(() => ref.watch(settingProvider.notifier).fetchUsers(userId!));
+    
   }
 
   @override

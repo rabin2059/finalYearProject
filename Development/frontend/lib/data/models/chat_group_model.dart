@@ -1,26 +1,48 @@
 import 'dart:convert';
-import 'bus_model.dart';
-import 'user_model.dart';
+
+class ChatGroupModel {
+  final List<ChatGroup>? chatGroups;
+
+  ChatGroupModel({
+    this.chatGroups,
+  });
+
+  factory ChatGroupModel.fromRawJson(String str) =>
+      ChatGroupModel.fromJson(json.decode(str));
+
+  String toRawJson() => json.encode(toJson());
+
+  factory ChatGroupModel.fromJson(Map<String, dynamic> json) => ChatGroupModel(
+        chatGroups: json["chatGroups"] == null
+            ? []
+            : List<ChatGroup>.from(
+                json["chatGroups"]!.map((x) => ChatGroup.fromJson(x))),
+      );
+
+  Map<String, dynamic> toJson() => {
+        "chatGroups": chatGroups == null
+            ? []
+            : List<dynamic>.from(chatGroups!.map((x) => x.toJson())),
+      };
+}
 
 class ChatGroup {
   final int? id;
-  final String name;
+  final String? name;
   final int? vehicleId;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-  final List<UserData>? users;
-  final BusModel? vehicle;
-  final int? unreadCount;
+  final VehicleInfo? vehicleInfo;
+  final String? createdAt;
+  final List<dynamic>? members;
+  final int? messageCount;
 
   ChatGroup({
     this.id,
-    required this.name,
+    this.name,
     this.vehicleId,
-    required this.createdAt,
-    required this.updatedAt,
-    this.users,
-    this.vehicle,
-    this.unreadCount = 0,
+    this.vehicleInfo,
+    this.createdAt,
+    this.members,
+    this.messageCount,
   });
 
   factory ChatGroup.fromRawJson(String str) =>
@@ -30,40 +52,55 @@ class ChatGroup {
 
   factory ChatGroup.fromJson(Map<String, dynamic> json) => ChatGroup(
         id: json["id"],
-        name: json["name"] ?? "",
+        name: json["name"],
         vehicleId: json["vehicleId"],
-        createdAt: json["createdAt"] != null
-            ? DateTime.parse(json["createdAt"])
-            : DateTime.now(),
-        updatedAt: json["updatedAt"] != null
-            ? DateTime.parse(json["updatedAt"])
-            : DateTime.now(),
-        users: json["users"] != null
-            ? List<UserData>.from(
-                json["users"].map((x) => UserData.fromJson(x)))
-            : null,
-        vehicle:
-            json["vehicle"] != null ? BusModel.fromJson(json["vehicle"]) : null,
-        unreadCount: json["unreadCount"] ?? 0,
+        vehicleInfo: json["vehicleInfo"] == null
+            ? null
+            : VehicleInfo.fromJson(json["vehicleInfo"]),
+        createdAt: json["createdAt"],
+        members: json["members"] == null
+            ? []
+            : List<dynamic>.from(json["members"]!.map((x) => x)),
+        messageCount: json["messageCount"],
       );
 
   Map<String, dynamic> toJson() => {
         "id": id,
         "name": name,
         "vehicleId": vehicleId,
-        "createdAt": createdAt.toIso8601String(),
-        "updatedAt": updatedAt.toIso8601String(),
-        "users": users != null
-            ? List<dynamic>.from(users!.map((x) => x.toJson()))
-            : null,
-        "vehicle": vehicle?.toJson(),
-        "unreadCount": unreadCount,
+        "vehicleInfo": vehicleInfo?.toJson(),
+        "createdAt": createdAt,
+        "members":
+            members == null ? [] : List<dynamic>.from(members!.map((x) => x)),
+        "messageCount": messageCount,
       };
+}
 
-  // Helper method to get list of user IDs
-  List<int> get memberIds =>
-      users?.map((user) => user.id ?? 0).whereType<int>().toList() ?? [];
+class VehicleInfo {
+  final int? id;
+  final String? vehicleNo;
+  final String? model;
 
-  // Helper method to check if a user is a member of this group
-  bool isMember(int userId) => memberIds.contains(userId);
+  VehicleInfo({
+    this.id,
+    this.vehicleNo,
+    this.model,
+  });
+
+  factory VehicleInfo.fromRawJson(String str) =>
+      VehicleInfo.fromJson(json.decode(str));
+
+  String toRawJson() => json.encode(toJson());
+
+  factory VehicleInfo.fromJson(Map<String, dynamic> json) => VehicleInfo(
+        id: json["id"],
+        vehicleNo: json["vehicleNo"],
+        model: json["model"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "id": id,
+        "vehicleNo": vehicleNo,
+        "model": model,
+      };
 }

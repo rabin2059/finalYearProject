@@ -161,11 +161,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     children: [
                       GestureDetector(
                         onTap: () {
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //       builder: (context) => const Forgot()),
-                          // );
+                          context.pushNamed("/forgot");
                         },
                         child: const Text(
                           'Forgot Password ?',

@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http;
 import '../../../../components/AppColors.dart';
 import '../../../../components/CustomButton.dart';
 import '../../../../core/constants.dart';
+import '../../../../routes/app_router.dart';
 import '../providers/bus_details_provider.dart';
 
 class BusDetailScreen extends ConsumerStatefulWidget {
@@ -99,16 +100,26 @@ class _BusDetailScreenState extends ConsumerState<BusDetailScreen> {
                   SizedBox(height: 40.h),
                   CustomButton(
                     text: "Book Seat",
-                    onPressed: () => context.pushNamed('/book', pathParameters: {'id': widget.busId.toString()} ),
+                    onPressed: () => context.pushNamed('/book',
+                        pathParameters: {'id': widget.busId.toString()}),
                   ),
                   SizedBox(height: 10.h),
                   CustomButton(
                       text: "Chat",
-                      onPressed: () => context.pushNamed('chat',
-                              pathParameters: {
-                                'groupId': groupId.toString(),
-                                'groupName': groupName ?? 'Bus Chat'
-                              })),
+                      onPressed: () {
+                        if (groupId != null && groupName != null) {
+                          context.pushNamed(
+                            'chat',
+                            extra: ChatArgs(groupId!, groupName!),
+                          );
+                        } else {
+                          // Optionally, show a loading indicator or disabled state until group data arrives
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Chat group not yet loaded. Please wait.')),
+                          );
+                        }
+                      },
+                    ),
                 ],
               ),
             ),

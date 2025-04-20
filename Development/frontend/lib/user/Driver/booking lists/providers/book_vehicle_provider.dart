@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/data/services/book_vehicle_service.dart';
-
 import '../../../../core/constants.dart';
 import 'book_vehicle_state.dart';
 
@@ -11,7 +10,6 @@ class BookVehicleNotifier extends StateNotifier<BookVehicleState> {
       : super(BookVehicleState());
 
   Future<void> fetchBookingsByVehicle(int vehicleId) async {
-    print(vehicleId.toString());
     try {
       state = state
           .copyWith(isLoading: true, errorMessage: '', bookingByVehicle: []);
