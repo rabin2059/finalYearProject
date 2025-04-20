@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/user/authentication/login/providers/auth_provider.dart';
-import 'package:frontend/user/chat/chat%20lists/provider/chat_list_state.dart';
-
-import 'package:frontend/routes/app_router.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../routes/app_router.dart';
+import '../../../authentication/login/providers/auth_provider.dart';
 import '../provider/chat_list_provider.dart';
 
 class ChatDriverScreen extends ConsumerStatefulWidget {

@@ -3809,3 +3809,74 @@ Unknown field `ChatGroup` for include statement on model `User`. Available optio
 2025-04-20 11:26:17 [info]: New client connected: m8nCTnNQYU3SBi2CAAAB (transport: websocket)
 2025-04-20 11:26:17 [info]: User 1 logged in via socket m8nCTnNQYU3SBi2CAAAB (transport: websocket)
 2025-04-20 11:27:16 [info]: Client disconnected: m8nCTnNQYU3SBi2CAAAB, reason: transport close
+2025-04-20 12:39:16 [info]: New client connected: GcH7xv5dK5AM_f-JAAAD (transport: websocket)
+2025-04-20 12:39:16 [info]: User 1 logged in via socket GcH7xv5dK5AM_f-JAAAD (transport: websocket)
+2025-04-20 12:39:22 [info]: Client disconnected: GcH7xv5dK5AM_f-JAAAD, reason: client namespace disconnect
+2025-04-20 12:42:52 [info]: New client connected: -fFvrKw6F5ibk1D8AAAF (transport: websocket)
+2025-04-20 12:42:52 [info]: User 2 logged in via socket -fFvrKw6F5ibk1D8AAAF (transport: websocket)
+2025-04-20 12:43:51 [info]: Client disconnected: -fFvrKw6F5ibk1D8AAAF, reason: client namespace disconnect
+2025-04-20 12:43:52 [info]: New client connected: 2v_ADr7S71j3IS6UAAAH (transport: websocket)
+2025-04-20 12:43:52 [info]: User 2 logged in via socket 2v_ADr7S71j3IS6UAAAH (transport: websocket)
+2025-04-20 12:44:30 [info]: Sending active buses: 
+2025-04-20 12:44:33 [info]: Client disconnected: 2v_ADr7S71j3IS6UAAAH, reason: client namespace disconnect
+2025-04-20 12:44:42 [info]: New client connected: 1qcC5iCItea-Bzd8AAAJ (transport: websocket)
+2025-04-20 12:44:42 [info]: User user-1745132381908 logged in via socket 1qcC5iCItea-Bzd8AAAJ (transport: websocket)
+2025-04-20 12:44:42 [info]: Client disconnected: 1qcC5iCItea-Bzd8AAAJ, reason: client namespace disconnect
+2025-04-20 12:58:35 [info]: Server running on http://localhost:3089
+2025-04-20 12:58:36 [info]: New client connected: FhhEQD8K5KeX1D_DAAAB (transport: websocket)
+2025-04-20 12:58:36 [info]: User 2 logged in via socket FhhEQD8K5KeX1D_DAAAB (transport: websocket)
+2025-04-20 13:10:31 [info]: Client disconnected: FhhEQD8K5KeX1D_DAAAB, reason: transport close
+2025-04-20 13:10:53 [info]: New client connected: D44oniICggbJP4kwAAAD (transport: websocket)
+2025-04-20 13:10:53 [info]: User 1 logged in via socket D44oniICggbJP4kwAAAD (transport: websocket)
+2025-04-20 13:11:01 [info]: Client disconnected: D44oniICggbJP4kwAAAD, reason: transport close
+2025-04-20 13:11:17 [info]: New client connected: yTAlcRcnuH43bLnTAAAF (transport: websocket)
+2025-04-20 13:11:17 [info]: User 1 logged in via socket yTAlcRcnuH43bLnTAAAF (transport: websocket)
+2025-04-20 13:23:20 [info]: Client disconnected: yTAlcRcnuH43bLnTAAAF, reason: transport close
+2025-04-20 14:07:39 [info]: New client connected: W2prLWNIx5SqHeAaAAAH (transport: websocket)
+2025-04-20 14:07:39 [info]: User 1 logged in via socket W2prLWNIx5SqHeAaAAAH (transport: websocket)
+2025-04-20 14:15:05 [info]: Client disconnected: W2prLWNIx5SqHeAaAAAH, reason: transport close
+2025-04-20 14:21:29 [info]: New client connected: GFJG9uzw20JTNaghAAAJ (transport: websocket)
+2025-04-20 14:21:30 [info]: User 1 logged in via socket GFJG9uzw20JTNaghAAAJ (transport: websocket)
+2025-04-20 14:25:39 [info]: Client disconnected: GFJG9uzw20JTNaghAAAJ, reason: transport close
+2025-04-20 14:27:48 [info]: New client connected: 8bo9ruJI-SSjNs6CAAAL (transport: websocket)
+2025-04-20 14:27:48 [info]: User 1 logged in via socket 8bo9ruJI-SSjNs6CAAAL (transport: websocket)
+2025-04-20 14:40:57 [info]: Client disconnected: 8bo9ruJI-SSjNs6CAAAL, reason: transport close
+2025-04-20 14:43:29 [info]: New client connected: qEGUjpfn70XBa_tiAAAN (transport: websocket)
+2025-04-20 14:43:29 [info]: User 1 logged in via socket qEGUjpfn70XBa_tiAAAN (transport: websocket)
+2025-04-20 14:44:44 [info]: Client disconnected: qEGUjpfn70XBa_tiAAAN, reason: transport close
+2025-04-20 14:47:19 [info]: New client connected: muUlJbg7euCv_F06AAAP (transport: websocket)
+2025-04-20 14:47:20 [info]: User 1 logged in via socket muUlJbg7euCv_F06AAAP (transport: websocket)
+2025-04-20 14:47:59 [info]: Client disconnected: muUlJbg7euCv_F06AAAP, reason: client namespace disconnect
+2025-04-20 14:48:12 [info]: New client connected: fBRPup5ftkdu1HLcAAAR (transport: websocket)
+2025-04-20 14:48:13 [info]: User 1 logged in via socket fBRPup5ftkdu1HLcAAAR (transport: websocket)
+2025-04-20 14:53:04 [info]: Client disconnected: fBRPup5ftkdu1HLcAAAR, reason: transport close
+2025-04-20 14:55:45 [info]: New client connected: fqI9C89KB0u_EumdAAAT (transport: websocket)
+2025-04-20 14:55:45 [info]: User 1 logged in via socket fqI9C89KB0u_EumdAAAT (transport: websocket)
+2025-04-20 14:55:51 [info]: Client disconnected: fqI9C89KB0u_EumdAAAT, reason: client namespace disconnect
+2025-04-20 14:56:02 [info]: New client connected: eTAIiP0WMRXkD6yJAAAV (transport: websocket)
+2025-04-20 14:56:02 [info]: User 1 logged in via socket eTAIiP0WMRXkD6yJAAAV (transport: websocket)
+2025-04-20 14:56:41 [info]: Client disconnected: eTAIiP0WMRXkD6yJAAAV, reason: transport close
+2025-04-20 14:56:47 [info]: New client connected: Q7gjdQNw5lchSqaSAAAX (transport: websocket)
+2025-04-20 14:56:47 [info]: User 1 logged in via socket Q7gjdQNw5lchSqaSAAAX (transport: websocket)
+2025-04-20 14:57:01 [info]: Client disconnected: Q7gjdQNw5lchSqaSAAAX, reason: transport close
+2025-04-20 14:59:12 [info]: Server running on http://localhost:3089
+2025-04-20 14:59:30 [info]: New client connected: RttbjpqFXw-tavDYAAAB (transport: websocket)
+2025-04-20 14:59:30 [info]: User 1 logged in via socket RttbjpqFXw-tavDYAAAB (transport: websocket)
+2025-04-20 15:01:00 [info]: Client disconnected: RttbjpqFXw-tavDYAAAB, reason: client namespace disconnect
+2025-04-20 15:01:53 [info]: New client connected: USNGzObM1xUmLm2aAAAD (transport: websocket)
+2025-04-20 15:01:53 [info]: User 2 logged in via socket USNGzObM1xUmLm2aAAAD (transport: websocket)
+2025-04-20 15:02:11 [info]: Client disconnected: USNGzObM1xUmLm2aAAAD, reason: client namespace disconnect
+2025-04-20 15:06:36 [info]: New client connected: Ffri-3rjitM_53aaAAAF (transport: websocket)
+2025-04-20 15:06:37 [info]: User 1 logged in via socket Ffri-3rjitM_53aaAAAF (transport: websocket)
+2025-04-20 15:06:45 [info]: Client disconnected: Ffri-3rjitM_53aaAAAF, reason: client namespace disconnect
+2025-04-20 15:07:00 [info]: New client connected: cIyyhT3zC4MBp9aWAAAH (transport: websocket)
+2025-04-20 15:07:00 [info]: User 1 logged in via socket cIyyhT3zC4MBp9aWAAAH (transport: websocket)
+2025-04-20 15:07:11 [info]: Client disconnected: cIyyhT3zC4MBp9aWAAAH, reason: client namespace disconnect
+2025-04-20 15:10:48 [info]: New client connected: 0x0mGUOtsLDc9ql0AAAJ (transport: websocket)
+2025-04-20 15:10:48 [info]: User 1 logged in via socket 0x0mGUOtsLDc9ql0AAAJ (transport: websocket)
+2025-04-20 15:12:00 [info]: Checking if user 1 is member of group 1
+2025-04-20 15:12:00 [info]: Fetching messages for group 1 since 2025-04-13T05:18:11.209Z
+2025-04-20 15:12:19 [info]: Sending active buses: 
+2025-04-20 15:12:22 [info]: Client disconnected: 0x0mGUOtsLDc9ql0AAAJ, reason: client namespace disconnect
+2025-04-20 15:14:06 [info]: New client connected: EKMXvTTexaDMfzpOAAAL (transport: websocket)
+2025-04-20 15:14:06 [info]: User 3 logged in via socket EKMXvTTexaDMfzpOAAAL (transport: websocket)

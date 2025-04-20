@@ -11,6 +11,9 @@ import '../../../Passenger/setting/providers/setting_provider.dart';
 import '../../../authentication/login/presentation/login_screen.dart';
 import '../../../authentication/login/providers/auth_provider.dart';
 import '../../vehicle details/provider/vehicle_details_provider.dart';
+import '../../../navigations/user_navigation.dart';
+import '../../../navigations/driver_navigation.dart';
+import '../../../navigations/user_driver_navigation.dart';
 
 class DriverSettingScreen extends ConsumerStatefulWidget {
   const DriverSettingScreen({super.key});
@@ -241,6 +244,9 @@ class _DriverSettingScreenState extends ConsumerState<DriverSettingScreen> {
       onTap: () {
         if (action == '/login') {
           ref.read(authProvider.notifier).logout();
+          ref.invalidate(userTabIndexProvider);
+          ref.invalidate(driverTabIndexProvider);
+          ref.invalidate(userDriverTabIndexProvider);
           context.go(action);
         } else {
           context.pushNamed(action);

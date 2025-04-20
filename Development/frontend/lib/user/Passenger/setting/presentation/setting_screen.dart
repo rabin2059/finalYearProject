@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-
+import '../../../navigations/user_navigation.dart';
+import '../../../navigations/driver_navigation.dart';
+import '../../../navigations/user_driver_navigation.dart';
 import '../../../../components/AppColors.dart';
 import '../../../../components/CustomButton.dart';
 import '../../../../core/constants.dart';
@@ -25,8 +27,8 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
   void initState() {
     final userId = ref.read(authProvider).userId;
     super.initState();
-    Future.microtask(() => ref.watch(settingProvider.notifier).fetchUsers(userId!));
-    
+    Future.microtask(
+        () => ref.watch(settingProvider.notifier).fetchUsers(userId!));
   }
 
   @override
@@ -49,6 +51,7 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
       ),
     );
   }
+
   Widget _buildProfileHeader(settingState) {
     final hasUser = settingState.users.isNotEmpty;
     final user = hasUser ? settingState.users[0] : null;
@@ -173,7 +176,8 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
                 SizedBox(height: 16.h),
                 _menuButton(CupertinoIcons.person_3, 'About Us', '/about'),
                 SizedBox(height: 16.h),
-                _menuButton(CupertinoIcons.exclamationmark_circle, 'Help', '/help'),
+                _menuButton(
+                    CupertinoIcons.exclamationmark_circle, 'Help', '/help'),
                 SizedBox(height: 16.h),
                 _menuButton(Icons.settings, 'Settings', '/settings'),
                 SizedBox(height: 16.h),
@@ -195,6 +199,9 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
       onTap: () {
         if (action == '/login') {
           ref.read(authProvider.notifier).logout();
+          ref.invalidate(userTabIndexProvider);
+          ref.invalidate(driverTabIndexProvider);
+          ref.invalidate(userDriverTabIndexProvider);
           SettingState(users: []);
           AuthState(userId: null, currentRole: null, isLoggedIn: false);
           context.go(action);

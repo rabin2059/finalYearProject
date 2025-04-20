@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../Driver/booking lists/presentation/book_vehicle_list_screen.dart';
 import '../Driver/home/presentation/driver_home_screen.dart';
 import '../Driver/setting/presentation/driver_setting_screen.dart';
+
+final driverTabIndexProvider = StateProvider<int>((ref) => 1); // Default to Home
+
 
 class DriverNavigation extends ConsumerStatefulWidget {
   const DriverNavigation({super.key});
@@ -14,69 +16,42 @@ class DriverNavigation extends ConsumerStatefulWidget {
 }
 
 class _DriverNavigationState extends ConsumerState<DriverNavigation> {
-  int _selectedIndex = 1; // Default to Home
-  final PageController _pageController = PageController(initialPage: 1);
-
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-    _pageController.jumpToPage(index);
+    ref.read(driverTabIndexProvider.notifier).state = index;
   }
 
   @override
   Widget build(BuildContext context) {
+    final selectedIndex = ref.watch(driverTabIndexProvider);
     return Scaffold(
-      body: PageView(
-        controller: _pageController,
-        onPageChanged: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
+      body: IndexedStack(
+        index: selectedIndex,
         children: [
           BookVehicleListScreen(),
           DriverHomeScreen(),
-          DriverSettingScreen()
+          DriverSettingScreen(),
         ],
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      bottomNavigationBar: _buildBottomNavigationBar(selectedIndex),
     );
   }
 
   /// **Updated Bottom Navigation Bar with Active Icon Highlighting**
-  Widget _buildBottomNavigationBar() {
+  Widget _buildBottomNavigationBar(int selectedIndex) {
     return BottomNavigationBar(
-      currentIndex: _selectedIndex,
+      currentIndex: selectedIndex,
       onTap: _onItemTapped,
-      selectedItemColor: Colors.blue, // ✅ Color for the selected icon
-      unselectedItemColor: Colors.grey, // ✅ Default color for inactive icons
       items: [
         BottomNavigationBarItem(
-          icon: Icon(
-            Icons.bus_alert,
-            color: _selectedIndex == 0
-                ? Colors.blue
-                : Colors.grey, // ✅ Dynamic Color Change
-          ),
+          icon: Icon(Icons.bus_alert),
           label: 'Alerts',
         ),
         BottomNavigationBarItem(
-          icon: Icon(
-            Icons.home,
-            color: _selectedIndex == 1
-                ? Colors.blue
-                : Colors.grey, // ✅ Dynamic Color Change
-          ),
+          icon: Icon(Icons.home),
           label: 'Home',
         ),
         BottomNavigationBarItem(
-          icon: Icon(
-            Icons.account_circle,
-            color: _selectedIndex == 2
-                ? Colors.blue
-                : Colors.grey, // ✅ Dynamic Color Change
-          ),
+          icon: Icon(Icons.account_circle),
           label: 'Profile',
         ),
       ],

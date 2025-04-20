@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/core/constants.dart';
-import 'package:frontend/data/services/chat_group_service.dart';
-import 'package:frontend/user/chat/chat%20lists/provider/chat_list_state.dart';
+
+import '../../../../core/constants.dart';
+import '../../../../data/services/chat_group_service.dart';
+import 'chat_list_state.dart';
 
 class ChatListNotifier extends StateNotifier<ChatListState> {
   final ChatGroupService chatGroupService;

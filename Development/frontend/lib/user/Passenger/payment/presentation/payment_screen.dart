@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'dart:async';
 
 class PaymentScreen extends ConsumerStatefulWidget {
   final String paymentUrl;
@@ -16,33 +17,28 @@ class PaymentScreen extends ConsumerStatefulWidget {
 
 class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   late final WebViewController _controller;
+  late Timer _timer;
   bool isRedirecting = false; // ✅ Prevent multiple redirects
 
   @override
   void initState() {
     super.initState();
-    _initializeWebView();
-  }
 
-  void _initializeWebView() {
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse(widget.paymentUrl));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller = WebViewController()
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..setNavigationDelegate(NavigationDelegate(
+          onPageStarted: (String url) {
+            if (url.contains("status=Completed") && !isRedirecting) {
+              isRedirecting = true;
+              _handlePaymentSuccess();
+            }
+          },
+        ))
+        ..loadRequest(Uri.parse(widget.paymentUrl));
 
-    // ✅ Listen for Payment Success in WebView
-    _controller.setNavigationDelegate(
-      NavigationDelegate(
-        onPageStarted: (String url) {
-          if (url.contains("status=Completed") && !isRedirecting) {
-            isRedirecting = true;
-            _handlePaymentSuccess();
-          }
-        },
-      ),
-    );
-
-    // ✅ Fallback: Check payment status every 5 seconds
-    Future.delayed(const Duration(seconds: 5), checkPaymentStatus);
+      _timer = Timer.periodic(const Duration(seconds: 5), (_) => checkPaymentStatus());
+    });
   }
 
   /// **✅ Backend Verification (Fallback)**
@@ -57,16 +53,20 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         !isRedirecting) {
       isRedirecting = true;
       _handlePaymentSuccess();
-    } else {
-      // Retry checking in 5 seconds if payment is not completed
-      Future.delayed(const Duration(seconds: 5), checkPaymentStatus);
     }
   }
 
   /// **✅ Redirect on Payment Success**
   void _handlePaymentSuccess() {
+    _timer.cancel(); // Cancel the timer to prevent memory leaks
     // ✅ Navigate to Booking Screen
     context.go('/navigation');
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
   }
 
   @override

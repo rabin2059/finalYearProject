@@ -1,4 +1,4 @@
-import 'package:frontend/data/models/chat_group_model.dart';
+import '../../../../data/models/chat_group_model.dart';
 
 class ChatListState {
   final bool isLoading;

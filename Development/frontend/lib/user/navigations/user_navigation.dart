@@ -5,6 +5,8 @@ import '../Passenger/bus list/presentation/bus_screen.dart';
 import '../Passenger/home/presentation/home_screen.dart';
 import '../Passenger/setting/presentation/setting_screen.dart';
 
+final userTabIndexProvider = StateProvider<int>((ref) => 1);
+
 class UserNavigation extends ConsumerStatefulWidget {
   const UserNavigation({super.key});
 
@@ -13,59 +15,38 @@ class UserNavigation extends ConsumerStatefulWidget {
 }
 
 class _UserNavigationState extends ConsumerState<UserNavigation> {
-  int _selectedIndex = 1; // Default to Home
-  final PageController _pageController = PageController(initialPage: 1);
-
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-    _pageController.jumpToPage(index);
+    ref.read(userTabIndexProvider.notifier).state = index;
   }
 
   @override
   Widget build(BuildContext context) {
+    final selectedIndex = ref.watch(userTabIndexProvider);
+
     return Scaffold(
-      body: PageView(
-        controller: _pageController,
-        onPageChanged: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
+      body: IndexedStack(
+        index: selectedIndex,
         children: const [BusScreen(), HomeScreen(), SettingScreen()],
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      bottomNavigationBar: _buildBottomNavigationBar(selectedIndex),
     );
   }
 
-  /// **Updated Bottom Navigation Bar with Active Icon Highlighting**
-  Widget _buildBottomNavigationBar() {
+  Widget _buildBottomNavigationBar(int selectedIndex) {
     return BottomNavigationBar(
-      currentIndex: _selectedIndex,
+      currentIndex: selectedIndex,
       onTap: _onItemTapped,
-      selectedItemColor: Colors.blue, // ✅ Color for the selected icon
-      unselectedItemColor: Colors.grey, // ✅ Default color for inactive icons
       items: [
-        BottomNavigationBarItem(
-          icon: Icon(
-            Icons.bus_alert,
-            color: _selectedIndex == 0 ? Colors.blue : Colors.grey, // ✅ Dynamic Color Change
-          ),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.bus_alert),
           label: 'Alerts',
         ),
-        BottomNavigationBarItem(
-          icon: Icon(
-            Icons.home,
-            color: _selectedIndex == 1 ? Colors.blue : Colors.grey, // ✅ Dynamic Color Change
-          ),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.home),
           label: 'Home',
         ),
-        BottomNavigationBarItem(
-          icon: Icon(
-            Icons.account_circle,
-            color: _selectedIndex == 2 ? Colors.blue : Colors.grey, // ✅ Dynamic Color Change
-          ),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.account_circle),
           label: 'Profile',
         ),
       ],
