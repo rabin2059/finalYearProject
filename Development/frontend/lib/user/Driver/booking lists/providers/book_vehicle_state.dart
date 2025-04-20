@@ -1,4 +1,4 @@
-import 'package:frontend/data/models/booking_vehicle_model.dart';
+import '../../../../data/models/booking_vehicle_model.dart';
 
 class BookVehicleState {
   final bool isLoading;

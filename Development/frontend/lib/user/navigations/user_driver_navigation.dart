@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/user/Driver/booking%20lists/presentation/book_vehicle_list_screen.dart';
-import 'package:frontend/user/Driver/home/presentation/driver_home_screen.dart';
-import 'package:frontend/user/Driver/setting/presentation/driver_setting_screen.dart';
-import 'package:frontend/user/Passenger/bus%20list/presentation/bus_screen.dart';
-import 'package:frontend/user/Passenger/home/presentation/home_screen.dart';
-import 'package:frontend/user/authentication/login/providers/auth_provider.dart';
+
+import '../Driver/setting/presentation/driver_setting_screen.dart';
+import '../Passenger/bus list/presentation/bus_screen.dart';
+import '../Passenger/home/presentation/home_screen.dart';
 
 class UserDriverNavigation extends ConsumerStatefulWidget {
   const UserDriverNavigation({super.key});

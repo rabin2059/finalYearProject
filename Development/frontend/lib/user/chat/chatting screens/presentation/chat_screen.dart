@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:frontend/user/authentication/login/providers/auth_provider.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:intl/intl.dart';
-import 'package:frontend/data/services/socket_service.dart';
-import 'package:frontend/core/constants.dart';
 
 import '../../../../components/AppColors.dart';
+import '../../../authentication/login/providers/auth_provider.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final int groupId;

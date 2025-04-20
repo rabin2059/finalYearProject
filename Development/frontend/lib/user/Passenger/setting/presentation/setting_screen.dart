@@ -2,9 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:frontend/user/Passenger/profile/presentation/profile_screen.dart';
-import 'package:frontend/user/Passenger/setting/providers/setting_state.dart';
-import 'package:frontend/user/authentication/login/providers/auth_state.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../components/AppColors.dart';
@@ -12,7 +9,9 @@ import '../../../../components/CustomButton.dart';
 import '../../../../core/constants.dart';
 import '../../../authentication/login/presentation/login_screen.dart';
 import '../../../authentication/login/providers/auth_provider.dart';
+import '../../../authentication/login/providers/auth_state.dart';
 import '../providers/setting_provider.dart';
+import '../providers/setting_state.dart';
 
 class SettingScreen extends ConsumerStatefulWidget {
   const SettingScreen({super.key});

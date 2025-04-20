@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/data/models/booking_vehicle_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import '../models/booking_vehicle_model.dart';
 
 class BookVehicleService {
   final String baseUrl;

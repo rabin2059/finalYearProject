@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/components/CustomButton.dart';
-import 'package:frontend/user/Passenger/bus%20details/providers/bus_details_provider.dart';
-import 'package:frontend/components/AppColors.dart';
+
+import '../../../../components/AppColors.dart';
+import '../../bus details/providers/bus_details_provider.dart';
 
 class SelectSeatScreen extends ConsumerStatefulWidget {
   final String vehicleType;

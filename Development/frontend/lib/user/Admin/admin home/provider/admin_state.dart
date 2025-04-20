@@ -1,4 +1,6 @@
-import 'package:frontend/data/models/all_user_model.dart';
+
+
+import '../../../../data/models/all_user_model.dart';
 
 class AdminState {
   final bool isLoading;

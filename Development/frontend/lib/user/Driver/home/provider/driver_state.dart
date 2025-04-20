@@ -1,4 +1,5 @@
-import 'package:frontend/data/models/driver_model.dart';
+
+import '../../../../data/models/driver_model.dart';
 
 class DriverState {
   final DriverData? driverData;

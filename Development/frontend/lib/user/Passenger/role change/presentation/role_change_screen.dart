@@ -5,12 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dotted_border/dotted_border.dart';
-import 'package:frontend/components/AppColors.dart';
-import 'package:frontend/components/CustomButton.dart';
-import 'package:frontend/components/CustomTextField.dart';
-import 'package:frontend/core/constants.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
+import '../../../../components/AppColors.dart';
+import '../../../../components/CustomButton.dart';
+import '../../../../components/CustomTextField.dart';
+import '../../../../core/constants.dart';
 import '../../../authentication/login/providers/auth_provider.dart';
 import '../../setting/providers/setting_provider.dart';
 

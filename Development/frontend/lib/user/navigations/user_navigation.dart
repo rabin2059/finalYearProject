@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/user/Passenger/bus%20list/presentation/bus_screen.dart';
-import 'package:frontend/user/Passenger/home/presentation/home_screen.dart';
-import 'package:frontend/user/Passenger/setting/presentation/setting_screen.dart';
+
+import '../Passenger/bus list/presentation/bus_screen.dart';
+import '../Passenger/home/presentation/home_screen.dart';
+import '../Passenger/setting/presentation/setting_screen.dart';
 
 class UserNavigation extends ConsumerStatefulWidget {
   const UserNavigation({super.key});

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:frontend/data/models/driver_model.dart';
 import '../../../../core/constants.dart';
+import '../models/driver_model.dart';
 
 class DriverService {
   final String baseUrl;

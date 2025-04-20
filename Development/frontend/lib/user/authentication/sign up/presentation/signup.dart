@@ -4,13 +4,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:frontend/core/constants.dart';
-import 'package:frontend/user/authentication/login/presentation/login_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import '../../../../components/AppColors.dart';
 import '../../../../components/CustomButton.dart';
 import '../../../../components/CustomTextField.dart';
+import '../../../../core/constants.dart';
 
 class SignUp extends ConsumerStatefulWidget {
   const SignUp({super.key});

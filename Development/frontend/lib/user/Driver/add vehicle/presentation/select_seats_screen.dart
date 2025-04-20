@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:frontend/components/CustomButton.dart';
+
+import '../../../../components/CustomButton.dart';
 
 class SelectSeatsScreen extends StatefulWidget {
   final String vehicleType;

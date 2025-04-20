@@ -3758,3 +3758,54 @@ Unknown field `ChatGroup` for include statement on model `User`. Available optio
 2025-04-20 09:34:02 [info]: Client disconnected: UxHciDoJ8KD-4ewIAAAH, reason: transport close
 2025-04-20 09:34:19 [info]: Client disconnected: e8zSUrBWfwtevmY5AAAF, reason: ping timeout
 2025-04-20 09:34:19 [info]: Vehicle 1 removed from active buses
+2025-04-20 09:35:40 [info]: New client connected: 1kIpfqU0Yj3_nOnlAAAJ (transport: websocket)
+2025-04-20 09:35:40 [info]: User 1 logged in via socket 1kIpfqU0Yj3_nOnlAAAJ (transport: websocket)
+2025-04-20 09:37:00 [info]: Client disconnected: 1kIpfqU0Yj3_nOnlAAAJ, reason: ping timeout
+2025-04-20 09:38:55 [info]: New client connected: ycmTIgF9nyFEwOkCAAAL (transport: websocket)
+2025-04-20 09:38:56 [info]: User 1 logged in via socket ycmTIgF9nyFEwOkCAAAL (transport: websocket)
+2025-04-20 09:41:08 [info]: Client disconnected: ycmTIgF9nyFEwOkCAAAL, reason: transport close
+2025-04-20 09:42:04 [info]: New client connected: rmgIBaoE9yFG2XrHAAAN (transport: websocket)
+2025-04-20 09:42:04 [info]: User 1 logged in via socket rmgIBaoE9yFG2XrHAAAN (transport: websocket)
+2025-04-20 09:42:19 [info]: Server running on http://localhost:3089
+2025-04-20 09:42:20 [info]: New client connected: OqfyUH767LBmyiiRAAAB (transport: websocket)
+2025-04-20 09:42:20 [info]: User 1 logged in via socket OqfyUH767LBmyiiRAAAB (transport: websocket)
+2025-04-20 09:42:20 [info]: Client disconnected: OqfyUH767LBmyiiRAAAB, reason: client namespace disconnect
+2025-04-20 09:57:22 [info]: New client connected: 8SZ2w-xuQ6QbCDyKAAAD (transport: websocket)
+2025-04-20 09:57:22 [info]: User 1 logged in via socket 8SZ2w-xuQ6QbCDyKAAAD (transport: websocket)
+2025-04-20 10:02:15 [info]: Client disconnected: 8SZ2w-xuQ6QbCDyKAAAD, reason: transport close
+2025-04-20 10:56:04 [info]: New client connected: PRBXl2VkAOCzzVEEAAAF (transport: websocket)
+2025-04-20 10:56:04 [info]: User 1 logged in via socket PRBXl2VkAOCzzVEEAAAF (transport: websocket)
+2025-04-20 11:02:28 [info]: Client disconnected: PRBXl2VkAOCzzVEEAAAF, reason: transport close
+2025-04-20 11:02:56 [info]: New client connected: mF2m0Go-rVZLuWfhAAAH (transport: websocket)
+2025-04-20 11:02:57 [info]: User 1 logged in via socket mF2m0Go-rVZLuWfhAAAH (transport: websocket)
+2025-04-20 11:04:06 [info]: Client disconnected: mF2m0Go-rVZLuWfhAAAH, reason: transport close
+2025-04-20 11:05:39 [info]: New client connected: anhELqWm1i7dCsBFAAAJ (transport: websocket)
+2025-04-20 11:05:39 [info]: User 5 logged in via socket anhELqWm1i7dCsBFAAAJ (transport: websocket)
+2025-04-20 11:08:32 [info]: Client disconnected: anhELqWm1i7dCsBFAAAJ, reason: client namespace disconnect
+2025-04-20 11:09:32 [info]: Server running on http://localhost:3089
+2025-04-20 11:09:33 [info]: Server running on http://localhost:3089
+2025-04-20 11:09:35 [info]: Server running on http://localhost:3089
+2025-04-20 11:09:37 [info]: Server running on http://localhost:3089
+2025-04-20 11:09:39 [info]: Server running on http://localhost:3089
+2025-04-20 11:13:39 [info]: New client connected: 4lMpzF-O32CkBx1WAAAB (transport: websocket)
+2025-04-20 11:13:39 [info]: User 5 logged in via socket 4lMpzF-O32CkBx1WAAAB (transport: websocket)
+2025-04-20 11:14:28 [info]: Server running on http://localhost:3089
+2025-04-20 11:14:29 [info]: New client connected: TKkrhKDNHE5AcVZNAAAB (transport: websocket)
+2025-04-20 11:14:29 [info]: User 5 logged in via socket TKkrhKDNHE5AcVZNAAAB (transport: websocket)
+2025-04-20 11:14:31 [info]: Server running on http://localhost:3089
+2025-04-20 11:14:32 [info]: Server running on http://localhost:3089
+2025-04-20 11:14:33 [info]: New client connected: 6DG4AGAGqhL65fkiAAAB (transport: websocket)
+2025-04-20 11:14:33 [info]: User 5 logged in via socket 6DG4AGAGqhL65fkiAAAB (transport: websocket)
+2025-04-20 11:15:26 [info]: User 5 logged out
+2025-04-20 11:15:26 [info]: Client disconnected: 6DG4AGAGqhL65fkiAAAB, reason: client namespace disconnect
+2025-04-20 11:15:44 [info]: New client connected: ZzmuruZ0cRiUwUDlAAAD (transport: websocket)
+2025-04-20 11:15:45 [info]: User 5 logged in via socket ZzmuruZ0cRiUwUDlAAAD (transport: websocket)
+2025-04-20 11:17:17 [info]: User 5 logged out
+2025-04-20 11:17:17 [info]: Client disconnected: ZzmuruZ0cRiUwUDlAAAD, reason: client namespace disconnect
+2025-04-20 11:17:31 [info]: New client connected: EfUJhgO7vCeDbLPbAAAF (transport: websocket)
+2025-04-20 11:17:32 [info]: User 1 logged in via socket EfUJhgO7vCeDbLPbAAAF (transport: websocket)
+2025-04-20 11:19:03 [info]: Client disconnected: EfUJhgO7vCeDbLPbAAAF, reason: transport close
+2025-04-20 11:26:10 [info]: Server running on http://localhost:3089
+2025-04-20 11:26:17 [info]: New client connected: m8nCTnNQYU3SBi2CAAAB (transport: websocket)
+2025-04-20 11:26:17 [info]: User 1 logged in via socket m8nCTnNQYU3SBi2CAAAB (transport: websocket)
+2025-04-20 11:27:16 [info]: Client disconnected: m8nCTnNQYU3SBi2CAAAB, reason: transport close

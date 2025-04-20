@@ -3,16 +3,15 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/components/AppColors.dart';
-import 'package:frontend/core/constants.dart';
-import 'package:frontend/core/shared_prefs_utils.dart';
-import 'package:frontend/data/services/map_service.dart';
-import 'package:frontend/user/Driver/driver%20map/driver_map_provider.dart';
-import 'package:frontend/user/Passenger/bus%20details/providers/bus_details_provider.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 
+import '../../../components/AppColors.dart';
+import '../../../core/constants.dart';
+import '../../../core/shared_prefs_utils.dart';
+import '../../../data/services/map_service.dart';
 import '../../Passenger/setting/providers/setting_provider.dart';
+import 'driver_map_provider.dart';
 
 class DriverMapScreen extends ConsumerStatefulWidget {
   final int vehicleId;
@@ -51,23 +50,6 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
       });
       await _handleStartSharing(); // redraw route if needed
     }
-
-    // final url = Uri.parse("$apiBaseUrl/isTripActive?vehicleId=${widget.vehicleId}");
-    // try {
-    //   final response = await http.get(url);
-    //   if (response.statusCode == 200) {
-    //     final jsonData = json.decode(response.body);
-    //     if (jsonData['active'] == true) {
-    //       setState(() {
-    //         isSharing = true;
-    //         _showRoute = true;
-    //       });
-    //       await _handleStartSharing(); // redraw route if needed
-    //     }
-    //   }
-    // } catch (e) {
-    //   debugPrint('Trip check failed: $e');
-    // }
   }
 
   Future<void> _loadRoute() async {

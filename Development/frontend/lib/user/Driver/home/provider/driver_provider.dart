@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/data/services/driver_service.dart';
-import 'package:frontend/user/Driver/home/provider/driver_state.dart';
 import '../../../../core/constants.dart';
+import '../../../../data/services/driver_service.dart';
+import 'driver_state.dart';
 
 class DriverNotifier extends StateNotifier<DriverState> {
   final DriverService driverService;

@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/data/services/book_vehicle_service.dart';
 import '../../../../core/constants.dart';
+import '../../../../data/services/book_vehicle_service.dart';
 import 'book_vehicle_state.dart';
 
 class BookVehicleNotifier extends StateNotifier<BookVehicleState> {

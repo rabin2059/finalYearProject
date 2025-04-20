@@ -2,11 +2,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/user/Admin/admin%20home/presentation/admin_home_screen.dart';
-import 'package:frontend/user/Admin/admin%20request/presentation/admin_request_screen.dart';
-import 'package:frontend/user/authentication/login/providers/auth_provider.dart';
 import '../../components/AppColors.dart';
 import 'package:go_router/go_router.dart';
+
+import '../Admin/admin home/presentation/admin_home_screen.dart';
+import '../Admin/admin request/presentation/admin_request_screen.dart';
+import '../authentication/login/providers/auth_provider.dart';
 
 class AdminNavigation extends StatefulWidget {
   const AdminNavigation({super.key});

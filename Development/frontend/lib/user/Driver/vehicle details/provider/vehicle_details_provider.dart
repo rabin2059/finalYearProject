@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/data/services/vehicle_service.dart';
 import '../../../../core/constants.dart';
+import '../../../../data/services/vehicle_service.dart';
 import 'vehicle_details_state.dart';
 
 class VehicleNotifier extends StateNotifier<VehicleState> {

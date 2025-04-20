@@ -1,4 +1,5 @@
-import 'package:frontend/data/models/book_list_model.dart';
+
+import '../../../../data/models/book_list_model.dart';
 
 class BookListState {
   final bool loading;

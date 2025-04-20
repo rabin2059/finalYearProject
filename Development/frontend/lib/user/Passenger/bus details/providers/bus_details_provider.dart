@@ -1,8 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/data/services/bus_service.dart';
-import 'package:frontend/user/Passenger/bus%20details/providers/single_bus_state.dart';
-
 import '../../../../core/constants.dart';
+import '../../../../data/services/bus_service.dart';
+import 'single_bus_state.dart';
 
 class BusDetailsNotifier extends StateNotifier<SingleBusState> {
   final BusService busService;

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:frontend/user/Driver/booking%20lists/providers/book_vehicle_provider.dart';
-import 'package:frontend/user/Passenger/bus%20details/providers/bus_details_provider.dart';
-import 'package:frontend/user/Passenger/setting/providers/setting_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../Passenger/setting/providers/setting_provider.dart';
 import '../../vehicle details/provider/vehicle_details_provider.dart';
+import '../providers/book_vehicle_provider.dart';
 
 class BookVehicleListScreen extends ConsumerStatefulWidget {
   const BookVehicleListScreen({super.key});

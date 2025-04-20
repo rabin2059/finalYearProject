@@ -4,15 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:frontend/core/constants.dart';
-import 'package:frontend/user/Driver/driver map/driver_map_screen.dart';
-import 'package:frontend/user/Passenger/bus details/providers/bus_details_provider.dart';
-import 'package:frontend/user/authentication/login/providers/auth_provider.dart';
 import 'package:http/http.dart' as http;
 import '../../../../components/AppColors.dart';
 import '../../../../components/CustomButton.dart';
 import '../../../../data/services/map_service.dart';
 import '../../../Passenger/setting/providers/setting_provider.dart';
+import '../../../authentication/login/providers/auth_provider.dart';
+import '../../driver map/driver_map_screen.dart';
 import '../../vehicle details/provider/vehicle_details_provider.dart';
 import '../provider/driver_provider.dart';
 

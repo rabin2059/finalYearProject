@@ -1,9 +1,10 @@
 import 'dart:convert';
 
-import 'package:frontend/core/shared_prefs_utils.dart';
-import 'package:frontend/data/models/chat_group_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../core/shared_prefs_utils.dart';
+import '../models/chat_group_model.dart';
 
 class ChatGroupService {
   final String baseUrl;

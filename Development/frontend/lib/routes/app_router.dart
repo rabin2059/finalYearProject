@@ -1,30 +1,28 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/user/Admin/admin%20home/presentation/admin_home_screen.dart';
-import 'package:frontend/user/Admin/admin%20request/presentation/admin_request_screen.dart';
-import 'package:frontend/user/Driver/add%20route/presentation/add_route_screen.dart';
-import 'package:frontend/user/Driver/add%20vehicle/presentation/add_vehicle.dart';
-import 'package:frontend/user/Driver/booking%20users%20details/presentation/booking_user_details.dart';
-import 'package:frontend/user/Passenger/booking%20lists/presentation/booking_list_screen.dart';
-import 'package:frontend/user/Passenger/book%20vehicle/presentation/booking_screen.dart';
-import 'package:frontend/user/Passenger/bus%20details/presentation/bus_detail_screen.dart';
-import 'package:frontend/user/authentication/forgot%20password/presentation/forgot.dart';
-import 'package:frontend/user/authentication/otp/presentation/otp.dart';
-import 'package:frontend/user/authentication/reset%20password/presentation/pass_change.dart';
-import 'package:frontend/user/authentication/sign%20up/presentation/signup.dart';
-import 'package:frontend/user/Passenger/user%20map/presentation/map_screen.dart';
-import 'package:frontend/user/Passenger/payment/presentation/overview_screen.dart';
-import 'package:frontend/user/Passenger/payment/presentation/payment_screen.dart';
-import 'package:frontend/user/Passenger/profile/presentation/profile_screen.dart';
-import 'package:frontend/user/Passenger/role%20change/presentation/role_change_screen.dart';
-import 'package:frontend/user/Passenger/setting/presentation/setting_screen.dart';
-import 'package:frontend/user/chat/chat%20lists/presentation/chat_driver_screen.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/shared_prefs_utils.dart';
+import '../user/Driver/add route/presentation/add_route_screen.dart';
+import '../user/Driver/add vehicle/presentation/add_vehicle.dart';
+import '../user/Driver/booking users details/presentation/booking_user_details.dart';
+import '../user/Driver/vehicle details/presentation/view_vehicle_screen.dart';
+import '../user/Passenger/book vehicle/presentation/booking_screen.dart';
+import '../user/Passenger/booking lists/presentation/booking_list_screen.dart';
+import '../user/Passenger/bus details/presentation/bus_detail_screen.dart';
+import '../user/Passenger/payment/presentation/overview_screen.dart';
+import '../user/Passenger/payment/presentation/payment_screen.dart';
+import '../user/Passenger/profile/presentation/profile_screen.dart';
+import '../user/Passenger/role change/presentation/role_change_screen.dart';
+import '../user/Passenger/user map/presentation/map_screen.dart';
+import '../user/authentication/forgot password/presentation/forgot.dart';
 import '../user/authentication/login/providers/auth_provider.dart';
 import '../user/authentication/login/presentation/login_screen.dart';
+import '../user/authentication/otp/presentation/otp.dart';
+import '../user/authentication/reset password/presentation/pass_change.dart';
+import '../user/authentication/sign up/presentation/signup.dart';
+import '../user/chat/chat lists/presentation/chat_driver_screen.dart';
 import '../user/chat/chatting screens/presentation/chat_screen.dart';
 import '../user/navigations/navigation_screen.dart';
 import '../get_started_screen.dart';
@@ -54,101 +52,29 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
   GoRoute(
       path: '/signup',
       name: '/signup',
-      builder: (context, state) => FutureBuilder(
-            future: checkTokenValidity(context),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError || snapshot.data == false) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  context.go('/login');
-                });
-                return const SizedBox.shrink();
-              } else {
-                return const SignUp();
-              }
-            },
-          )),
+      builder: (context, state) => const SignUp()),
   GoRoute(
       path: '/login',
       name: '/login',
-      builder: (context, state) => FutureBuilder(
-            future: checkTokenValidity(context),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError || snapshot.data == false) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  context.go('/login');
-                });
-                return const SizedBox.shrink();
-              } else {
-                return const LoginScreen();
-              }
-            },
-          )),
+      builder: (context, state) => const LoginScreen()),
   GoRoute(
       path: '/forgot',
       name: '/forgot',
-      builder: (context, state) => FutureBuilder(
-            future: checkTokenValidity(context),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError || snapshot.data == false) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  context.go('/login');
-                });
-                return const SizedBox.shrink();
-              } else {
-                return const Forgot();
-              }
-            },
-          )),
+      builder: (context, state) => const Forgot()),
   GoRoute(
     path: '/otp',
     name: '/otp',
     builder: (context, state) {
       final emails = state.pathParameters['email'] ?? '';
-      return FutureBuilder(
-        future: checkTokenValidity(context),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError || snapshot.data == false) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.go('/login');
-            });
-            return const SizedBox.shrink();
-          } else {
-            return OTP(email: emails);
-          }
-        },
-      );
-    },
-  ),
+      return OTP(email: emails);
+    }),
   GoRoute(
     path: '/reset',
     name: '/reset',
     builder: (context, state) {
       final emails = state.pathParameters['email'] ?? '';
-      return FutureBuilder(
-        future: checkTokenValidity(context),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError || snapshot.data == false) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.go('/login');
-            });
-            return const SizedBox.shrink();
-          } else {
-            return PassChange(email: emails);
-          }
-        },
-      );
-    },
-  ),
+      return PassChange(email: emails);
+    }),
   GoRoute(
       path: '/ChatGroup',
       name: '/ChatGroup',
@@ -159,9 +85,11 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
                 return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError || snapshot.data == false) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  context.go('/login');
+                  if (context.mounted) context.go('/login');
                 });
-                return const SizedBox.shrink();
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
               } else {
                 return const ChatDriverScreen();
               }
@@ -177,9 +105,11 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
                 return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError || snapshot.data == false) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  context.go('/login');
+                  if (context.mounted) context.go('/login');
                 });
-                return const SizedBox.shrink();
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
               } else {
                 return Navigation();
               }
@@ -195,9 +125,11 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
                 return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError || snapshot.data == false) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  context.go('/login');
+                  if (context.mounted) context.go('/login');
                 });
-                return const SizedBox.shrink();
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
               } else {
                 return AddVehicle();
               }
@@ -216,9 +148,11 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError || snapshot.data == false) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.go('/login');
+              if (context.mounted) context.go('/login');
             });
-            return const SizedBox.shrink();
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
           } else {
             return AddRouteScreen(vehicleId: id);
           }
@@ -236,9 +170,11 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
                 return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError || snapshot.data == false) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  context.go('/login');
+                  if (context.mounted) context.go('/login');
                 });
-                return const SizedBox.shrink();
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
               } else {
                 return ProfileScreen();
               }
@@ -257,9 +193,11 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError || snapshot.data == false) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.go('/login');
+              if (context.mounted) context.go('/login');
             });
-            return const SizedBox.shrink();
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
           } else {
             return ChatScreen(
               groupId: args.groupId,
@@ -280,9 +218,11 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
                 return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError || snapshot.data == false) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  context.go('/login');
+                  if (context.mounted) context.go('/login');
                 });
-                return const SizedBox.shrink();
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
               } else {
                 return RoleChangeScreen();
               }
@@ -298,9 +238,11 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
                 return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError || snapshot.data == false) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  context.go('/login');
+                  if (context.mounted) context.go('/login');
                 });
-                return const SizedBox.shrink();
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
               } else {
                 return BookingListScreen();
               }
@@ -316,9 +258,11 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
                 return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError || snapshot.data == false) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  context.go('/login');
+                  if (context.mounted) context.go('/login');
                 });
-                return const SizedBox.shrink();
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
               } else {
                 return MapScreens();
               }
@@ -337,9 +281,11 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError || snapshot.data == false) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.go('/login');
+              if (context.mounted) context.go('/login');
             });
-            return const SizedBox.shrink();
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
           } else {
             return BusDetailScreen(busId: busId);
           }
@@ -359,9 +305,11 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
               return const Center(child: CircularProgressIndicator());
             } else if (snapshot.hasError || snapshot.data == false) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                context.go('/login');
+                if (context.mounted) context.go('/login');
               });
-              return const SizedBox.shrink();
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
             } else {
               return BookingScreen(busId: id);
             }
@@ -380,9 +328,11 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
               return const Center(child: CircularProgressIndicator());
             } else if (snapshot.hasError || snapshot.data == false) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                context.go('/login');
+                if (context.mounted) context.go('/login');
               });
-              return const SizedBox.shrink();
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
             } else {
               return OverviewScreen(bookId: id);
             }
@@ -402,9 +352,11 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError || snapshot.data == false) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.go('/login');
+              if (context.mounted) context.go('/login');
             });
-            return const SizedBox.shrink();
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
           } else {
             return BookingUserDetails(bookId: bookId, userId: userId);
           }
@@ -431,9 +383,11 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError || snapshot.data == false) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.go('/login');
+              if (context.mounted) context.go('/login');
             });
-            return const SizedBox.shrink();
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
           } else {
             return PaymentScreen(
                 paymentUrl:
@@ -442,6 +396,27 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
         },
       );
     },
+  ),
+  GoRoute(
+    name: '/viewVehicle',
+    path: '/viewVehicle',
+    builder: (context, state) => FutureBuilder(
+      future: checkTokenValidity(context),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError || snapshot.data == false) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) context.go('/login');
+          });
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        } else {
+          return ViewVehicleScreen(); // Ensure you have this screen implemented and imported
+        }
+      },
+    ),
   ),
 ]);
 

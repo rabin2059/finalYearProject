@@ -1,8 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/data/services/user_service.dart';
-import 'package:frontend/user/Passenger/setting/providers/setting_state.dart';
-
 import '../../../../core/constants.dart';
+import '../../../../data/services/user_service.dart';
+import 'setting_state.dart';
 
 class SettingNotifier extends StateNotifier<SettingState> {
   final UserService userService;

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/user/navigations/admin_navigation.dart';
-import 'package:frontend/user/navigations/driver_navigation.dart';
-import 'package:frontend/user/navigations/user_driver_navigation.dart';
-import 'package:frontend/user/navigations/user_navigation.dart';
 
 import '../../core/role.dart';
 import '../authentication/login/providers/auth_provider.dart';
+import 'admin_navigation.dart';
+import 'driver_navigation.dart';
+import 'user_driver_navigation.dart';
+import 'user_navigation.dart';
 
 class Navigation extends ConsumerWidget {
   const Navigation({super.key});

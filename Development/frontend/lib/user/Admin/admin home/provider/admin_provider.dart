@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/core/constants.dart';
-import 'package:frontend/data/services/admin_service.dart';
-
+import '../../../../core/constants.dart';
+import '../../../../data/services/admin_service.dart';
 import 'admin_state.dart';
 
 class AdminNotifier extends StateNotifier<AdminState> {

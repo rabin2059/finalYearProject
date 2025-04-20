@@ -286,6 +286,12 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
         backgroundColor: Theme.of(context).primaryColor,
         centerTitle: true,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline, color: Colors.white),

@@ -1,7 +1,9 @@
 import 'dart:convert';
-import 'package:frontend/data/models/bus.dart';
-import 'package:frontend/data/models/bus_model.dart' as models;
+import '../models/bus_model.dart' as models;
 import 'package:http/http.dart' as http;
+
+import '../models/bus.dart';
+
 
 class BusService {
   final String baseUrl;

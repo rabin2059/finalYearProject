@@ -1,9 +1,8 @@
 import 'dart:convert';
-
-import 'package:frontend/data/models/book_model.dart';
-
 import '../models/book_list_model.dart';
 import 'package:http/http.dart' as http;
+
+import '../models/book_model.dart';
 
 class BookService {
   final String baseUrl;

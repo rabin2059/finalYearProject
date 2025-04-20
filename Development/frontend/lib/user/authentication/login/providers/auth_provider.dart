@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/core/role.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import '../../../../core/constants.dart';
+import '../../../../core/role.dart';
 import '../../../../core/shared_prefs_utils.dart';
 import '../../../../data/services/auth_service.dart';
 import '../../../../data/services/socket_service.dart';

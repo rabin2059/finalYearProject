@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/data/services/passenger_Service.dart';
-import 'package:frontend/user/Passenger/home/provider/passenger_state.dart';
 import '../../../../core/constants.dart';
+import '../../../../data/services/passenger_service.dart';
+import 'passenger_state.dart';
 
 class PassengerNotifier extends StateNotifier<PassengerState> {
   final PassengerService passengerService;

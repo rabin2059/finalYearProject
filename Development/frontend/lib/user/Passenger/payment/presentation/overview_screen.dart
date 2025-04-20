@@ -2,14 +2,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:frontend/components/CustomButton.dart';
-import 'package:frontend/user/Passenger/payment/provider/payment_provider.dart';
-import 'package:frontend/user/Passenger/booking%20lists/providers/book_list_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import '../../../../components/CustomButton.dart';
 import '../../../../core/constants.dart';
+import '../provider/payment_provider.dart';
 
 class OverviewScreen extends ConsumerStatefulWidget {
   const OverviewScreen({super.key, required this.bookId});

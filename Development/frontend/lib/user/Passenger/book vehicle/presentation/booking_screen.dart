@@ -3,15 +3,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:frontend/components/CustomButton.dart';
-import 'package:frontend/core/constants.dart';
-import 'package:frontend/user/map/providers/map_provider.dart';
-import 'package:frontend/user/authentication/login/providers/auth_provider.dart';
-import 'package:frontend/user/Passenger/bus%20details/providers/bus_details_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import '../../../../components/AppColors.dart';
+import '../../../../core/constants.dart';
+import '../../../authentication/login/providers/auth_provider.dart';
+import '../../../map/providers/map_provider.dart';
+import '../../bus details/providers/bus_details_provider.dart';
 import '../../bus list/providers/bus_list_provider.dart';
 import 'select_seat_screen.dart';
 
@@ -288,7 +287,6 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     }
   }
 
-  /// **Handles location search and updates the suggestion list**
   void _debouncedSearch(String query, MapNotifier mapNotifier, bool isPickup) {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () async {

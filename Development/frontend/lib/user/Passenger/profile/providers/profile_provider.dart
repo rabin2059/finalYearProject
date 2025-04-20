@@ -1,12 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/user/Passenger/setting/providers/setting_state.dart';
 import 'package:http/http.dart';
 
 import '../../../../core/constants.dart';
 import '../../../../data/models/user_model.dart';
 import '../../../../data/services/user_service.dart';
+import '../../setting/providers/setting_state.dart';
 
 class ProfileNotifier extends StateNotifier<SettingState> {
   final UserService userService;

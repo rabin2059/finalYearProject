@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/user/Passenger/booking%20lists/providers/book_list_provider.dart';
-import 'package:frontend/user/authentication/login/providers/auth_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+
+import '../../../authentication/login/providers/auth_provider.dart';
+import '../providers/book_list_provider.dart';
 
 class BookingListScreen extends ConsumerStatefulWidget {
   const BookingListScreen({super.key});

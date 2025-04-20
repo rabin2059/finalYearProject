@@ -5,6 +5,7 @@ const updateUser = async (req, res) => {
   try {
     const { id, username, email, phone, address } = req.body;
     const images = req.file ? `/uploads/${req.file.filename}` : null; // Check if a file was uploaded
+    console.log(images)
   
     // Find the user by ID
     const user = await prisma.user.findFirst({

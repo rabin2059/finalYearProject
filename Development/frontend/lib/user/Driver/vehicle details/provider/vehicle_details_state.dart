@@ -1,4 +1,4 @@
-import 'package:frontend/data/models/vehicle_details_model.dart';
+import '../../../../data/models/vehicle_details_model.dart';
 
 class VehicleState {
   final Vehicle? vehicle;

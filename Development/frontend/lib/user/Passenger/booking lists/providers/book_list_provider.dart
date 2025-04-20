@@ -1,8 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/data/services/book_service.dart';
-import 'package:frontend/user/Passenger/booking%20lists/providers/book_list_state.dart';
-
 import '../../../../core/constants.dart';
+import '../../../../data/services/book_service.dart';
+import 'book_list_state.dart';
 
 class BookListNotifier extends StateNotifier<BookListState> {
   final BookService bookService;

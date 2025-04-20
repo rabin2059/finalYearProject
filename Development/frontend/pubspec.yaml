@@ -1,4 +1,4 @@
-name: frontend
+name: merobus
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -35,6 +35,7 @@ dependencies:
   firebase_messaging: ^15.2.5
   flutter:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.3
   flutter_local_notifications: ^19.0.0
   flutter_map: ^8.0.0
   flutter_polyline_points: ^2.1.0
@@ -71,6 +72,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/
+    - assets/logo.png
   #   - images/a_dot_ham.jpeg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -95,3 +97,7 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/logo.png"

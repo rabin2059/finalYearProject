@@ -3,13 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:frontend/components/AppColors.dart';
-import 'package:frontend/components/CustomButton.dart';
-import 'package:frontend/components/CustomTextField.dart';
-import 'package:frontend/core/constants.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../components/AppColors.dart';
+import '../../../../core/constants.dart';
 import '../../../authentication/login/providers/auth_provider.dart';
 import '../../setting/providers/setting_provider.dart';
 import '../providers/profile_provider.dart';
@@ -27,7 +25,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   late String originalEmail;
   late String originalPhone;
   late String originalAddress;
-  late String? originalImageUrl;
+  String? originalImageUrl;
   bool _isLoading = false;
 
   final TextEditingController _usernameController = TextEditingController();
@@ -362,12 +360,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             fontWeight: FontWeight.bold,
             color: Colors.black87,
           ),
-        ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, size: 20.sp, color: Colors.black87),
-          onPressed: () {
-            Navigator.pop(context);
-          },
         ),
       ),
       body: Stack(

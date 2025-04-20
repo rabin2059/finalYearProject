@@ -1,4 +1,5 @@
-import 'package:frontend/data/models/book_model.dart';
+
+import '../../../../data/models/book_model.dart';
 
 class PaymentState {
   final bool isLoading;

@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart'; // Make sure to add this package
-import 'package:frontend/user/Admin/admin%20home/provider/admin_provider.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import '../../../../core/constants.dart';
+import '../../admin home/provider/admin_provider.dart';
 
 class AdminRequestScreen extends ConsumerStatefulWidget {
   const AdminRequestScreen({super.key});

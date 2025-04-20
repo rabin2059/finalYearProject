@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/core/constants.dart';
-import 'package:frontend/data/services/bus_service.dart';
-
+import '../../../../core/constants.dart';
+import '../../../../data/services/bus_service.dart';
 import 'bus_state.dart';
 
 class BusListNotifier extends StateNotifier<BusState> {

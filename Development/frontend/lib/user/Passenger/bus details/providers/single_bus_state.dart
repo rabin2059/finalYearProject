@@ -1,4 +1,5 @@
-import 'package:frontend/data/models/bus.dart';
+
+import '../../../../data/models/bus.dart';
 
 class SingleBusState {
   final bool isLoading;

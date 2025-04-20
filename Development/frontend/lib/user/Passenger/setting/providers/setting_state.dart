@@ -1,4 +1,5 @@
-import 'package:frontend/data/models/user_model.dart';
+
+import '../../../../data/models/user_model.dart';
 
 class SettingState {
   final List<UserData> users; // Pluralized for clarity
