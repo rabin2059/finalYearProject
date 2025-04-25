@@ -151,10 +151,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
           final bookingId = data["result"]["newBooking"]["id"];
 
-          // Show success animation/message before navigation
           _showSuccessMessage("Booking Successful!");
 
-          // Navigate after short delay to show success message
           Future.delayed(const Duration(milliseconds: 1500), () {
             context.pushReplacementNamed('/overview',
                 pathParameters: {'id': bookingId.toString()});
@@ -212,7 +210,6 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     );
   }
 
-  /// **Navigates to SelectSeatsScreen**
   Future<void> _navigateToSeatSelection() async {
     final state = ref.watch(busDetailsProvider);
 
@@ -424,7 +421,6 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                             ),
                             SizedBox(height: 20.h),
 
-                            // Location fields with new design
                             _buildSearchFieldWithIcon(
                               controller: _pickupController,
                               hint: "Enter pickup location",
@@ -435,7 +431,6 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                                   _debouncedSearch(query, mapNotifier, true),
                             ),
 
-                            // Show loading indicator or suggestions
                             if (_showPickupSuggestions)
                               isSearching
                                   ? _buildLoadingIndicator()
@@ -461,7 +456,6 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
 
                             SizedBox(height: 20.h),
 
-                            // Date Time Selector with improved design
                             Text(
                               "When do you want to travel?",
                               style: TextStyle(

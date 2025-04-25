@@ -3880,3 +3880,396 @@ Unknown field `ChatGroup` for include statement on model `User`. Available optio
 2025-04-20 15:12:22 [info]: Client disconnected: 0x0mGUOtsLDc9ql0AAAJ, reason: client namespace disconnect
 2025-04-20 15:14:06 [info]: New client connected: EKMXvTTexaDMfzpOAAAL (transport: websocket)
 2025-04-20 15:14:06 [info]: User 3 logged in via socket EKMXvTTexaDMfzpOAAAL (transport: websocket)
+2025-04-21 21:38:30 [info]: Server running on http://localhost:3089
+2025-04-21 21:39:29 [info]: Server running on http://localhost:3089
+2025-04-21 21:43:35 [info]: Server running on http://localhost:3089
+2025-04-21 21:45:55 [info]: Server running on http://localhost:3089
+2025-04-21 21:46:34 [info]: Server running on http://localhost:3089
+2025-04-21 21:47:11 [info]: Server running on http://localhost:3089
+2025-04-21 21:48:57 [info]: Server running on http://localhost:3089
+2025-04-21 21:50:02 [info]: Server running on http://localhost:3089
+2025-04-21 21:51:29 [info]: Server running on http://localhost:3089
+2025-04-21 21:54:37 [info]: Server running on http://localhost:3089
+2025-04-21 21:55:47 [info]: Server running on http://localhost:3089
+2025-04-21 21:57:01 [info]: Server running on http://localhost:3089
+2025-04-21 21:58:06 [info]: Server running on http://localhost:3089
+2025-04-21 22:07:32 [info]: Server running on http://localhost:3089
+2025-04-21 22:10:21 [info]: Server running on http://localhost:3089
+2025-04-21 22:10:41 [info]: Server running on http://localhost:3089
+2025-04-21 22:10:51 [info]: Server running on http://localhost:3089
+2025-04-21 22:11:10 [info]: Server running on http://localhost:3089
+2025-04-21 22:11:48 [info]: Server running on http://localhost:3089
+2025-04-21 22:12:19 [info]: Server running on http://localhost:3089
+2025-04-21 22:12:59 [info]: Server running on http://localhost:3089
+2025-04-21 22:13:05 [info]: Server running on http://localhost:3089
+2025-04-21 22:13:43 [info]: Server running on http://localhost:3089
+2025-04-21 22:14:38 [info]: Server running on http://localhost:3089
+2025-04-21 22:19:14 [info]: Server running on http://localhost:3089
+2025-04-21 22:21:03 [info]: Server running on http://localhost:3089
+2025-04-21 22:24:21 [info]: Server running on http://localhost:3089
+2025-04-21 22:24:34 [info]: Server running on http://localhost:3089
+2025-04-21 22:26:21 [info]: Server running on http://localhost:3089
+2025-04-21 22:30:10 [info]: Server running on http://localhost:3089
+2025-04-21 22:32:51 [info]: Server running on http://localhost:3089
+2025-04-21 22:36:41 [info]: Server running on http://localhost:3089
+2025-04-21 22:37:05 [error]: Uncaught Exception: listen EADDRINUSE: address already in use :::3089
+2025-04-21 22:37:05 [error]: Error: listen EADDRINUSE: address already in use :::3089
+    at Server.setupListenHandle [as _listen2] (node:net:1872:16)
+    at listenInCluster (node:net:1920:12)
+    at Server.listen (node:net:2008:7)
+    at Object.<anonymous> (/Users/rabinrai/Desktop/Final Year Project/Development/merobus_backend/index.js:61:8)
+    at Module._compile (node:internal/modules/cjs/loader:1376:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1435:10)
+    at Module.load (node:internal/modules/cjs/loader:1207:32)
+    at Module._load (node:internal/modules/cjs/loader:1023:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:135:12)
+    at node:internal/main/run_main_module:28:49
+2025-04-21 22:37:18 [info]: Server running on http://localhost:3089
+2025-04-21 22:38:45 [info]: Server running on http://localhost:3089
+2025-04-21 22:40:58 [info]: Server running on http://localhost:3089
+2025-04-21 22:43:39 [info]: Server running on http://localhost:3089
+2025-04-21 22:43:54 [info]: Server running on http://localhost:3089
+2025-04-21 22:45:49 [info]: Server running on http://localhost:3089
+2025-04-21 22:46:16 [info]: Server running on http://localhost:3089
+2025-04-21 22:47:32 [info]: Server running on http://localhost:3089
+2025-04-21 22:52:22 [error]: Uncaught Exception: listen EADDRINUSE: address already in use :::3089
+2025-04-21 22:52:22 [error]: Error: listen EADDRINUSE: address already in use :::3089
+    at Server.setupListenHandle [as _listen2] (node:net:1872:16)
+    at listenInCluster (node:net:1920:12)
+    at Server.listen (node:net:2008:7)
+    at Object.<anonymous> (/Users/rabinrai/Desktop/Final Year Project/Development/merobus_backend/index.js:61:8)
+    at Module._compile (node:internal/modules/cjs/loader:1376:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1435:10)
+    at Module.load (node:internal/modules/cjs/loader:1207:32)
+    at Module._load (node:internal/modules/cjs/loader:1023:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:135:12)
+    at node:internal/main/run_main_module:28:49
+2025-04-21 22:54:57 [error]: Uncaught Exception: listen EADDRINUSE: address already in use :::3089
+2025-04-21 22:54:57 [error]: Error: listen EADDRINUSE: address already in use :::3089
+    at Server.setupListenHandle [as _listen2] (node:net:1872:16)
+    at listenInCluster (node:net:1920:12)
+    at Server.listen (node:net:2008:7)
+    at Object.<anonymous> (/Users/rabinrai/Desktop/Final Year Project/Development/merobus_backend/index.js:61:8)
+    at Module._compile (node:internal/modules/cjs/loader:1376:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1435:10)
+    at Module.load (node:internal/modules/cjs/loader:1207:32)
+    at Module._load (node:internal/modules/cjs/loader:1023:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:135:12)
+    at node:internal/main/run_main_module:28:49
+2025-04-21 22:56:15 [error]: Uncaught Exception: listen EADDRINUSE: address already in use :::3089
+2025-04-21 22:56:15 [error]: Error: listen EADDRINUSE: address already in use :::3089
+    at Server.setupListenHandle [as _listen2] (node:net:1872:16)
+    at listenInCluster (node:net:1920:12)
+    at Server.listen (node:net:2008:7)
+    at Object.<anonymous> (/Users/rabinrai/Desktop/Final Year Project/Development/merobus_backend/index.js:61:8)
+    at Module._compile (node:internal/modules/cjs/loader:1376:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1435:10)
+    at Module.load (node:internal/modules/cjs/loader:1207:32)
+    at Module._load (node:internal/modules/cjs/loader:1023:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:135:12)
+    at node:internal/main/run_main_module:28:49
+2025-04-21 22:56:20 [error]: Uncaught Exception: listen EADDRINUSE: address already in use :::3089
+2025-04-21 22:56:20 [error]: Error: listen EADDRINUSE: address already in use :::3089
+    at Server.setupListenHandle [as _listen2] (node:net:1872:16)
+    at listenInCluster (node:net:1920:12)
+    at Server.listen (node:net:2008:7)
+    at Object.<anonymous> (/Users/rabinrai/Desktop/Final Year Project/Development/merobus_backend/index.js:61:8)
+    at Module._compile (node:internal/modules/cjs/loader:1376:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1435:10)
+    at Module.load (node:internal/modules/cjs/loader:1207:32)
+    at Module._load (node:internal/modules/cjs/loader:1023:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:135:12)
+    at node:internal/main/run_main_module:28:49
+2025-04-21 22:56:33 [error]: Uncaught Exception: listen EADDRINUSE: address already in use :::3089
+2025-04-21 22:56:33 [error]: Error: listen EADDRINUSE: address already in use :::3089
+    at Server.setupListenHandle [as _listen2] (node:net:1872:16)
+    at listenInCluster (node:net:1920:12)
+    at Server.listen (node:net:2008:7)
+    at Object.<anonymous> (/Users/rabinrai/Desktop/Final Year Project/Development/merobus_backend/index.js:61:8)
+    at Module._compile (node:internal/modules/cjs/loader:1376:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1435:10)
+    at Module.load (node:internal/modules/cjs/loader:1207:32)
+    at Module._load (node:internal/modules/cjs/loader:1023:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:135:12)
+    at node:internal/main/run_main_module:28:49
+2025-04-21 22:56:50 [error]: Uncaught Exception: listen EADDRINUSE: address already in use :::3089
+2025-04-21 22:56:50 [error]: Error: listen EADDRINUSE: address already in use :::3089
+    at Server.setupListenHandle [as _listen2] (node:net:1872:16)
+    at listenInCluster (node:net:1920:12)
+    at Server.listen (node:net:2008:7)
+    at Object.<anonymous> (/Users/rabinrai/Desktop/Final Year Project/Development/merobus_backend/index.js:61:8)
+    at Module._compile (node:internal/modules/cjs/loader:1376:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1435:10)
+    at Module.load (node:internal/modules/cjs/loader:1207:32)
+    at Module._load (node:internal/modules/cjs/loader:1023:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:135:12)
+    at node:internal/main/run_main_module:28:49
+2025-04-21 22:58:03 [info]: Server running on http://localhost:3089
+2025-04-21 22:58:45 [info]: Server running on http://localhost:3089
+2025-04-21 22:59:14 [info]: Server running on http://localhost:3089
+2025-04-21 23:00:24 [info]: Server running on http://localhost:3089
+2025-04-21 23:01:58 [info]: Server running on http://localhost:3089
+2025-04-21 23:02:16 [info]: Server running on http://localhost:3089
+2025-04-22 09:07:17 [info]: Server running on http://localhost:3089
+2025-04-22 09:08:23 [info]: Server running on http://localhost:3089
+2025-04-22 09:11:47 [info]: Server running on http://localhost:3089
+2025-04-22 09:12:04 [info]: Server running on http://localhost:3089
+2025-04-22 09:12:04 [info]: Server running on http://localhost:3089
+2025-04-22 09:12:46 [info]: Server running on http://localhost:3089
+2025-04-22 09:12:48 [info]: Server running on http://localhost:3089
+2025-04-22 09:13:01 [info]: Server running on http://localhost:3089
+2025-04-22 09:13:35 [error]: Unhandled Rejection at:
+2025-04-22 09:13:35 [error]: Reason: Cannot set headers after they are sent to the client
+2025-04-22 09:13:58 [info]: Server running on http://localhost:3089
+2025-04-22 09:14:02 [info]: Server running on http://localhost:3089
+2025-04-22 09:14:04 [info]: Server running on http://localhost:3089
+2025-04-22 09:14:13 [info]: Server running on http://localhost:3089
+2025-04-22 09:14:22 [info]: Server running on http://localhost:3089
+2025-04-22 09:14:23 [info]: Server running on http://localhost:3089
+2025-04-22 09:14:28 [info]: Server running on http://localhost:3089
+2025-04-22 09:14:31 [info]: Server running on http://localhost:3089
+2025-04-22 12:43:47 [info]: New client connected: QousyMMTT5e4xQxhAAAB (transport: websocket)
+2025-04-22 12:43:47 [info]: User 2 logged in via socket QousyMMTT5e4xQxhAAAB (transport: websocket)
+2025-04-22 12:46:20 [info]: Client disconnected: QousyMMTT5e4xQxhAAAB, reason: transport close
+2025-04-22 12:47:00 [info]: Server running on http://localhost:3089
+2025-04-22 12:47:05 [info]: Server running on http://localhost:3089
+2025-04-22 12:47:10 [info]: Server running on http://localhost:3089
+2025-04-22 12:47:11 [info]: Server running on http://localhost:3089
+2025-04-22 12:47:36 [info]: New client connected: KYjmgwnoA-ExKs1CAAAB (transport: websocket)
+2025-04-22 12:47:36 [info]: User 2 logged in via socket KYjmgwnoA-ExKs1CAAAB (transport: websocket)
+2025-04-22 12:48:50 [info]: Server running on http://localhost:3089
+2025-04-22 12:48:52 [info]: New client connected: gSWESIpY3SpURrMnAAAB (transport: websocket)
+2025-04-22 12:48:52 [info]: User 2 logged in via socket gSWESIpY3SpURrMnAAAB (transport: websocket)
+2025-04-22 12:55:29 [info]: New client connected: TsdSBTYxArbkQsdeAAAD (transport: websocket)
+2025-04-22 12:55:29 [info]: User 2 logged in via socket TsdSBTYxArbkQsdeAAAD (transport: websocket)
+2025-04-22 12:56:17 [info]: Server running on http://localhost:3089
+2025-04-22 12:56:22 [info]: New client connected: T6hAFLTbn_tHZl4VAAAB (transport: websocket)
+2025-04-22 12:56:23 [info]: User 2 logged in via socket T6hAFLTbn_tHZl4VAAAB (transport: websocket)
+2025-04-22 12:56:31 [info]: Server running on http://localhost:3089
+2025-04-22 12:56:33 [info]: Server running on http://localhost:3089
+2025-04-22 12:56:37 [info]: New client connected: DNXsMNbcxZ1VpjnrAAAB (transport: websocket)
+2025-04-22 12:56:37 [info]: User 2 logged in via socket DNXsMNbcxZ1VpjnrAAAB (transport: websocket)
+2025-04-22 12:56:38 [info]: Server running on http://localhost:3089
+2025-04-22 12:56:40 [info]: New client connected: ERjLteIsQVnyA0E5AAAB (transport: websocket)
+2025-04-22 12:56:40 [info]: User 2 logged in via socket ERjLteIsQVnyA0E5AAAB (transport: websocket)
+2025-04-22 12:58:15 [info]: Server running on http://localhost:3089
+2025-04-22 12:58:16 [info]: New client connected: Cid8qsOJ_XYwhF9dAAAB (transport: websocket)
+2025-04-22 12:58:17 [info]: User 2 logged in via socket Cid8qsOJ_XYwhF9dAAAB (transport: websocket)
+2025-04-22 13:01:28 [info]: Client disconnected: Cid8qsOJ_XYwhF9dAAAB, reason: transport close
+2025-04-22 13:01:51 [info]: New client connected: 0KcegC5i3J3g33wGAAAD (transport: websocket)
+2025-04-22 13:01:51 [info]: User 2 logged in via socket 0KcegC5i3J3g33wGAAAD (transport: websocket)
+2025-04-22 13:21:12 [info]: Client disconnected: 0KcegC5i3J3g33wGAAAD, reason: transport close
+2025-04-23 08:22:14 [info]: Server running on http://localhost:3089
+2025-04-23 08:22:17 [info]: New client connected: BHt4vNLu1xVfJw53AAAB (transport: websocket)
+2025-04-23 08:22:17 [info]: User 2 logged in via socket BHt4vNLu1xVfJw53AAAB (transport: websocket)
+2025-04-23 08:24:06 [info]: Client disconnected: BHt4vNLu1xVfJw53AAAB, reason: client namespace disconnect
+2025-04-23 08:24:28 [info]: New client connected: W23OAX0i6PEZB7uIAAAD (transport: websocket)
+2025-04-23 08:24:28 [info]: User 1 logged in via socket W23OAX0i6PEZB7uIAAAD (transport: websocket)
+2025-04-23 08:24:59 [info]: Client disconnected: W23OAX0i6PEZB7uIAAAD, reason: transport close
+2025-04-23 19:44:35 [info]: Server running on http://localhost:3089
+2025-04-23 19:44:39 [info]: Server running on http://localhost:3089
+2025-04-23 19:44:43 [info]: Server running on http://localhost:3089
+2025-04-23 20:45:29 [info]: Server running on http://localhost:3089
+2025-04-23 20:45:52 [info]: Server running on http://localhost:3089
+2025-04-23 20:46:12 [info]: Server running on http://localhost:3089
+2025-04-23 20:46:42 [info]: Server running on http://localhost:3089
+2025-04-23 22:02:42 [info]: Server running on http://localhost:3089
+2025-04-23 22:16:41 [info]: Server running on http://localhost:3089
+2025-04-23 22:19:25 [info]: Server running on http://localhost:3089
+2025-04-24 10:05:38 [info]: Server running on http://localhost:3089
+2025-04-24 10:09:39 [info]: Server running on http://localhost:3089
+2025-04-24 10:10:17 [info]: Server running on http://localhost:3089
+2025-04-24 10:10:55 [info]: Server running on http://localhost:3089
+2025-04-24 10:11:25 [info]: Server running on http://localhost:3089
+2025-04-24 10:15:37 [info]: Server running on http://localhost:3089
+2025-04-24 10:16:09 [info]: Server running on http://localhost:3089
+2025-04-24 10:16:27 [info]: Server running on http://localhost:3089
+2025-04-24 10:16:58 [info]: Server running on http://localhost:3089
+2025-04-24 10:17:38 [info]: Server running on http://localhost:3089
+2025-04-24 12:57:14 [info]: Server running on http://localhost:3089
+2025-04-24 12:57:54 [info]: Server running on http://localhost:3089
+2025-04-24 13:00:11 [info]: Server running on http://localhost:3089
+2025-04-24 13:03:51 [info]: Server running on http://localhost:3089
+2025-04-24 13:05:46 [info]: Server running on http://localhost:3089
+2025-04-24 13:08:46 [info]: Server running on http://localhost:3089
+2025-04-24 13:10:55 [info]: Server running on http://localhost:3089
+2025-04-24 13:13:11 [info]: Server running on http://localhost:3089
+2025-04-24 13:15:06 [info]: Server running on http://localhost:3089
+2025-04-24 13:19:31 [info]: Server running on http://localhost:3089
+2025-04-24 13:20:29 [info]: Server running on http://localhost:3089
+2025-04-24 13:21:10 [info]: Server running on http://localhost:3089
+2025-04-24 13:39:30 [info]: Server running on http://localhost:3089
+2025-04-24 13:40:10 [info]: Server running on http://localhost:3089
+2025-04-24 13:40:35 [info]: Server running on http://localhost:3089
+2025-04-24 13:42:12 [info]: Server running on http://localhost:3089
+2025-04-25 07:00:07 [info]: Server running on http://localhost:3089
+2025-04-25 07:01:58 [info]: New client connected: gLGCWRdn4J5qogXNAAAB (transport: websocket)
+2025-04-25 07:01:59 [info]: User 1 logged in via socket gLGCWRdn4J5qogXNAAAB (transport: websocket)
+2025-04-25 07:03:22 [info]: Server running on http://localhost:3089
+2025-04-25 07:03:23 [info]: Server running on http://localhost:3089
+2025-04-25 07:03:24 [info]: New client connected: -F0t4p_GrNFpdxWOAAAB (transport: websocket)
+2025-04-25 07:03:32 [info]: Server running on http://localhost:3089
+2025-04-25 07:03:34 [info]: New client connected: Gzo6eopbVIzQNWf6AAAB (transport: websocket)
+2025-04-25 07:03:34 [info]: User 1 logged in via socket Gzo6eopbVIzQNWf6AAAB (transport: websocket)
+2025-04-25 07:03:35 [info]: Server running on http://localhost:3089
+2025-04-25 07:03:36 [info]: New client connected: yhRwXUM2rBooA5D9AAAB (transport: websocket)
+2025-04-25 07:03:36 [info]: User 1 logged in via socket yhRwXUM2rBooA5D9AAAB (transport: websocket)
+2025-04-25 07:03:49 [info]: Server running on http://localhost:3089
+2025-04-25 07:03:54 [info]: Server running on http://localhost:3089
+2025-04-25 07:03:59 [info]: New client connected: CS_7mgVjN3uD-ZzCAAAB (transport: websocket)
+2025-04-25 07:03:59 [info]: User 1 logged in via socket CS_7mgVjN3uD-ZzCAAAB (transport: websocket)
+2025-04-25 07:04:01 [info]: Server running on http://localhost:3089
+2025-04-25 07:04:01 [info]: New client connected: S_kzxrhvpwnFf8quAAAB (transport: websocket)
+2025-04-25 07:04:02 [info]: User 1 logged in via socket S_kzxrhvpwnFf8quAAAB (transport: websocket)
+2025-04-25 07:04:03 [info]: Server running on http://localhost:3089
+2025-04-25 07:04:04 [info]: Server running on http://localhost:3089
+2025-04-25 07:04:05 [info]: New client connected: fAJ4fc2ZPNfRPFLsAAAB (transport: websocket)
+2025-04-25 07:04:05 [info]: User 1 logged in via socket fAJ4fc2ZPNfRPFLsAAAB (transport: websocket)
+2025-04-25 07:04:07 [info]: Server running on http://localhost:3089
+2025-04-25 07:04:08 [info]: Server running on http://localhost:3089
+2025-04-25 07:04:08 [info]: New client connected: S5c4_-_yMgy6iaHZAAAB (transport: websocket)
+2025-04-25 07:04:08 [info]: User 1 logged in via socket S5c4_-_yMgy6iaHZAAAB (transport: websocket)
+2025-04-25 07:04:12 [info]: Server running on http://localhost:3089
+2025-04-25 07:04:13 [info]: New client connected: Whjs4SMBczTHWtl6AAAB (transport: websocket)
+2025-04-25 07:04:13 [info]: User 1 logged in via socket Whjs4SMBczTHWtl6AAAB (transport: websocket)
+2025-04-25 07:04:14 [info]: Server running on http://localhost:3089
+2025-04-25 07:04:15 [info]: New client connected: uOVwl3U6I2NejkwTAAAB (transport: websocket)
+2025-04-25 07:04:15 [info]: User 1 logged in via socket uOVwl3U6I2NejkwTAAAB (transport: websocket)
+2025-04-25 07:04:15 [info]: Server running on http://localhost:3089
+2025-04-25 07:04:17 [info]: New client connected: bUs_5DShrjwxJuMWAAAB (transport: websocket)
+2025-04-25 07:04:17 [info]: User 1 logged in via socket bUs_5DShrjwxJuMWAAAB (transport: websocket)
+2025-04-25 07:04:19 [info]: Server running on http://localhost:3089
+2025-04-25 07:04:20 [info]: New client connected: bOSfqhEsBrI8Gh6mAAAB (transport: websocket)
+2025-04-25 07:04:21 [info]: User 1 logged in via socket bOSfqhEsBrI8Gh6mAAAB (transport: websocket)
+2025-04-25 07:04:22 [info]: Server running on http://localhost:3089
+2025-04-25 07:04:23 [info]: New client connected: TyHcJRgujks3pfNQAAAB (transport: websocket)
+2025-04-25 07:04:24 [info]: User 1 logged in via socket TyHcJRgujks3pfNQAAAB (transport: websocket)
+2025-04-25 07:04:24 [info]: Server running on http://localhost:3089
+2025-04-25 07:04:26 [info]: New client connected: _UgQHzx50DHvQk1BAAAB (transport: websocket)
+2025-04-25 07:04:26 [info]: Server running on http://localhost:3089
+2025-04-25 07:04:27 [info]: New client connected: G9SGKff27GPczr13AAAB (transport: websocket)
+2025-04-25 07:04:27 [info]: User 1 logged in via socket G9SGKff27GPczr13AAAB (transport: websocket)
+2025-04-25 07:04:36 [info]: Client disconnected: G9SGKff27GPczr13AAAB, reason: client namespace disconnect
+2025-04-25 07:04:50 [info]: New client connected: hmdT8qqB0rYrUaNqAAAD (transport: websocket)
+2025-04-25 07:04:50 [info]: User 1 logged in via socket hmdT8qqB0rYrUaNqAAAD (transport: websocket)
+2025-04-25 07:08:35 [info]: Client disconnected: hmdT8qqB0rYrUaNqAAAD, reason: transport close
+2025-04-25 07:09:08 [info]: New client connected: b0QOZa5_lWtTGEr1AAAF (transport: websocket)
+2025-04-25 07:09:08 [info]: User 2 logged in via socket b0QOZa5_lWtTGEr1AAAF (transport: websocket)
+2025-04-25 07:11:45 [info]: Checking if user 2 is member of group 1
+2025-04-25 07:11:46 [info]: User 2 joined group chat 1
+2025-04-25 07:11:46 [info]: Fetching history for group 1
+2025-04-25 07:12:23 [info]: User 2 logged out
+2025-04-25 07:12:23 [info]: Client disconnected: b0QOZa5_lWtTGEr1AAAF, reason: client namespace disconnect
+2025-04-25 07:14:21 [info]: New client connected: 1P3QDCGNeeIfE4xXAAAH (transport: websocket)
+2025-04-25 07:14:21 [info]: User 1 logged in via socket 1P3QDCGNeeIfE4xXAAAH (transport: websocket)
+2025-04-25 07:14:26 [info]: Checking if user 1 is member of group 1
+2025-04-25 07:14:27 [info]: Fetching messages for group 1 since 2025-04-13T05:18:11.209Z
+2025-04-25 07:14:31 [info]: Message from user 1: Hii
+2025-04-25 07:14:41 [info]: Client disconnected: 1P3QDCGNeeIfE4xXAAAH, reason: client namespace disconnect
+2025-04-25 07:22:15 [info]: New client connected: SBOPKa63ixUXSJoNAAAJ (transport: websocket)
+2025-04-25 07:22:15 [info]: User 1 logged in via socket SBOPKa63ixUXSJoNAAAJ (transport: websocket)
+2025-04-25 07:22:20 [info]: User 1 logged out
+2025-04-25 07:22:20 [info]: Client disconnected: SBOPKa63ixUXSJoNAAAJ, reason: client namespace disconnect
+2025-04-25 07:22:36 [info]: New client connected: FjdxjmG2O1c_g7RLAAAL (transport: websocket)
+2025-04-25 07:22:36 [info]: User 2 logged in via socket FjdxjmG2O1c_g7RLAAAL (transport: websocket)
+2025-04-25 07:36:54 [info]: Server running on http://localhost:3089
+2025-04-25 07:36:56 [info]: New client connected: ls7w99rvSr_K4RlYAAAB (transport: websocket)
+2025-04-25 07:36:56 [info]: User 2 logged in via socket ls7w99rvSr_K4RlYAAAB (transport: websocket)
+2025-04-25 07:36:58 [info]: Server running on http://localhost:3089
+2025-04-25 07:37:00 [info]: New client connected: Tb7EIoIem4F0oNMOAAAB (transport: websocket)
+2025-04-25 07:37:00 [info]: User 2 logged in via socket Tb7EIoIem4F0oNMOAAAB (transport: websocket)
+2025-04-25 07:39:37 [info]: Server running on http://localhost:3089
+2025-04-25 07:39:38 [info]: Server running on http://localhost:3089
+2025-04-25 07:39:43 [info]: Server running on http://localhost:3089
+2025-04-25 07:39:44 [info]: New client connected: UMDYBigQa8Fn5flqAAAB (transport: websocket)
+2025-04-25 07:39:44 [info]: User 2 logged in via socket UMDYBigQa8Fn5flqAAAB (transport: websocket)
+2025-04-25 07:39:46 [info]: Server running on http://localhost:3089
+2025-04-25 07:39:47 [info]: New client connected: 4q5eYg9-DMlLr-Z3AAAB (transport: websocket)
+2025-04-25 07:39:48 [info]: User 2 logged in via socket 4q5eYg9-DMlLr-Z3AAAB (transport: websocket)
+2025-04-25 07:39:51 [info]: Server running on http://localhost:3089
+2025-04-25 07:39:52 [info]: New client connected: CNo4QtuxwhlmgBtyAAAB (transport: websocket)
+2025-04-25 07:39:53 [info]: User 2 logged in via socket CNo4QtuxwhlmgBtyAAAB (transport: websocket)
+2025-04-25 07:39:53 [info]: Server running on http://localhost:3089
+2025-04-25 07:39:55 [info]: New client connected: 1f359zKuC5qzmGf5AAAB (transport: websocket)
+2025-04-25 07:39:55 [info]: User 2 logged in via socket 1f359zKuC5qzmGf5AAAB (transport: websocket)
+2025-04-25 07:40:00 [info]: Server running on http://localhost:3089
+2025-04-25 07:40:01 [info]: New client connected: PlhdlcXGcHnsjiZ_AAAB (transport: websocket)
+2025-04-25 07:40:01 [info]: User 2 logged in via socket PlhdlcXGcHnsjiZ_AAAB (transport: websocket)
+2025-04-25 07:40:02 [info]: Server running on http://localhost:3089
+2025-04-25 07:40:03 [info]: New client connected: AU97wpOw--3B4-YwAAAB (transport: websocket)
+2025-04-25 07:40:03 [info]: User 2 logged in via socket AU97wpOw--3B4-YwAAAB (transport: websocket)
+2025-04-25 07:48:57 [info]: Client disconnected: AU97wpOw--3B4-YwAAAB, reason: transport close
+2025-04-25 07:49:17 [info]: New client connected: iYwdUdjrzEI8ABeJAAAD (transport: websocket)
+2025-04-25 07:49:18 [info]: User 2 logged in via socket iYwdUdjrzEI8ABeJAAAD (transport: websocket)
+2025-04-25 07:54:17 [info]: Server running on http://localhost:3089
+2025-04-25 07:54:19 [info]: New client connected: -I6jXL2JAj1YesMkAAAB (transport: websocket)
+2025-04-25 07:54:19 [info]: User 2 logged in via socket -I6jXL2JAj1YesMkAAAB (transport: websocket)
+2025-04-25 07:54:21 [info]: Server running on http://localhost:3089
+2025-04-25 07:54:23 [info]: Server running on http://localhost:3089
+2025-04-25 07:54:25 [info]: New client connected: ouOTT28yqyTqAlg7AAAB (transport: websocket)
+2025-04-25 07:54:25 [info]: User 2 logged in via socket ouOTT28yqyTqAlg7AAAB (transport: websocket)
+2025-04-25 07:54:35 [info]: User 2 logged out
+2025-04-25 07:54:35 [info]: Client disconnected: ouOTT28yqyTqAlg7AAAB, reason: client namespace disconnect
+2025-04-25 07:55:03 [info]: New client connected: WfCjNhAMxVZj29O3AAAD (transport: websocket)
+2025-04-25 07:55:03 [info]: User 2 logged in via socket WfCjNhAMxVZj29O3AAAD (transport: websocket)
+2025-04-25 07:58:05 [info]: Server running on http://localhost:3089
+2025-04-25 07:58:07 [info]: New client connected: cIWnxK84pbuebT5jAAAB (transport: websocket)
+2025-04-25 07:58:07 [info]: User 2 logged in via socket cIWnxK84pbuebT5jAAAB (transport: websocket)
+2025-04-25 08:02:42 [info]: Client disconnected: cIWnxK84pbuebT5jAAAB, reason: transport close
+2025-04-25 08:18:43 [info]: New client connected: Dw-JDTEh2OuiTqvpAAAD (transport: websocket)
+2025-04-25 08:18:43 [info]: User 2 logged in via socket Dw-JDTEh2OuiTqvpAAAD (transport: websocket)
+2025-04-25 08:20:51 [info]: Checking if user 2 is member of group 1
+2025-04-25 08:20:52 [info]: Fetching messages for group 1 since 2025-04-25T01:26:46.023Z
+2025-04-25 08:20:57 [info]: Checking if user 2 is member of group 1
+2025-04-25 08:20:57 [info]: Fetching messages for group 1 since 2025-04-25T01:26:46.023Z
+2025-04-25 08:20:59 [info]: Message from user 2: Tcth
+2025-04-25 08:21:06 [info]: Client disconnected: Dw-JDTEh2OuiTqvpAAAD, reason: client namespace disconnect
+2025-04-25 08:23:02 [info]: New client connected: QO_HXmZOIB8Mz78XAAAF (transport: websocket)
+2025-04-25 08:23:02 [info]: User 1 logged in via socket QO_HXmZOIB8Mz78XAAAF (transport: websocket)
+2025-04-25 08:23:06 [info]: Checking if user 1 is member of group 1
+2025-04-25 08:23:07 [info]: Fetching messages for group 1 since 2025-04-13T05:18:11.209Z
+2025-04-25 08:26:31 [info]: Checking if user 1 is member of group 1
+2025-04-25 08:26:31 [info]: Fetching messages for group 1 since 2025-04-13T05:18:11.209Z
+2025-04-25 08:26:37 [info]: Checking if user 1 is member of group 1
+2025-04-25 08:26:37 [info]: Fetching messages for group 1 since 2025-04-13T05:18:11.209Z
+2025-04-25 08:46:17 [info]: Driver registered for vehicle 1
+2025-04-25 08:48:23 [info]: User driver-1 logged in via socket QO_HXmZOIB8Mz78XAAAF (transport: websocket)
+2025-04-25 08:48:23 [info]: Driver registered for vehicle 1
+2025-04-25 08:56:48 [info]: Server running on http://localhost:3089
+2025-04-25 08:58:52 [info]: Server running on http://localhost:3089
+2025-04-25 09:01:26 [info]: New client connected: OdHiQtLNj36fy53LAAAB (transport: websocket)
+2025-04-25 09:01:26 [info]: User driver-1 logged in via socket OdHiQtLNj36fy53LAAAB (transport: websocket)
+2025-04-25 09:02:48 [info]: User driver-1 logged in via socket OdHiQtLNj36fy53LAAAB (transport: websocket)
+2025-04-25 09:02:48 [info]: Driver registered for vehicle 1
+2025-04-25 09:02:55 [info]: Removing registered driver for vehicle 1
+2025-04-25 09:03:48 [info]: User driver-1 logged in via socket OdHiQtLNj36fy53LAAAB (transport: websocket)
+2025-04-25 09:03:48 [info]: Driver registered for vehicle 1
+2025-04-25 09:07:15 [info]: Removing registered driver for vehicle 1
+2025-04-25 09:07:23 [info]: User driver-1 logged in via socket OdHiQtLNj36fy53LAAAB (transport: websocket)
+2025-04-25 09:07:23 [info]: Driver registered for vehicle 1
+2025-04-25 09:09:09 [info]: Removing registered driver for vehicle 1
+2025-04-25 09:09:16 [info]: User driver-1 logged in via socket OdHiQtLNj36fy53LAAAB (transport: websocket)
+2025-04-25 09:09:16 [info]: Driver registered for vehicle 1
+2025-04-25 09:14:54 [info]: User driver-1 logged in via socket OdHiQtLNj36fy53LAAAB (transport: websocket)
+2025-04-25 09:14:54 [info]: Driver registered for vehicle 1
+2025-04-25 09:14:55 [info]: Removing registered driver for vehicle 1
+2025-04-25 09:14:58 [info]: User driver-1 logged in via socket OdHiQtLNj36fy53LAAAB (transport: websocket)
+2025-04-25 09:14:58 [info]: Driver registered for vehicle 1
+2025-04-25 09:15:15 [info]: Removing registered driver for vehicle 1
+2025-04-25 09:15:27 [info]: User driver-1 logged in via socket OdHiQtLNj36fy53LAAAB (transport: websocket)
+2025-04-25 09:15:27 [info]: Driver registered for vehicle 1
+2025-04-25 09:16:32 [info]: Removing registered driver for vehicle 1
+2025-04-25 09:16:34 [info]: User driver-1 logged in via socket OdHiQtLNj36fy53LAAAB (transport: websocket)
+2025-04-25 09:16:34 [info]: Driver registered for vehicle 1
+2025-04-25 09:17:10 [info]: User driver-1 logged in via socket OdHiQtLNj36fy53LAAAB (transport: websocket)
+2025-04-25 09:17:10 [info]: Driver registered for vehicle 1
+2025-04-25 09:17:13 [info]: Removing registered driver for vehicle 1
+2025-04-25 09:36:09 [info]: Checking if user 1 is member of group 1
+2025-04-25 09:36:09 [info]: Fetching messages for group 1 since 2025-04-13T05:18:11.209Z
+2025-04-25 09:56:41 [info]: Client disconnected: OdHiQtLNj36fy53LAAAB, reason: transport close
+2025-04-25 11:49:35 [info]: New client connected: ihXM2ircbvfDxS9OAAAD (transport: websocket)
+2025-04-25 11:49:36 [info]: User 1 logged in via socket ihXM2ircbvfDxS9OAAAD (transport: websocket)
+2025-04-25 11:55:38 [info]: Client disconnected: ihXM2ircbvfDxS9OAAAD, reason: transport close
+2025-04-25 11:55:58 [info]: New client connected: w_Q5bm_-0nx_gh7VAAAF (transport: websocket)
+2025-04-25 11:55:58 [info]: User 2 logged in via socket w_Q5bm_-0nx_gh7VAAAF (transport: websocket)
+2025-04-25 13:43:30 [info]: Server running on http://localhost:3089

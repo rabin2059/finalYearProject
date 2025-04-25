@@ -10,6 +10,7 @@ const vehicleController = require("../controller/vehicleController.js");
 const paymentController = require("../controller/paymentController.js");
 const categoryController = require("../controller/categoryController.js");
 const chatController = require("../controller/chatController.js");
+const reviewController = require("../controller/reviewController.js");
 const protectRoute = require("../middleware/authMiddleware.js");
 const notificationController = require("../controller/notificationController.js");
 const upload = require("../configs/storage.js");
@@ -47,7 +48,6 @@ router.post("/addVehicle", driverController.addVehicle);
 router.post("/createRoute", driverController.createRoute);
 router.get("/getVehicles", driverController.getVehicles);
 router.get("/getSingleVehicle", driverController.getSingleVehicle);
-router.get("/getMyRoute", driverController.getMyRoute);
 
 // bookings
 router.post("/booking", bookController.booking);
@@ -60,7 +60,10 @@ router.get("/getBookingByDate", bookController.getBookingByDate);
 router.get("/getVehiclesRoute", vehicleController.getRoute);
 router.get("/getActiveBuses", vehicleController.getActiveBuses);
 router.get("/getMyPolylines", vehicleController.getMyPolylines);
-router.get("/getVehicleDetails/:vehicleId", vehicleController.getVehicleDetails);
+router.get(
+  "/getVehicleDetails/:vehicleId",
+  vehicleController.getVehicleDetails
+);
 
 // payment related
 router.post("/initialize", paymentController.initialzeKhalti);
@@ -133,3 +136,7 @@ router.put("/saveToken", notificationController.saveFCMToken);
 router.get("/passengerData", userRelatedController.passengerHomePage);
 router.get("/driverData", driverController.driverHome);
 
+router.post("/rating", protectRoute, reviewController.createVehicleReview);
+router.get("/getRating/:driverId", reviewController.getVehicleRatings);
+
+router.get("/upcoming-trip", userRelatedController.getUpcomingTrip);

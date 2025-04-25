@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:merobus/user/Passenger/setting/providers/setting_state.dart';
 import '../../../../components/AppColors.dart';
 import '../../../../core/constants.dart';
 import '../../../authentication/login/providers/auth_provider.dart';
@@ -22,6 +23,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  dynamic _upcomingTrip;
 
   @override
   void initState() {
@@ -32,8 +34,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       final userId = authState.userId;
       if (userId != null) {
         ref.read(passengerProvider.notifier).fetchHomeData(userId);
+        _fetchUpcomingTrip(userId);
       }
     });
+  }
+
+  Future<void> _fetchUpcomingTrip(int userId) async {
+    try {
+      final response = await http.get(Uri.parse('$apiBaseUrl/upcoming-trip?userId=$userId'));
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        if (json['trips'] != null && json['trips'].isNotEmpty) {
+          setState(() {
+            _upcomingTrip = json['trips'];
+          });
+        }
+      } else {
+        debugPrint('Failed to fetch upcoming trip: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('Error fetching upcoming trip: $e');
+    }
   }
 
   Future<void> _fetchUserData() async {
@@ -98,15 +119,80 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final totalExpendValue = hasData ? "₹${homeData.totalExpend}" : "₹0";
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.background,
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildHeader(userName!, userEmail, userImage, recentTripsValue, totalExpendValue), // User Profile Section
-            _buildPopularDestinations(), // Popular Destinations Carousel
-            _buildQuickActions(context), // Quick Actions Grid
-            _buildFeaturedServices(context), // Featured Services
-            SizedBox(height: 80.h), // For FloatingActionButton space
+            _buildHeader(
+              userName!,
+              userEmail,
+              userImage,
+              recentTripsValue,
+              totalExpendValue,
+              ref.watch(settingProvider),
+            ), 
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Upcoming Trip",
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  SizedBox(height: 12.h),
+                  Column(
+                    children: (_upcomingTrip != null && (_upcomingTrip as List).isNotEmpty)
+                        ? (_upcomingTrip as List).map<Widget>((trip) {
+                            return Container(
+                              margin: EdgeInsets.only(bottom: 12.h),
+                              padding: EdgeInsets.all(16.w),
+                              decoration: BoxDecoration(
+                                color: AppColors.buttonText,
+                                borderRadius: BorderRadius.circular(12.r),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.textPrimary.withOpacity(0.15),
+                                    blurRadius: 6,
+                                    offset: Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.directions_bus, color: AppColors.primary),
+                                  SizedBox(width: 12.w),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "${trip['pickUpPoint']} → ${trip['dropOffPoint']}",
+                                          style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                                        ),
+                                        SizedBox(height: 4.h),
+                                        Text(
+                                          "Departure: ${DateTime.parse(trip['bookingDate']).toLocal().toString().substring(0, 16)}",
+                                          style: TextStyle(fontSize: 14.sp, color: AppColors.textSecondary),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList()
+                        : [],
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(height: 80.h), 
           ],
         ),
       ),
@@ -133,9 +219,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 15.sp,
+              color: AppColors.buttonText,
             ),
           ),
-          icon: const Icon(Icons.map_outlined),
+          icon: Icon(Icons.map_outlined, color: AppColors.buttonText),
           backgroundColor: AppColors.primary,
         ),
       ),
@@ -143,18 +230,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   /// Premium header with gradient and user info
-  Widget _buildHeader(String name, String email, String imageUrl, String recentTripsValue, String totalExpendValue) {
+  Widget _buildHeader(String name, String email, String imageUrl, String recentTripsValue, String totalExpendValue, SettingState settingState) {
     return Container(
       padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.primary,
-            Color.fromARGB(255, 56, 147, 216),
-          ],
-        ),
+        color: AppColors.primary,
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(30.r),
           bottomRight: Radius.circular(30.r),
@@ -178,23 +258,48 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.white,
+                      color: AppColors.buttonText,
                       width: 2.w,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
+                        color: AppColors.textPrimary.withOpacity(0.15),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
                       ),
                     ],
                   ),
                   child: CircleAvatar(
-                    radius: 40.r,
-                    backgroundImage: AssetImage(imageUrl),
-                    onBackgroundImageError: (_, __) =>
-                        const Icon(Icons.person, size: 40),
-                    backgroundColor: Colors.white.withOpacity(0.2),
+                    radius: 53.h, 
+                    backgroundColor:
+                        Colors.grey[200], 
+                    child: settingState.users.isNotEmpty &&
+                            settingState.users[0].images != null
+                        ? ClipOval(
+                            child: Image.network(
+                              imageUrl + settingState.users[0].images!,
+                              fit: BoxFit
+                                  .cover, 
+                              width: 106.h, 
+                              height: 106.h,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Image.asset(
+                                  "assets/profile.png",
+                                  fit: BoxFit.cover,
+                                  width: 106.h,
+                                  height: 106.h,
+                                );
+                              },
+                            ),
+                          )
+                        : ClipOval(
+                            child: Image.asset(
+                              "assets/profile.png", 
+                              fit: BoxFit.cover,
+                              width: 106.h,
+                              height: 106.h,
+                            ),
+                          ),
                   ),
                 ),
                 SizedBox(width: 16.w),
@@ -207,7 +312,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         style: TextStyle(
                           fontSize: 24.sp,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: AppColors.buttonText,
                         ),
                       ),
                       SizedBox(height: 4.h),
@@ -215,7 +320,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         email,
                         style: TextStyle(
                           fontSize: 15.sp,
-                          color: Colors.white.withOpacity(0.85),
+                          color: AppColors.buttonText.withOpacity(0.85),
                         ),
                       ),
                     ],
@@ -223,16 +328,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: AppColors.buttonText.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: IconButton(
                     onPressed: () {
-                      // Edit profile
+                      context.push('/notifications');
                     },
                     icon: Icon(
-                      Icons.edit_outlined,
-                      color: Colors.white,
+                      Icons.notifications_none_outlined,
+                      color: AppColors.buttonText,
                       size: 20.sp,
                     ),
                   ),
@@ -257,7 +362,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 Expanded(
                   child: _buildStatusCard(
                     icon: Icons.wallet,
-                    title: "Wallet Balance",
+                    title: "Total Expenses",
                   value: totalExpendValue,
                   ),
                 ),
@@ -278,10 +383,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: AppColors.primary,
         borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
-          color: Colors.white.withOpacity(0.1),
+          color: AppColors.buttonText,
           width: 1,
         ),
       ),
@@ -290,12 +395,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           Container(
             padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: AppColors.buttonText.withOpacity(0.2),
               borderRadius: BorderRadius.circular(8.r),
             ),
             child: Icon(
               icon,
-              color: Colors.white,
+              color: AppColors.buttonText,
               size: 20.sp,
             ),
           ),
@@ -308,7 +413,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   title,
                   style: TextStyle(
                     fontSize: 12.sp,
-                    color: Colors.white.withOpacity(0.8),
+                    color: AppColors.buttonText.withOpacity(0.8),
                   ),
                 ),
                 SizedBox(height: 2.h),
@@ -317,7 +422,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppColors.buttonText,
                   ),
                 ),
               ],
@@ -328,380 +433,4 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  /// Build popular destinations carousel
-  Widget _buildPopularDestinations() {
-    final destinations = [
-      {
-        'name': 'Kathmandu',
-        'image': 'assets/kathmandu.jpg',
-        'buses': '45 buses'
-      },
-      {'name': 'Pokhara', 'image': 'assets/pokhara.jpg', 'buses': '32 buses'},
-      {'name': 'Chitwan', 'image': 'assets/chitwan.jpg', 'buses': '18 buses'},
-    ];
-
-    return Padding(
-      padding: EdgeInsets.all(20.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Popular Destinations",
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  // See all destinations
-                },
-                child: Text(
-                  "See All",
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 12.h),
-          SizedBox(
-            height: 140.h,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: destinations.length,
-              itemBuilder: (context, index) {
-                final destination = destinations[index];
-                return Container(
-                  width: 200.w,
-                  margin: EdgeInsets.only(right: 16.w),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16.r),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Stack(
-                    children: [
-                      // Image background with error handling
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(16.r),
-                        child: Image.asset(
-                          destination['image']!,
-                          height: 140.h,
-                          width: 200.w,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Container(
-                            height: 140.h,
-                            width: 200.w,
-                            color: Colors.grey.shade300,
-                            child: Icon(
-                              Icons.landscape,
-                              size: 50.sp,
-                              color: Colors.grey.shade400,
-                            ),
-                          ),
-                        ),
-                      ),
-                      // Gradient overlay
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16.r),
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withOpacity(0.7),
-                            ],
-                          ),
-                        ),
-                      ),
-                      // Destination info
-                      Positioned(
-                        bottom: 12.h,
-                        left: 12.w,
-                        right: 12.w,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              destination['name']!,
-                              style: TextStyle(
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            SizedBox(height: 4.h),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.directions_bus,
-                                  color: Colors.white,
-                                  size: 14.sp,
-                                ),
-                                SizedBox(width: 4.w),
-                                Text(
-                                  destination['buses']!,
-                                  style: TextStyle(
-                                    fontSize: 12.sp,
-                                    color: Colors.white.withOpacity(0.9),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Quick action buttons in grid layout
-  Widget _buildQuickActions(BuildContext context) {
-    final actions = [
-      {
-        'title': 'Book Ticket',
-        'icon': Icons.confirmation_number_outlined,
-        'color': Colors.blue
-      },
-      {
-        'title': 'Track Bus',
-        'icon': Icons.location_on_outlined,
-        'color': Colors.red
-      },
-      {
-        'title': 'My Tickets',
-        'icon': Icons.receipt_long_outlined,
-        'color': Colors.green
-      },
-      {
-        'title': 'Offers',
-        'icon': Icons.local_offer_outlined,
-        'color': Colors.orange
-      },
-    ];
-
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Quick Actions",
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          SizedBox(height: 16.h),
-          GridView.builder(
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              childAspectRatio: 0.85,
-              crossAxisSpacing: 12.w,
-              mainAxisSpacing: 12.h,
-            ),
-            itemCount: actions.length,
-            itemBuilder: (context, index) {
-              final action = actions[index];
-              return GestureDetector(
-                onTap: () {
-                  if (index == 0) {
-                    context.go('/buslist');
-                  }
-                },
-                child: Column(
-                  children: [
-                    Container(
-                      width: 60.w,
-                      height: 60.h,
-                      decoration: BoxDecoration(
-                        color: action['color'] as Color,
-                        borderRadius: BorderRadius.circular(16.r),
-                        boxShadow: [
-                          BoxShadow(
-                            color: (action['color'] as Color).withOpacity(0.2),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        action['icon'] as IconData,
-                        color: Colors.white,
-                        size: 28.sp,
-                      ),
-                    ),
-                    SizedBox(height: 8.h),
-                    Text(
-                      action['title'] as String,
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Featured services section
-  Widget _buildFeaturedServices(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(20.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Our Services",
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          SizedBox(height: 16.h),
-
-          // Service Request
-          _buildServiceCard(
-            title: "Request a Ride",
-            description: "Book a ride and track it in real-time",
-            icon: Icons.directions_bus_filled_outlined,
-            color: AppColors.primary,
-            onTap: () {
-              // Implement ride request feature
-            },
-          ),
-
-          SizedBox(height: 16.h),
-
-          // View ride history
-          _buildServiceCard(
-            title: "View Ride History",
-            description: "Check your previous trips and bookings",
-            icon: Icons.history,
-            color: Colors.amber.shade700,
-            onTap: () {
-              // Implement ride history feature
-            },
-          ),
-
-          SizedBox(height: 16.h),
-
-          // Edit Profile
-          _buildServiceCard(
-            title: "Edit Profile",
-            description: "Update your personal information",
-            icon: Icons.person_outline,
-            color: Colors.teal,
-            onTap: () {
-              // Implement profile editing
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Service card widget
-  Widget _buildServiceCard({
-    required String title,
-    required String description,
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(16.w),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16.r),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: EdgeInsets.all(12.w),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 24.sp,
-              ),
-            ),
-            SizedBox(width: 16.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  SizedBox(height: 4.h),
-                  Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: Colors.black54,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.arrow_forward_ios,
-              color: Colors.black54,
-              size: 16.sp,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

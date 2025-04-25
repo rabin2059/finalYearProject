@@ -1,4 +1,7 @@
-node_modules
-# Keep environment variables out of version control
+node_modules/
 .env
+*.env
+*.key
+*.pem
 serviceAccountKey.json
+configs/serviceAccountKey.json

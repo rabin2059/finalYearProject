@@ -29,6 +29,7 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
   bool _showRoute = false;
   late final MapController mapController;
   final List<LatLng> _routePoints = [];
+  final List<LatLng> _polylineCoords = [];
   String startPoint = '';
   String endPoint = '';
   bool isSharing = false;
@@ -40,6 +41,7 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
     mapController = MapController();
     _initializeState();
   }
+
   Future<void> _initializeState() async {
     await _loadRoute();
     final savedStatus = await SharedPrefsUtil.getTripStatus();
@@ -56,9 +58,9 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
     setState(() {
       isLoading = true;
     });
-    
+
     await _fetchRouteDetails();
-    
+
     setState(() {
       isLoading = false;
     });
@@ -71,31 +73,31 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
 
     await _fetchRouteDetails();
 
-    if (startPoint.isNotEmpty && endPoint.isNotEmpty) {
-      final start = await MapService().getLatLngFromLocation(startPoint);
-      final end = await MapService().getLatLngFromLocation(endPoint);
+    setState(() {
+      _routePoints
+        ..clear()
+        ..addAll(_polylineCoords);
+      _showRoute = _routePoints.isNotEmpty;
+    });
 
-      if (start != null && end != null) {
-        setState(() {
-          _routePoints.clear();
-          _routePoints.add(start);
-          _routePoints.add(end);
-          _showRoute = true;
-        });
-
-        final bounds = LatLngBounds.fromPoints([start, end]);
-        final zoom = _getZoomForBounds(bounds);
-        final center = LatLng(
-          (bounds.north + bounds.south) / 2,
-          (bounds.east + bounds.west) / 2,
-        );
-        mapController.move(center, zoom);
-      }
+    if (_routePoints.isNotEmpty) {
+      final bounds = LatLngBounds.fromPoints(_routePoints);
+      final zoom = _getZoomForBounds(bounds);
+      final center = LatLng(
+        (bounds.north + bounds.south) / 2,
+        (bounds.east + bounds.west) / 2,
+      );
+      debugPrint("Moving map to decoded polyline center: $center with zoom $zoom");
+      mapController.move(center, zoom);
+    } else {
+      debugPrint("No polyline points found. Moving to default.");
+      mapController.move(const LatLng(27.7172, 85.3240), 14);
     }
 
     final liveServiceNotifier = ref.read(driverLiveLocationProvider);
     liveServiceNotifier.startSharing(widget.vehicleId);
-    final url = Uri.parse("$apiBaseUrl/startTrip?vehicleId=${widget.vehicleId}");
+    final url =
+        Uri.parse("$apiBaseUrl/startTrip?vehicleId=${widget.vehicleId}");
     await http.post(url);
 
     setState(() {
@@ -106,7 +108,8 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
   }
 
   Future<void> _fetchRouteDetails() async {
-    final url = Uri.parse("$apiBaseUrl/getMyRoute?id=${widget.vehicleId}");
+    final url =
+        Uri.parse("$apiBaseUrl/getMyPolylines?vehicleId=${widget.vehicleId}");
 
     try {
       final response = await http.get(url);
@@ -118,8 +121,24 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
         if (route != null) {
           startPoint = route['startPoint'] ?? '';
           endPoint = route['endPoint'] ?? '';
-          debugPrint("Route loaded: $startPoint to $endPoint");
-        } else {
+        }
+        final List<dynamic> routes = jsonResponse['routes'] ?? [];
+        if (routes.isNotEmpty) {
+          final routeData = routes[0];
+          final encodedPolyline = routeData['polyline'] ?? '';
+          if (encodedPolyline.isNotEmpty) {
+            _polylineCoords.clear();
+            _polylineCoords.addAll(decodePolyline(encodedPolyline));
+            debugPrint("Decoded polyline points: ${_polylineCoords.length}");
+          } else {
+            final List coords = routeData['coordinates'] ?? [];
+            _polylineCoords.clear();
+            _polylineCoords.addAll(coords.map((c) => LatLng(c[1], c[0])));
+            debugPrint("Decoded polyline points: ${_polylineCoords.length}");
+          }
+        }
+        debugPrint("Route loaded: $startPoint to $endPoint");
+        if (route == null && routes.isEmpty) {
           debugPrint("Route not found in response.");
           _showErrorSnackbar("Route information not found");
         }
@@ -129,8 +148,41 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
       }
     } catch (e) {
       debugPrint('Exception while fetching route details: $e');
-      _showErrorSnackbar("Error loading route: ${e.toString().substring(0, min(50, e.toString().length))}");
+      _showErrorSnackbar(
+          "Error loading route: ${e.toString().substring(0, min(50, e.toString().length))}");
     }
+  }
+
+  /// Decodes an encoded polyline string into a list of [LatLng] points.
+  List<LatLng> decodePolyline(String encoded) {
+    List<LatLng> polyline = [];
+    int index = 0, len = encoded.length;
+    int lat = 0, lng = 0;
+
+    while (index < len) {
+      int b, shift = 0, result = 0;
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      int dlat = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
+      lat += dlat;
+
+      shift = 0;
+      result = 0;
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      int dlng = (result & 1) != 0 ? ~(result >> 1) : (result >> 1);
+      lng += dlng;
+
+      polyline.add(LatLng(lat / 1E5, lng / 1E5));
+    }
+
+    return polyline;
   }
 
   void _showErrorSnackbar(String message) {
@@ -149,7 +201,7 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
     setState(() {
       isLoading = true;
     });
-    
+
     final liveServiceNotifier = ref.read(driverLiveLocationProvider);
     liveServiceNotifier.stopSharing(widget.vehicleId);
     final url = Uri.parse("$apiBaseUrl/endTrip?vehicleId=${widget.vehicleId}");
@@ -162,7 +214,7 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
       _showErrorSnackbar("Network error while ending trip");
     }
     await SharedPrefsUtil.saveTripStatus("false");
-    
+
     setState(() {
       _showRoute = false;
       isLoading = false;
@@ -203,8 +255,8 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
         ),
         centerTitle: true,
         elevation: 2,
-        backgroundColor: theme.primaryColor,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.buttonText,
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16),
@@ -214,7 +266,8 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
                 showModalBottomSheet(
                   context: context,
                   shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(20)),
                   ),
                   builder: (context) => _buildRouteInfoSheet(),
                 );
@@ -247,9 +300,9 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
                   polylines: [
                     Polyline(
                       points: _routePoints,
-                      color: theme.primaryColor,
+                      color: AppColors.primary,
                       strokeWidth: 5.0,
-                      borderColor: Colors.black54,
+                      borderColor: AppColors.textPrimary,
                       borderStrokeWidth: 1.0,
                     )
                   ],
@@ -266,32 +319,31 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
                           Container(
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black26,
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2)
-                                )
-                              ]
-                            ),
+                                color: AppColors.buttonText,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: AppColors.textPrimary
+                                          .withOpacity(0.26),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2))
+                                ]),
                             child: Icon(
                               Icons.directions_bus,
-                              color: theme.primaryColor,
+                              color: AppColors.primary,
                               size: 24,
                             ),
                           ),
                           Container(
                             width: 2,
                             height: 6,
-                            color: Colors.black87,
+                            color: AppColors.textPrimary,
                           ),
                           Container(
                             width: 8,
                             height: 8,
-                            decoration: const BoxDecoration(
-                              color: Colors.black87,
+                            decoration: BoxDecoration(
+                              color: AppColors.textPrimary,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -325,7 +377,7 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
               ),
             ],
           ),
-          
+
           // Control panels
           Positioned(
             top: 16,
@@ -344,7 +396,7 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
                     setState(() {
                       _showRoute = true;
                     });
-                    
+
                     if (_routePoints.length >= 2) {
                       final bounds = LatLngBounds.fromPoints(_routePoints);
                       final zoom = _getZoomForBounds(bounds);
@@ -360,7 +412,7 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
               ],
             ),
           ),
-          
+
           // Status panel at bottom
           Positioned(
             bottom: 16,
@@ -382,7 +434,9 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
                       children: [
                         Icon(
                           isSharing ? Icons.circle : Icons.circle_outlined,
-                          color: isSharing ? Colors.green : Colors.red,
+                          color: isSharing
+                              ? AppColors.messageSent
+                              : AppColors.accent,
                           size: 12,
                         ),
                         const SizedBox(width: 8),
@@ -390,7 +444,9 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
                           isSharing ? "Trip Active" : "Trip Inactive",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: isSharing ? Colors.green : Colors.red,
+                            color: isSharing
+                                ? AppColors.messageSent
+                                : AppColors.accent,
                           ),
                         ),
                         const Spacer(),
@@ -398,7 +454,7 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
                           Text(
                             "Vehicle ID: ${widget.vehicleId}",
                             style: TextStyle(
-                              color: Colors.grey.shade700,
+                              color: AppColors.textSecondary,
                               fontSize: 12,
                             ),
                           ),
@@ -409,79 +465,101 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
                       height: 48,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(24),
-                        color: Colors.grey.shade200,
+                        color: AppColors.background,
                       ),
                       child: Row(
                         children: [
                           Expanded(
                             child: GestureDetector(
-                              onTap: isLoading || isSharing ? null : _handleStartSharing,
+                              onTap: isLoading || isSharing
+                                  ? null
+                                  : _handleStartSharing,
                               child: Container(
-                              decoration: BoxDecoration(
-                                  color: isSharing ? AppColors.primary : Colors.transparent,
+                                decoration: BoxDecoration(
+                                  color: isSharing
+                                      ? AppColors.primary
+                                      : Colors.transparent,
                                   borderRadius: BorderRadius.circular(24),
-                                  boxShadow: isSharing ? [
-                                    BoxShadow(
-                                      color: AppColors.primary.withOpacity(0.4),
-                                      spreadRadius: 1,
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 2),
-                                    )
-                                  ] : null,
+                                  boxShadow: isSharing
+                                      ? [
+                                          BoxShadow(
+                                            color: AppColors.primary
+                                                .withOpacity(0.4),
+                                            spreadRadius: 1,
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 2),
+                                          )
+                                        ]
+                                      : null,
                                 ),
                                 alignment: Alignment.center,
-                                child: isLoading && !isSharing ? 
-                                  SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(theme.primaryColor),
-                                    ),
-                                  ) :
-                                  Text(
-                                    "Start Trip",
-                                    style: TextStyle(
-                                      color: isSharing ? Colors.white : Colors.black54,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                                child: isLoading && !isSharing
+                                    ? SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  AppColors.primary),
+                                        ),
+                                      )
+                                    : Text(
+                                        "Start Trip",
+                                        style: TextStyle(
+                                          color: isSharing
+                                              ? AppColors.buttonText
+                                              : AppColors.textPrimary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                               ),
                             ),
                           ),
                           Expanded(
                             child: GestureDetector(
-                              onTap: isLoading || !isSharing ? null : _handleStopSharing,
+                              onTap: isLoading || !isSharing
+                                  ? null
+                                  : _handleStopSharing,
                               child: Container(
-                              decoration: BoxDecoration(
-                                  color: !isSharing ? Colors.red : Colors.transparent,
+                                decoration: BoxDecoration(
+                                  color: !isSharing
+                                      ? AppColors.accent
+                                      : Colors.transparent,
                                   borderRadius: BorderRadius.circular(24),
-                                  boxShadow: !isSharing ? [
-                                    BoxShadow(
-                                      color: Colors.red.withOpacity(0.4),
-                                      spreadRadius: 1,
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 2),
-                                    )
-                                  ] : null,
+                                  boxShadow: !isSharing
+                                      ? [
+                                          BoxShadow(
+                                            color: AppColors.accent
+                                                .withOpacity(0.4),
+                                            spreadRadius: 1,
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 2),
+                                          )
+                                        ]
+                                      : null,
                                 ),
                                 alignment: Alignment.center,
-                                child: isLoading && isSharing ? 
-                                  const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
-                                    ),
-                                  ) :
-                                  Text(
-                                    "End Trip",
-                                    style: TextStyle(
-                                      color: !isSharing ? Colors.white : Colors.black54,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                                child: isLoading && isSharing
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  AppColors.accent),
+                                        ),
+                                      )
+                                    : Text(
+                                        "End Trip",
+                                        style: TextStyle(
+                                          color: !isSharing
+                                              ? AppColors.buttonText
+                                              : AppColors.textPrimary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                               ),
                             ),
                           ),
@@ -493,17 +571,17 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
               ),
             ),
           ),
-          
+
           // Loading overlay
           if (isLoading)
             Positioned.fill(
               child: Container(
-                color: Colors.black12,
+                color: AppColors.textPrimary.withOpacity(0.1),
                 child: Center(
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.buttonText,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: const CircularProgressIndicator(),
@@ -524,7 +602,7 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
     return Material(
       elevation: 4,
       borderRadius: BorderRadius.circular(30),
-      color: Colors.white,
+      color: AppColors.buttonText,
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(30),
@@ -538,7 +616,7 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
             ),
             child: Icon(
               icon,
-              color: Colors.black87,
+              color: AppColors.textPrimary,
               size: 20,
             ),
           ),
@@ -563,7 +641,7 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColor,
+                  color: AppColors.primary,
                 ),
               ),
             ],
@@ -573,28 +651,28 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
             label: "Start Point",
             value: startPoint.isEmpty ? "Not Set" : startPoint,
             icon: Icons.trip_origin,
-            iconColor: Colors.green,
+            iconColor: AppColors.messageSent,
           ),
           const Divider(height: 24),
           _buildRouteInfoRow(
             label: "End Point",
             value: endPoint.isEmpty ? "Not Set" : endPoint,
             icon: Icons.place,
-            iconColor: Colors.red,
+            iconColor: AppColors.accent,
           ),
           const Divider(height: 24),
           _buildRouteInfoRow(
             label: "Vehicle ID",
             value: widget.vehicleId.toString(),
             icon: Icons.directions_bus,
-            iconColor: Theme.of(context).primaryColor,
+            iconColor: AppColors.primary,
           ),
           const Divider(height: 24),
           _buildRouteInfoRow(
             label: "Status",
             value: isSharing ? "Trip Active" : "Trip Inactive",
             icon: Icons.info_outline,
-            iconColor: isSharing ? Colors.green : Colors.red,
+            iconColor: isSharing ? AppColors.messageSent : AppColors.accent,
           ),
           const SizedBox(height: 24),
           SizedBox(
@@ -604,14 +682,15 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).primaryColor,
-                foregroundColor: Colors.white,
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.buttonText,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text("Close", style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text("Close",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ),
         ],
@@ -636,7 +715,7 @@ class DriverMapScreenState extends ConsumerState<DriverMapScreen> {
               label,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey.shade600,
+                color: AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: 4),

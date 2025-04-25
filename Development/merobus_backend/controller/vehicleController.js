@@ -207,7 +207,7 @@ const getMyPolylines = async (req, res) => {
     const vehicle = await prisma.vehicle.findUnique({
       where: { id: parseInt(vehicleId) },
       select: {
-        routes: {
+        Route: {
           select: {
             id: true,
             name: true,
@@ -219,7 +219,7 @@ const getMyPolylines = async (req, res) => {
     if (!vehicle) {
       return res.status(404).json({ message: "Vehicle not found" });
     }
-    const routes = vehicle.routes.map((route) => ({
+    const routes = vehicle.Route.map((route) => ({
       id: route.id,
       name: route.name,
       polyline: route.polyline,

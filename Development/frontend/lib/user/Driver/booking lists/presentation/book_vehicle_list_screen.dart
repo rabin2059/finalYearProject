@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../components/AppColors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -103,7 +104,7 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> w
   @override
   Widget build(BuildContext context) {
     final bookingByVehicleState = ref.watch(bookVehicleProvider);
-    final primaryColor = Theme.of(context).primaryColor;
+    final primaryColor = AppColors.primary;
 
     return Scaffold(
       appBar: AppBar(
@@ -111,7 +112,7 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> w
           'Bookings List',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: AppColors.buttonText,
           ),
         ),
         backgroundColor: primaryColor,
@@ -119,7 +120,7 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> w
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
+            icon: const Icon(Icons.refresh, color: AppColors.buttonText),
             onPressed: fetchBookings,
           ),
         ],
@@ -167,11 +168,11 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> w
       height: 80.h,
       margin: EdgeInsets.symmetric(horizontal: 15.w),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.buttonText,
         borderRadius: BorderRadius.circular(15.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: AppColors.textPrimary.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -199,14 +200,14 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> w
               margin: EdgeInsets.symmetric(horizontal: 5.w),
               padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 12.w),
               decoration: BoxDecoration(
-                color: isSelected ? Theme.of(context).primaryColor : Colors.white,
+                color: isSelected ? AppColors.primary : AppColors.buttonText,
                 borderRadius: BorderRadius.circular(12.r),
                 border: Border.all(
-                  color: isSelected ? Theme.of(context).primaryColor : Colors.grey.shade300,
+                  color: isSelected ? AppColors.primary : AppColors.iconColor.withOpacity(0.4),
                 ),
                 boxShadow: isSelected ? [
                   BoxShadow(
-                    color: Theme.of(context).primaryColor.withOpacity(0.3),
+                    color: AppColors.primary.withOpacity(0.3),
                     blurRadius: 10,
                     offset: const Offset(0, 3),
                   ),
@@ -218,7 +219,7 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> w
                   Text(
                     DateFormat('E').format(date),
                     style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.grey.shade700,
+                      color: isSelected ? AppColors.buttonText : AppColors.textSecondary,
                       fontWeight: FontWeight.bold,
                       fontSize: 14.sp,
                     ),
@@ -227,7 +228,7 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> w
                   Text(
                     DateFormat('MMM dd').format(date),
                     style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.black87,
+                      color: isSelected ? AppColors.buttonText : AppColors.textPrimary,
                       fontWeight: FontWeight.bold,
                       fontSize: 16.sp,
                     ),
@@ -257,11 +258,11 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> w
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 20.w),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.buttonText,
         borderRadius: BorderRadius.circular(15.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColors.textPrimary.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -295,16 +296,16 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> w
     return Container(
       padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 15.w),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: AppColors.background.withOpacity(0.5),
         borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppColors.background),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildLegendItem(Colors.grey.shade200, "Available"),
-          _buildLegendItem(Colors.green.shade500, "Booked"),
-          _buildLegendItem(Colors.red.shade400, "Canceled"),
+          _buildLegendItem(AppColors.background, "Available"),
+          _buildLegendItem(AppColors.messageSent, "Booked"),
+          _buildLegendItem(AppColors.accent, "Canceled"),
         ],
       ),
     );
@@ -334,7 +335,7 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> w
           style: TextStyle(
             fontSize: 14.sp,
             fontWeight: FontWeight.w500,
-            color: Colors.black87,
+            color: AppColors.textPrimary,
           ),
         ),
       ],
@@ -365,7 +366,7 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> w
             'No seats configured for this vehicle',
             style: TextStyle(
               fontSize: 16.sp,
-              color: Colors.grey.shade700,
+              color: AppColors.textSecondary,
             ),
           ),
         ),
@@ -377,37 +378,37 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> w
         Container(
           padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
           decoration: BoxDecoration(
-            color: Colors.grey.shade50,
+            color: AppColors.background.withOpacity(0.5),
             borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(color: Colors.grey.shade200),
+            border: Border.all(color: AppColors.background),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
                 children: [
-                  Icon(Icons.airline_seat_recline_extra, color: Theme.of(context).primaryColor, size: 20.sp),
+                  Icon(Icons.airline_seat_recline_extra, color: AppColors.primary, size: 20.sp),
                   SizedBox(width: 8.w),
                   Text(
                     "Driver",
                     style: TextStyle(
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w500,
-                      color: Colors.black87,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ],
               ),
               Row(
                 children: [
-                  Icon(Icons.arrow_forward, color: Colors.grey, size: 16.sp),
+                  Icon(Icons.arrow_forward, color: AppColors.iconColor.withOpacity(0.4), size: 16.sp),
                   SizedBox(width: 5.w),
                   Text(
                     "Front",
                     style: TextStyle(
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w500,
-                      color: Colors.grey.shade700,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ],
@@ -479,14 +480,14 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> w
                 Color seatColor;
                 Color textColor;
                 if (status == 'C') {
-                  seatColor = Colors.red.shade400;
-                  textColor = Colors.white;
+                  seatColor = AppColors.accent;
+                  textColor = AppColors.buttonText;
                 } else if (status == 'B') {
-                  seatColor = Colors.green.shade500;
-                  textColor = Colors.white;
+                  seatColor = AppColors.messageSent;
+                  textColor = AppColors.buttonText;
                 } else {
-                  seatColor = Colors.grey.shade200;
-                  textColor = Colors.black87;
+                  seatColor = AppColors.background;
+                  textColor = AppColors.textPrimary;
                 }
 
                 return Padding(
@@ -577,7 +578,7 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> w
                 padding: EdgeInsets.symmetric(vertical: 5.h, horizontal: 15.w),
                 child: Container(
                   height: 1,
-                  color: Colors.grey.shade200,
+                  color: AppColors.background,
                 ),
               ),
           ],
@@ -595,7 +596,7 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> w
             width: 60.w,
             height: 60.h,
             child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
               strokeWidth: 3,
             ),
           ),
@@ -605,7 +606,7 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> w
             style: TextStyle(
               fontSize: 16.sp,
               fontWeight: FontWeight.w500,
-              color: Colors.grey.shade700,
+              color: AppColors.textSecondary,
             ),
           ),
         ],
@@ -621,13 +622,13 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> w
           Container(
             padding: EdgeInsets.all(20.w),
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: AppColors.background.withOpacity(0.5),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.directions_bus,
               size: 80.sp,
-              color: Colors.grey.shade500,
+              color: AppColors.textSecondary,
             ),
           ),
           SizedBox(height: 20.h),
@@ -636,7 +637,7 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> w
             style: TextStyle(
               fontSize: 18.sp,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: AppColors.textPrimary,
             ),
           ),
           SizedBox(height: 10.h),
@@ -644,15 +645,15 @@ class _BookVehicleListScreenState extends ConsumerState<BookVehicleListScreen> w
             "There are no bookings for this date",
             style: TextStyle(
               fontSize: 14.sp,
-              color: Colors.grey.shade700,
+              color: AppColors.textSecondary,
             ),
           ),
           SizedBox(height: 30.h),
           ElevatedButton(
             onPressed: fetchBookings,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).primaryColor,
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.buttonText,
               padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10.r),

@@ -5,19 +5,19 @@ const updateUser = async (req, res) => {
   try {
     const { id, username, email, phone, address } = req.body;
     const images = req.file ? `/uploads/${req.file.filename}` : null; // Check if a file was uploaded
-    console.log(images)
-  
+    console.log(images);
+
     // Find the user by ID
     const user = await prisma.user.findFirst({
       where: {
         id: parseInt(id),
       },
     });
-  
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-  
+
     // Update user information in the database
     const updatedUser = await prisma.user.update({
       where: { id: parseInt(id) },
@@ -29,7 +29,7 @@ const updateUser = async (req, res) => {
         images: images ? images : user.images, // Save the image path in the database
       },
     });
-  
+
     return res.status(200).json({
       message: "User updated successfully",
       user: updatedUser,
@@ -76,7 +76,9 @@ const passengerHomePage = async (req, res) => {
   try {
     const userId = parseInt(req.query.userId, 10);
     if (!userId) {
-      return res.status(400).json({ message: 'userId query parameter is required' });
+      return res
+        .status(400)
+        .json({ message: "userId query parameter is required" });
     }
 
     // 1. Fetch basic user info
@@ -86,11 +88,11 @@ const passengerHomePage = async (req, res) => {
         id: true,
         username: true,
         email: true,
-        images: true,    // matches your HomeScreen’s userImage
+        images: true, // matches your HomeScreen’s userImage
       },
     });
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     // 2. Count total bookings (used for “Recent Trips” card)
@@ -111,9 +113,48 @@ const passengerHomePage = async (req, res) => {
       totalExpend,
     });
   } catch (error) {
-    console.error('Error in passengerHomePage:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    console.error("Error in passengerHomePage:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
-module.exports = { updateUser, getUser, passengerHomePage };
+const getUpcomingTrip = async (req, res) => {
+  try {
+    const userId = parseInt(req.query.userId, 10);
+    console.log(userId)
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ message: "userId query parameter is required" });
+    }
+
+    const upcomingTrips = await prisma.booking.findMany({
+      where: {
+        userId: userId,
+        bookingDate: {
+          gte: new Date(),
+        },
+        status: {
+          not: "CANCELLED",
+        },
+      },
+      orderBy: {
+        bookingDate: "asc",
+      },
+      include: {
+        vehicle: {
+          include: {
+            Route: true,
+          },
+        },
+      },
+    });
+
+    return res.status(200).json({ trips: upcomingTrips });
+  } catch (error) {
+    console.error("Error in getUpcomingTrip:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+module.exports = { updateUser, getUser, passengerHomePage, getUpcomingTrip };

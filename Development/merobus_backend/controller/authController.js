@@ -21,6 +21,10 @@ const signUp = async (req, res, next) => {
       return res.status(400).json({ message: "Password is not strong" });
     }
 
+    if (password !== confirmPassword) {
+      return res.status(400).json({ message: "Passwords do not match" });
+    }
+
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ message: "Email already in use" });
@@ -41,7 +45,9 @@ const signUp = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    console.log(req.body)
+
+    console.log(req.body);
+
     if (!email || !password) {
       return res
         .status(400)
@@ -49,8 +55,10 @@ const login = async (req, res, next) => {
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ message: "Invalid email or password" });
+    if (!user)
+      return res.status(400).json({ message: "Email is not registered" });
+    if (!(await bcrypt.compare(password, user.password))) {
+      return res.status(400).json({ message: "Incorrect Password" });
     }
 
     const token = jwt.sign(

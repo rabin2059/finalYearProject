@@ -177,7 +177,7 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
                 _menuButton(CupertinoIcons.person_3, 'About Us', '/about'),
                 SizedBox(height: 16.h),
                 _menuButton(
-                    CupertinoIcons.exclamationmark_circle, 'Help', '/help'),
+                    CupertinoIcons.exclamationmark_circle, 'Chat', '/ChatGroup'),
                 SizedBox(height: 16.h),
                 _menuButton(Icons.settings, 'Settings', '/settings'),
                 SizedBox(height: 16.h),
@@ -198,13 +198,14 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
     return GestureDetector(
       onTap: () {
         if (action == '/login') {
-          ref.read(authProvider.notifier).logout();
-          ref.invalidate(userTabIndexProvider);
-          ref.invalidate(driverTabIndexProvider);
-          ref.invalidate(userDriverTabIndexProvider);
-          SettingState(users: []);
-          AuthState(userId: null, currentRole: null, isLoggedIn: false);
-          context.go(action);
+          ref.read(authProvider.notifier).logout().then((_) {
+            ref.invalidate(userTabIndexProvider);
+            ref.invalidate(driverTabIndexProvider);
+            ref.invalidate(userDriverTabIndexProvider);
+            SettingState(users: []);
+            AuthState(userId: null, currentRole: null, isLoggedIn: false);
+            context.go(action);
+          });
         } else {
           context.pushNamed(action);
         }

@@ -8,8 +8,10 @@ import '../../../../components/CustomButton.dart';
 import '../../../../core/constants.dart';
 import '../../../../core/role.dart';
 import '../../../Passenger/setting/providers/setting_provider.dart';
+import '../../../Passenger/setting/providers/setting_state.dart';
 import '../../../authentication/login/presentation/login_screen.dart';
 import '../../../authentication/login/providers/auth_provider.dart';
+import '../../../authentication/login/providers/auth_state.dart';
 import '../../vehicle details/provider/vehicle_details_provider.dart';
 import '../../../navigations/user_navigation.dart';
 import '../../../navigations/driver_navigation.dart';
@@ -243,11 +245,14 @@ class _DriverSettingScreenState extends ConsumerState<DriverSettingScreen> {
     return GestureDetector(
       onTap: () {
         if (action == '/login') {
-          ref.read(authProvider.notifier).logout();
-          ref.invalidate(userTabIndexProvider);
-          ref.invalidate(driverTabIndexProvider);
-          ref.invalidate(userDriverTabIndexProvider);
-          context.go(action);
+          ref.read(authProvider.notifier).logout().then((_) {
+            ref.invalidate(userTabIndexProvider);
+            ref.invalidate(driverTabIndexProvider);
+            ref.invalidate(userDriverTabIndexProvider);
+            SettingState(users: []);
+            AuthState(userId: null, currentRole: null, isLoggedIn: false);
+            context.go(action);
+          });
         } else {
           context.pushNamed(action);
         }

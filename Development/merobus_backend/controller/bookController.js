@@ -18,30 +18,34 @@ const booking = async (req, res) => {
     if (!seatNo || seatNo.length === 0) {
       return res
         .status(400)
-        .json({ message: "At least one seat must be selected" });
+        .json({success: false, message: "At least one seat must be selected" });
     }
 
-    // 🔥 Convert seatNo array to an array of integers
     const seatNumbers = seatNo.map((seat) => parseInt(seat, 10));
 
     const result = await prisma.$transaction(async (tx) => {
-      // ✅ Check for existing booked seats
+      const inputDate = new Date(bookingDate);
+      const startDate = new Date(inputDate.setUTCHours(0, 0, 0, 0));
+      const endDate = new Date(inputDate.setUTCHours(23, 59, 59, 999));
+
       const existingBookings = await tx.bookSeat.findMany({
         where: {
-          seatNo: { in: seatNumbers }, // Now correctly passing as an array of integers
+          seatNo: { in: seatNumbers },
           booking: {
-            vehicleId: vehicleId,
-            bookingDate: bookingDate,
+            vehicleId,
+            bookingDate: {
+              gte: startDate,
+              lte: endDate,
+            },
           },
         },
       });
 
       if (existingBookings.length > 0) {
         const bookedSeats = existingBookings.map((seat) => seat.seatNo);
-        throw new Error(`Seats already booked: ${bookedSeats.join(", ")}`);
+        throw { status: 500, message: "Seats already booked" };
       }
 
-      // ✅ Create new booking
       const newBooking = await tx.booking.create({
         data: {
           userId,
@@ -53,7 +57,6 @@ const booking = async (req, res) => {
         },
       });
 
-      // ✅ Insert seats only if provided
       const bookingSeats = await tx.bookSeat.createMany({
         data: seatNumbers.map((seat) => ({
           bookingId: newBooking.id,
@@ -65,15 +68,14 @@ const booking = async (req, res) => {
 
       return { newBooking, bookedSeats: seatNumbers };
     });
-    // After booking transaction, send push notification and save it
     const notificationTitle = "Booking Confirmed";
-    const notificationBody = `Your seat(s) ${result.bookedSeats.join(", ")} on vehicle ${vehicleId} are confirmed.`;
+    const notificationBody = `Your seats on vehicle ${vehicleId} are confirmed.`;
 
     const bookingUser = await prisma.user.findUnique({
       where: { id: userId },
       select: { fcmToken: true },
     });
-    if (bookingUser?.fcmToken) {
+      if (process.env.NODE_ENV !== "test" && bookingUser?.fcmToken) {
       await admin.messaging().send({
         token: bookingUser.fcmToken,
         notification: { title: notificationTitle, body: notificationBody },
@@ -82,14 +84,18 @@ const booking = async (req, res) => {
     await prisma.notification.create({
       data: { userId, title: notificationTitle, body: notificationBody },
     });
-    console.log("yes booked", result);
     return res.status(201).json({
       success: true,
       result,
     });
   } catch (error) {
-    console.error("Error creating booking:", error);
-    res.status(500).json({ message: error.message || "Server error" });
+    if (process.env.NODE_ENV !== "test") {
+      console.error("Error creating booking:", error);
+    }
+    if (error?.status && error?.message) {
+      return res.status(error.status).json({ success: false, message: error.message });
+    }
+    return res.status(500).json({ message: error.message || "Server error" });
   }
 };
 

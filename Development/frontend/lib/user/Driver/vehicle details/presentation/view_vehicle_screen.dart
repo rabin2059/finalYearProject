@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../components/AppColors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../provider/vehicle_details_provider.dart';
@@ -96,14 +97,14 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
     } else if (vehicleState.errorMessage.isNotEmpty) {
       body = Center(
         child: Text('Error: ${vehicleState.errorMessage}',
-            style: const TextStyle(color: Colors.red)),
+            style: const TextStyle(color: AppColors.accent)),
       );
     } else if (vehicleState.vehicle == null) {
       body = const Center(child: Text('No vehicle found'));
     } else {
       final vehicle = vehicleState.vehicle!;
       final totalSeats = vehicle.vehicleSeat?.map((seat) => seat.seatNo).toList() ?? [];
-      final primaryColor = Theme.of(context).primaryColor;
+      final primaryColor = AppColors.primary;
 
       body = FadeTransition(
         opacity: _animation,
@@ -112,7 +113,7 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
             Container(
               height: 150.h,
               decoration: BoxDecoration(
-                color: primaryColor,
+                color: AppColors.primary,
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(30.r),
                   bottomRight: Radius.circular(30.r),
@@ -127,11 +128,11 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                     margin: EdgeInsets.symmetric(horizontal: 20.w),
                     padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.buttonText,
                       borderRadius: BorderRadius.circular(15.r),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: AppColors.textPrimary.withOpacity(0.1),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -145,7 +146,7 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                           style: TextStyle(
                             fontSize: 18.sp,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: AppColors.textPrimary,
                           ),
                         ),
                         Text(
@@ -153,7 +154,7 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                           style: TextStyle(
                             fontSize: 16.sp,
                             fontWeight: FontWeight.w500,
-                            color: primaryColor,
+                            color: AppColors.primary,
                           ),
                         ),
                       ],
@@ -164,11 +165,11 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                     margin: EdgeInsets.symmetric(horizontal: 20.w),
                     padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.buttonText,
                       borderRadius: BorderRadius.circular(15.r),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: AppColors.textPrimary.withOpacity(0.1),
                           blurRadius: 10,
                           offset: const Offset(0, 5),
                         ),
@@ -188,11 +189,11 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                       margin: EdgeInsets.symmetric(horizontal: 20.w),
                       padding: EdgeInsets.fromLTRB(15.w, 15.w, 15.w, 10.w),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.buttonText,
                         borderRadius: BorderRadius.circular(15.r),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: AppColors.textPrimary.withOpacity(0.05),
                             blurRadius: 10,
                             offset: const Offset(0, 5),
                           ),
@@ -205,44 +206,44 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                             style: TextStyle(
                               fontSize: 18.sp,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                           SizedBox(height: 15.h),
                           Container(
                             padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade50,
+                              color: AppColors.background,
                               borderRadius: BorderRadius.circular(12.r),
-                              border: Border.all(color: Colors.grey.shade200),
+                              border: Border.all(color: AppColors.textSecondary),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Row(
                                   children: [
-                                    Icon(Icons.airline_seat_recline_extra, color: primaryColor, size: 20.sp),
+                                    Icon(Icons.airline_seat_recline_extra, color: AppColors.primary, size: 20.sp),
                                     SizedBox(width: 8.w),
                                     Text(
                                       "Driver",
                                       style: TextStyle(
                                         fontSize: 14.sp,
                                         fontWeight: FontWeight.w500,
-                                        color: Colors.black87,
+                                        color: AppColors.textPrimary,
                                       ),
                                     ),
                                   ],
                                 ),
                                 Row(
                                   children: [
-                                    Icon(Icons.arrow_forward, color: Colors.grey, size: 16.sp),
+                                    Icon(Icons.arrow_forward, color: AppColors.textSecondary, size: 16.sp),
                                     SizedBox(width: 5.w),
                                     Text(
                                       "Front",
                                       style: TextStyle(
                                         fontSize: 14.sp,
                                         fontWeight: FontWeight.w500,
-                                        color: Colors.grey.shade700,
+                                        color: AppColors.textSecondary,
                                       ),
                                     ),
                                   ],
@@ -256,7 +257,7 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                               physics: const BouncingScrollPhysics(),
                               child: Column(
                                 children: [
-                                  _buildSeatLayout(getSeatLayout(totalSeats), primaryColor),
+                                  _buildSeatLayout(getSeatLayout(totalSeats), AppColors.primary),
                                 ],
                               ),
                             ),
@@ -280,21 +281,21 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
           "Vehicle Details",
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: AppColors.buttonText,
           ),
         ),
-        backgroundColor: Theme.of(context).primaryColor,
+        backgroundColor: AppColors.primary,
         centerTitle: true,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.buttonText),
           onPressed: () {
             Navigator.of(context).pop();
           },
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.info_outline, color: Colors.white),
+            icon: const Icon(Icons.info_outline, color: AppColors.buttonText),
             onPressed: () => _showVehicleInfo(context),
           ),
         ],
@@ -308,7 +309,7 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
       children: [
         Icon(
           icon,
-          color: Theme.of(context).primaryColor,
+          color: AppColors.primary,
           size: 24.sp,
         ),
         SizedBox(height: 8.h),
@@ -316,7 +317,7 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
           label,
           style: TextStyle(
             fontSize: 14.sp,
-            color: Colors.grey.shade700,
+            color: AppColors.textSecondary,
           ),
         ),
         SizedBox(height: 4.h),
@@ -325,7 +326,7 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
           style: TextStyle(
             fontSize: 16.sp,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: AppColors.textPrimary,
           ),
         ),
       ],
@@ -369,11 +370,11 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                           width: 52.w,
                           height: 52.h,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
+                            color: AppColors.background,
                             borderRadius: BorderRadius.circular(10.r),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
+                                color: AppColors.textPrimary.withOpacity(0.05),
                                 blurRadius: 8,
                                 offset: const Offset(0, 3),
                               ),
@@ -387,7 +388,7 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                                 width: 42.w,
                                 height: 32.h,
                                 decoration: BoxDecoration(
-                                  color: Colors.grey.shade100,
+                                  color: AppColors.buttonText,
                                   borderRadius: BorderRadius.only(
                                     topLeft: Radius.circular(8.r),
                                     topRight: Radius.circular(8.r),
@@ -399,14 +400,14 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                                 width: 48.w,
                                 height: 16.h,
                                 decoration: BoxDecoration(
-                                  color: Colors.grey.shade300,
+                                  color: AppColors.textSecondary,
                                   borderRadius: BorderRadius.circular(4.r),
                                 ),
                               ),
                               Text(
                                 seat,
                                 style: TextStyle(
-                                  color: Colors.black87,
+                                  color: AppColors.textPrimary,
                                   fontSize: 15.sp,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -421,7 +422,7 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                             // Visualize the aisle with a faint line
                             border: seatIndex == 2 ? Border(
                               right: BorderSide(
-                                color: Colors.grey.shade300,
+                                color: AppColors.textSecondary,
                                 width: 1,
                                 style: BorderStyle.solid,
                               ),
@@ -439,7 +440,7 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                 padding: EdgeInsets.symmetric(vertical: 5.h, horizontal: 15.w),
                 child: Container(
                   height: 1,
-                  color: Colors.grey.shade200,
+                  color: AppColors.textSecondary,
                 ),
               ),
           ],
@@ -458,7 +459,7 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.5,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.buttonText,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(25.r),
             topRight: Radius.circular(25.r),
@@ -471,7 +472,7 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
               width: 40.w,
               height: 5.h,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: AppColors.textSecondary,
                 borderRadius: BorderRadius.circular(3.r),
               ),
             ),
@@ -481,7 +482,7 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
               style: TextStyle(
                 fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: AppColors.textPrimary,
               ),
             ),
             SizedBox(height: 20.h),
@@ -529,7 +530,7 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
+                    backgroundColor: AppColors.primary,
                     padding: EdgeInsets.symmetric(vertical: 15.h),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12.r),
@@ -540,7 +541,7 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                     style: TextStyle(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.buttonText,
                     ),
                   ),
                 ),
@@ -562,12 +563,12 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
         Container(
           padding: EdgeInsets.all(10.w),
           decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor.withOpacity(0.1),
+            color: AppColors.primary.withOpacity(0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(
             icon,
-            color: Theme.of(context).primaryColor,
+            color: AppColors.primary,
             size: 24.sp,
           ),
         ),
@@ -580,7 +581,7 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                 label,
                 style: TextStyle(
                   fontSize: 14.sp,
-                  color: Colors.grey.shade700,
+                  color: AppColors.textSecondary,
                 ),
               ),
               SizedBox(height: 4.h),
@@ -589,7 +590,7 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                 style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: AppColors.textPrimary,
                 ),
               ),
             ],
