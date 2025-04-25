@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:merobus/Components/CustomButton.dart';
-import 'package:merobus/Screens/Authentication/signin.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:merobus/Screens/Main%20Screens/admin_screen.dart';
+import 'package:merobus/Screens/Main%20Screens/bus_screen.dart';
+import 'package:merobus/Screens/Main%20Screens/profile_screen.dart';
 import '../Components/AppColors.dart';
+import '../Screens/Main Screens/setting_screen.dart';
+import '../Screens/Main Screens/home_screen.dart';
 
 class Navigation extends StatefulWidget {
   const Navigation({super.key, required this.dept});
-  final int dept;
+  final int
+      dept; // dept represents role: 0 -> Admin, 1 -> Passenger, 2 -> Driver
 
   @override
   State<Navigation> createState() => _NavigationState();
@@ -14,162 +17,152 @@ class Navigation extends StatefulWidget {
 
 class _NavigationState extends State<Navigation> {
   int _selectedIndex = 0;
+  final PageController _pageController = PageController(initialPage: 1);
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.dept; // Set the initial index based on the role
+  }
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
+    _pageController
+        .jumpToPage(index); // Handle page transitions using PageController
   }
 
-  @override
-  void initState() {
-    super.initState();
-    getUser();
+  Widget _buildBottomNavigationBar() {
+    if (widget.dept == 0) {
+      // Admin: No BottomNavigationBar for Admin
+      return Container();
+    } else {
+      // Passenger and Driver: Use BottomNavigationBar
+      return BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bus_alert, color: AppColors.primary),
+            label: 'Alerts',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home, color: AppColors.primary),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_circle, color: AppColors.primary),
+            label: 'Profile',
+          ),
+        ],
+      );
+    }
   }
 
-  Future<void> getUser() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-    print(token);
-  }
-
-  List<Widget> _buildPassengerScreens(BuildContext context) {
-    return [
-      const Center(child: Text('Passenger Option 1')),
-      const Center(child: Text('Passenger Option 2')),
-      const Center(child: Text('Passenger Option 3')),
-      Center(
-        child: CustomButton(
-          text: "Sign out",
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const SignIn()),
-            );
-          },
-        ),
+  Widget _buildAdminDrawer() {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          const DrawerHeader(
+            decoration: BoxDecoration(color: AppColors.primary),
+            child: Text(
+              'Admin Menu',
+              style: TextStyle(color: Colors.white, fontSize: 24),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.dashboard),
+            title: const Text('Dashboard'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdminScreen(),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.people),
+            title: const Text('Manage Users'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdminScreen(),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.report),
+            title: const Text('View Reports'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdminScreen(),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings),
+            title: const Text('Settings'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SettingScreen(dept: widget.dept),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.logout),
+            title: const Text('Logout'),
+            onTap: () {
+              // Add your logout logic here
+            },
+          ),
+        ],
       ),
-    ];
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    int dept = widget.dept;
-
-    switch (dept) {
-      case 0: // Admin
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Admin Dashboard'),
-            backgroundColor: AppColors.primary,
-          ),
-          drawer: Drawer(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                const DrawerHeader(
-                  decoration: BoxDecoration(color: AppColors.primary),
-                  child: Text(
-                    'Admin Menu',
-                    style: TextStyle(color: Colors.white, fontSize: 24),
-                  ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.dashboard),
-                  title: const Text('Dashboard'),
-                  onTap: () {
-                    setState(() {
-                      _selectedIndex = 0;
-                    });
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.settings),
-                  title: const Text('Settings'),
-                  onTap: () {
-                    setState(() {
-                      _selectedIndex = 1;
-                    });
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.logout),
-                  title: const Text('Logout'),
-                  onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const SignIn()));
-                  },
-                ),
-              ],
-            ),
-          ),
-          body: [
-            const Center(child: Text('Admin Option 1')),
-            const Center(child: Text('Admin Option 2')),
-          ][_selectedIndex], // Admin screens
-        );
-
-      case 1: // Passenger
-        return Scaffold(
-          body: _buildPassengerScreens(context)[_selectedIndex],
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: _selectedIndex,
-            onTap: _onItemTapped,
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home, color: AppColors.primary),
-                label: '',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.search, color: AppColors.primary),
-                label: '',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.notifications, color: AppColors.primary),
-                label: '',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.account_circle, color: AppColors.primary),
-                label: '',
-              ),
-            ],
-          ),
-        );
-
-      case 2: // Driver
-      default:
-        return Scaffold(
-          body: [
-            const Center(child: Text('Driver Option 1')),
-            const Center(child: Text('Driver Option 2')),
-            const Center(child: Text('Driver Option 3')),
-            const Center(child: Text('Driver Option 4')),
-          ][_selectedIndex],
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: _selectedIndex,
-            onTap: _onItemTapped,
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home, color: AppColors.primary),
-                label: '',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.search, color: AppColors.primary),
-                label: '',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.notifications, color: AppColors.primary),
-                label: '',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.account_circle, color: AppColors.primary),
-                label: '',
-              ),
-            ],
-          ),
-        );
+    // Admin Navigation
+    if (widget.dept == 0) {
+      return Scaffold(
+        drawer: _buildAdminDrawer(),
+        appBar: AppBar(
+          title: const Text('Admin Dashboard'),
+          backgroundColor: AppColors.primary,
+        ),
+        body: const AdminScreen(),
+      );
+    } else {
+      // Passenger/Driver Navigation
+      return Scaffold(
+        body: PageView(
+          controller: _pageController,
+          onPageChanged: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+          children: <Widget>[
+            BusScreen(dept: widget.dept),
+            HomeScreen(dept: widget.dept),
+            // SettingScreen(dept: widget.dept),
+             ProfileScreen(dept: widget.dept),
+          ],
+        ),
+        bottomNavigationBar: _buildBottomNavigationBar(),
+      );
     }
   }
 }

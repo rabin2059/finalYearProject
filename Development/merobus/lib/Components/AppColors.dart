@@ -9,4 +9,5 @@ class AppColors {
   static const Color textSecondary = Color(0xFF828282); // Secondary text color
   static const Color buttonColor = Color(0xFF2196F3); // Button background color
   static const Color buttonText = Color(0xFFFFFFFF); // Button text color
+  static const Color iconColor = Color(0xFFCBF691); // Button text color
 }
