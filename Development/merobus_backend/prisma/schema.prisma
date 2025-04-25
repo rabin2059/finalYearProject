@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,10 +7,252 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Passenger {
-  id           Int     @id @default(autoincrement())
-  username     String
-  email        String  @unique
-  password     String
-  role         Int
+model User {
+  id                 Int             @id @default(autoincrement())
+  username           String
+  email              String          @unique @db.VarChar(255)
+  password           String
+  phone              String?
+  address            String?
+  licenseNo          String?
+  images             String?
+  licenceImage       String?
+  fcmToken           String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  role               Role            @default(USER)
+  otp                String?
+  otp_expiry         DateTime?
+  status             String?
+  vehicles           Vehicle[]
+
+  Booking            Booking[]
+
+  Payment            Payment[]
+
+  Message            Message[]
+
+  chatGroups         ChatGroup[]     @relation("UserChatGroups")
+  UserChatGroup      UserChatGroup[]
+
+  ratings            DriverRating[]
+  driverStatus       DriverStatus?
+
+  Notification Notification[]
+}
+
+enum Role {
+  USER
+  DRIVER
+  ADMIN
+}
+
+model Vehicle {
+  id                 Int              @id @default(autoincrement())
+  vehicleNo          String           @unique
+  model              String
+  vehicleType        String
+  registerAs         String
+  departure          DateTime        @db.Time()
+  arrivalTime        DateTime        @db.Time()
+  actualDeparture    DateTime?       @db.Time()
+  actualArrival      DateTime?       @db.Time()
+  timingCategory     TripCategory?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  owner              User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId            Int
+
+  VehicleSeat        VehicleSeat[]
+  Booking            Booking[]
+  Route              Route[]
+  ChatGroup          ChatGroup[]
+  VehiclePerformance  VehiclePerformance[]
+}
+
+model VehiclePerformance {
+  id                            Int           @id @default(autoincrement())
+  vehicle                       Vehicle       @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  vehicleId                     Int     
+  category                      TripCategory
+  totalTrips                    Int       @default(0)
+  earlyCount                    Int        @default(0)
+  onTimeCount                   Int         @default(0)
+  lateCount                     Int          @default(0)
+  earlyStartLateArrivalCount    Int           @default(0)
+  lateStartEarlyArrivalCount    Int           @default(0)
+  generatedAt                   DateTime      @default(now())
+
+  @@unique([vehicleId])
+}
+
+enum TripCategory {
+  early
+  onTime
+  late
+  earlyStartLateArrival
+  lateStartEarlyArrival
+}
+
+model Route {
+  id                 Int              @id @default(autoincrement())
+  name               String?          
+  startPoint         String          
+  endPoint           String          
+  fare               Float
+  polyline           String?          @db.Text
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  busStops           RouteBusStop[]
+  vehicle            Vehicle?         @relation(fields: [vehicleID], references: [id], onDelete: Cascade)
+  vehicleID          Int?             
+}
+
+model BusStop {
+  id                 Int              @id @default(autoincrement())
+  name               String
+  latitude           Float
+  longitude          Float
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  routes             RouteBusStop[]   // Defines the many-to-many relationship with Route
+}
+
+model RouteBusStop {
+  id                 Int              @id @default(autoincrement())
+  route              Route             @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  routeId            Int
+  busStop            BusStop           @relation(fields: [busStopId], references: [id], onDelete: Cascade)
+  busStopId          Int
+  sequence           Int               // Order of the bus stops in the route
+}
+
+model VehicleSeat {
+  id                 Int              @id @default(autoincrement())
+  vehicle            Vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  vehicleId          Int
+  seatNo             Int
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+}
+
+model Booking {
+  id                 Int              @id @default(autoincrement())
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId             Int 
+  vehicle            Vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  vehicleId          Int
+  bookingDate        DateTime
+  pickUpPoint        String
+  dropOffPoint       String
+  totalFare          Float
+  status             BookingStatus     @default(PENDING)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  bookingSeats       BookSeat[]
+  durationTaken      Int?
+
+  Payment            Payment[]
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+model BookSeat {
+  id                 Int              @id @default(autoincrement())
+  booking            Booking           @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId          Int
+  seatNo             Int
+  createdAt          DateTime         @default(now())
+}
+
+model Payment {
+  id                 Int              @id @default(autoincrement())
+  booking            Booking           @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId          Int
+  amount             Float
+  paymentMethod      String
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId             Int
+  status             PaymentStatus     @default(PENDING)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+model ChatGroup {
+  id                 Int              @id @default(autoincrement())
+  name               String
+  vehicle            Vehicle?         @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  vehicleId          Int?             // Made optional to allow non-vehicle chat groups
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  messages           Message[]
+  users              User[]           @relation("UserChatGroups") // Many-to-many relationship with users
+  UserChatGroup      UserChatGroup[]
+}
+
+model Message {
+  id                 Int              @id @default(autoincrement())
+  text               String           @db.Text     // Using Text type for longer messages
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  sender             User             @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderId           Int
+  chatGroup          ChatGroup        @relation(fields: [chatGroupId], references: [id], onDelete: Cascade)
+  chatGroupId        Int
+  isRead             Boolean          @default(false)
+  readAt             DateTime?        // Track when message was read
+}
+
+// New model to track when users join chat groups
+model UserChatGroup {
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId             Int
+  chatGroup          ChatGroup         @relation(fields: [chatGroupId], references: [id], onDelete: Cascade)
+  chatGroupId        Int
+  joinedAt          DateTime          @default(now())
+  isActive           Boolean           @default(true)
+
+  @@id([userId, chatGroupId])
+}
+
+model DriverStatus {
+  id                 Int              @id @default(autoincrement())
+  driver             User              @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  driverId           Int              @unique
+  liveLatitude       Float?
+  liveLongitude      Float?
+  estimatedReachTime DateTime?
+  sharedRoute        String?          @db.Text
+  updatedAt          DateTime         @updatedAt
+}
+
+model DriverRating {
+  id                 Int              @id @default(autoincrement())
+  user               User              @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  driverId           Int
+  rating             Int
+  review             String?          @db.Text
+  forApp             Boolean          @default(false)
+  createdAt          DateTime         @default(now())
+}
+
+// New model for notifications
+model Notification {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  title     String
+  body      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
