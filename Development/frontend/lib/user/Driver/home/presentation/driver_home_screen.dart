@@ -7,8 +7,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
 import '../../../../components/AppColors.dart';
 import '../../../../components/CustomButton.dart';
+import '../../../../core/constants.dart';
 import '../../../../data/services/map_service.dart';
 import '../../../Passenger/setting/providers/setting_provider.dart';
+import '../../../Passenger/setting/providers/setting_state.dart';
 import '../../../authentication/login/providers/auth_provider.dart';
 import '../../driver map/driver_map_screen.dart';
 import '../../vehicle details/provider/vehicle_details_provider.dart';
@@ -18,13 +20,13 @@ class DriverHomeScreen extends ConsumerStatefulWidget {
   const DriverHomeScreen({super.key});
 
   @override
-  ConsumerState<DriverHomeScreen> createState() =>
-      _DriverHomeScreenState();
+  ConsumerState<DriverHomeScreen> createState() => _DriverHomeScreenState();
 }
 
 class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
   String? startPoint;
   String? endPoint;
+  double _driverAverageRating = 0.0;
 
   @override
   void initState() {
@@ -41,6 +43,27 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
       });
       // Load driver stats
       ref.read(driverProvider.notifier).fetchDriverData(userId);
+      // Fetch driver ratings
+      fetchDriverRatings(userId);
+    }
+  }
+
+  // Fetch driver ratings and update _driverAverageRating
+  void fetchDriverRatings(int driverId) async {
+    final response =
+        await http.get(Uri.parse('$apiBaseUrl/getRating/$driverId'));
+
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      final List ratings = json['result'];
+
+      if (ratings.isNotEmpty) {
+        double sum = ratings.fold(0.0, (acc, val) => acc + val['rating']);
+        setState(() {
+          _driverAverageRating =
+              double.parse((sum / ratings.length).toStringAsFixed(1));
+        });
+      }
     }
   }
 
@@ -58,16 +81,16 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     final driverState = ref.watch(driverProvider);
     final vehicleState = ref.watch(vehicleProvider);
 
-
     final stats = driverState.driverData?.driverStats;
     final hasStats = stats != null;
-    final totalTripsValue    = hasStats ? stats!.totalTrips.toString()   : '0';
-    final totalEarningsValue = hasStats ? 'Rs.${stats!.totalEarnings}'    : 'Rs.0';
-    final ratingValue        = hasStats ? stats!.rating.toString()       : '0.0';
-    final statusValue        = hasStats ? "Online"                 : 'Offline';
+    final totalTripsValue = hasStats ? stats.totalTrips.toString() : '0';
+    final totalEarningsValue = hasStats ? 'Rs.${stats.totalEarnings}' : 'Rs.0';
+    final ratingValue =
+        _driverAverageRating > 0 ? _driverAverageRating.toString() : '0.0';
+    final statusValue = hasStats ? "Online" : 'Offline';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.background,
       body: RefreshIndicator(
         onRefresh: () async {
           final userId = ref.read(authProvider).userId;
@@ -81,31 +104,43 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
-              _buildHeader(userName!, userEmail, userImage, statusValue!),
+              _buildHeader(userName!, userEmail, userImage, statusValue, settingState),
               _buildStatusCard(vehicleId),
               _buildStatsRow(totalTripsValue, totalEarningsValue, ratingValue),
-              _buildActionCards(vehicleId),
+              // _buildActionCards(vehicleId), // Removed action cards
             ],
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DriverMapScreen(vehicleId: vehicleId),
+            ),
+          );
+        },
+        label: Text(
+          "Open Map",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 15.sp,
+            color: AppColors.buttonText,
+          ),
+        ),
+        icon: Icon(Icons.map_outlined, color: AppColors.buttonText),
+        backgroundColor: AppColors.primary,
+      ),
     );
   }
 
-
   Widget _buildHeader(
-      String name, String email, String imageUrl, String status) {
+      String name, String email, String imageUrl, String status, SettingState settingState) {
     return Container(
       padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            AppColors.primary,
-            const Color(0xFF2980b9),
-          ],
-        ),
+        color: AppColors.primary,
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(30.r),
           bottomRight: Radius.circular(30.r),
@@ -128,13 +163,39 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                 Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2.w),
+                    border: Border.all(color: AppColors.buttonText, width: 2.w),
                   ),
                   child: CircleAvatar(
-                    radius: 40.r,
-                    backgroundImage: AssetImage(imageUrl),
-                    onBackgroundImageError: (_, __) =>
-                        const Icon(Icons.person, size: 40),
+                    radius: 53.h, 
+                    backgroundColor:
+                        Colors.grey[200], 
+                    child: settingState.users.isNotEmpty &&
+                            settingState.users[0].images != null
+                        ? ClipOval(
+                            child: Image.network(
+                              imageUrl + settingState.users[0].images!,
+                              fit: BoxFit
+                                  .cover, 
+                              width: 106.h, 
+                              height: 106.h,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Image.asset(
+                                  "assets/profile.png",
+                                  fit: BoxFit.cover,
+                                  width: 106.h,
+                                  height: 106.h,
+                                );
+                              },
+                            ),
+                          )
+                        : ClipOval(
+                            child: Image.asset(
+                              "assets/profile.png", 
+                              fit: BoxFit.cover,
+                              width: 106.h,
+                              height: 106.h,
+                            ),
+                          ),
                   ),
                 ),
                 SizedBox(width: 16.w),
@@ -147,7 +208,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                         style: TextStyle(
                           fontSize: 22.sp,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: AppColors.buttonText,
                         ),
                       ),
                       SizedBox(height: 4.h),
@@ -155,7 +216,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                         email,
                         style: TextStyle(
                           fontSize: 14.sp,
-                          color: Colors.white.withOpacity(0.8),
+                          color: AppColors.buttonText.withOpacity(0.8),
                         ),
                       ),
                       SizedBox(height: 8.h),
@@ -166,8 +227,8 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                         ),
                         decoration: BoxDecoration(
                           color: status == 'Online'
-                              ? Colors.green
-                              : Colors.grey,
+                              ? AppColors.messageSent
+                              : AppColors.textSecondary,
                           borderRadius: BorderRadius.circular(20.r),
                         ),
                         child: Row(
@@ -177,7 +238,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                               width: 8.w,
                               height: 8.w,
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: AppColors.buttonText,
                                 shape: BoxShape.circle,
                               ),
                             ),
@@ -185,7 +246,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                             Text(
                               status,
                               style: TextStyle(
-                                color: Colors.white,
+                                color: AppColors.buttonText,
                                 fontSize: 12.sp,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -209,7 +270,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
       padding: EdgeInsets.all(16.w),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.buttonText,
           borderRadius: BorderRadius.circular(20.r),
           boxShadow: [
             BoxShadow(
@@ -247,7 +308,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                         style: TextStyle(
                           fontSize: 16.sp,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                       SizedBox(height: 2.h),
@@ -255,10 +316,9 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                         "Bus ${vehicleId ?? 'Loading...'}",
                         style: TextStyle(
                           fontSize: 14.sp,
-                          color: Colors.black54,
+                          color: AppColors.textSecondary,
                         ),
                       ),
-                      
                     ],
                   ),
                   Spacer(),
@@ -268,16 +328,16 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                       vertical: 6.h,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.1),
+                      color: AppColors.messageSent.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20.r),
                       border: Border.all(
-                        color: Colors.green.withOpacity(0.3),
+                        color: AppColors.messageSent.withOpacity(0.3),
                       ),
                     ),
                     child: Text(
                       "Active",
                       style: TextStyle(
-                        color: Colors.green,
+                        color: AppColors.messageSent,
                         fontWeight: FontWeight.bold,
                         fontSize: 12.sp,
                       ),
@@ -290,8 +350,8 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                 children: [
                   Expanded(
                     child: Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 16.w, vertical: 12.h),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12.r),
@@ -301,13 +361,14 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                         children: [
                           Text("From",
                               style: TextStyle(
-                                  fontSize: 12.sp, color: Colors.black54)),
+                                  fontSize: 12.sp,
+                                  color: AppColors.textSecondary)),
                           SizedBox(height: 4.h),
                           Text(startPoint ?? "Kathmandu",
                               style: TextStyle(
                                   fontSize: 14.sp,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black87)),
+                                  color: AppColors.textPrimary)),
                         ],
                       ),
                     ),
@@ -315,8 +376,8 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                   SizedBox(width: 12.w),
                   Expanded(
                     child: Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 16.w, vertical: 12.h),
                       decoration: BoxDecoration(
                         color: Colors.red.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12.r),
@@ -326,13 +387,14 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                         children: [
                           Text("To",
                               style: TextStyle(
-                                  fontSize: 12.sp, color: Colors.black54)),
+                                  fontSize: 12.sp,
+                                  color: AppColors.textSecondary)),
                           SizedBox(height: 4.h),
                           Text(endPoint ?? "Pokhara",
                               style: TextStyle(
                                   fontSize: 14.sp,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black87)),
+                                  color: AppColors.textPrimary)),
                         ],
                       ),
                     ),
@@ -356,21 +418,21 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
             title: "Total Trips",
             value: totalTripsValue,
             icon: Icons.route,
-            iconColor: Colors.blue,
+            iconColor: AppColors.buttonColor,
           ),
           SizedBox(width: 12.w),
           _buildStatCard(
             title: "Earnings",
             value: totalEarningsValue,
             icon: Icons.account_balance_wallet,
-            iconColor: Colors.green,
+            iconColor: AppColors.messageSent,
           ),
           SizedBox(width: 12.w),
           _buildStatCard(
             title: "Rating",
             value: ratingValue,
             icon: Icons.star,
-            iconColor: Colors.amber,
+            iconColor: AppColors.accent,
           ),
         ],
       ),
@@ -387,7 +449,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
       child: Container(
         padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.buttonText,
           borderRadius: BorderRadius.circular(12.r),
           boxShadow: [
             BoxShadow(
@@ -417,7 +479,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
               style: TextStyle(
                 fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: AppColors.textPrimary,
               ),
             ),
             SizedBox(height: 4.h),
@@ -425,7 +487,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
               title,
               style: TextStyle(
                 fontSize: 12.sp,
-                color: Colors.black54,
+                color: AppColors.textSecondary,
               ),
             ),
           ],
@@ -434,113 +496,4 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     );
   }
 
-  Widget _buildActionCards(int vehicleId) {
-    final actions = [
-      {
-        'title': 'Start Trip',
-        'icon': Icons.play_circle_outline,
-        'color': Colors.green,
-        'action': () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => DriverMapScreen(
-                vehicleId: vehicleId,
-              ),
-            ),
-          );
-        },
-      },
-      {
-        'title': 'Trip History',
-        'icon': Icons.history,
-        'color': Colors.blue,
-        'action': () {
-          // TODO: implement trip history page
-        },
-      },
-      {
-        'title': 'Edit Profile',
-        'icon': Icons.person_outline,
-        'color': Colors.purple,
-        'action': () {
-          // TODO: implement edit profile
-        },
-      },
-    ];
-
-    return Padding(
-      padding: EdgeInsets.all(16.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Quick Actions",
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          SizedBox(height: 12.h),
-          GridView.builder(
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              childAspectRatio: 0.85,
-              crossAxisSpacing: 12.w,
-              mainAxisSpacing: 12.h,
-            ),
-            itemCount: actions.length,
-            itemBuilder: (context, index) {
-              final action = actions[index];
-              return GestureDetector(
-                onTap: action['action'] as void Function(),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16.r),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(12.w),
-                        decoration: BoxDecoration(
-                          color: (action['color'] as Color).withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          action['icon'] as IconData,
-                          color: action['color'] as Color,
-                          size: 28.sp,
-                        ),
-                      ),
-                      SizedBox(height: 12.h),
-                      Text(
-                        action['title'] as String,
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
 }

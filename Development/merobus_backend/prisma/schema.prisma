@@ -39,6 +39,8 @@ model User {
   driverStatus       DriverStatus?
 
   Notification Notification[]
+
+  DriverRating DriverRating[] @relation("DriverRating")
 }
 
 enum Role {
@@ -237,13 +239,14 @@ model DriverStatus {
 }
 
 model DriverRating {
-  id                 Int              @id @default(autoincrement())
-  user               User              @relation(fields: [driverId], references: [id], onDelete: Cascade)
-  driverId           Int
-  rating             Int
-  review             String?          @db.Text
-  forApp             Boolean          @default(false)
-  createdAt          DateTime         @default(now())
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
+  driver     User     @relation("DriverRating", fields: [driverId], references: [id])
+  driverId   Int
+  rating     Float
+  review     String?  @db.Text
+  createdAt  DateTime @default(now())
 }
 
 // New model for notifications

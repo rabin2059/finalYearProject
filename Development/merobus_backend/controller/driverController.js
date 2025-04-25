@@ -312,37 +312,6 @@ const getSingleVehicle = async (req, res) => {
   }
 };
 
-const getMyRoute = async (req, res) => {
-  try {
-    const { id } = req.query;
-    if (!id) {
-      return res.status(400).json({ message: "Vehicle ID is required" });
-    }
-
-    const route = await prisma.route.findFirst({
-      where: {
-        vehicleID: parseInt(id),
-      },
-      select: {
-        startPoint: true,
-        endPoint: true,
-      },
-    });
-    console.log(route);
-    if (!route) {
-      return res
-        .status(404)
-        .json({ message: "No route found for this vehicle" });
-    }
-
-    res.status(200).json({ route });
-  } catch (error) {
-    res
-      .status(404)
-      .json({ message: "Could not found the route" + error.message });
-  }
-};
-
 const driverHome = async (req, res) => {
   try {
     const userId = parseInt(req.query.userId, 10);
@@ -405,6 +374,5 @@ module.exports = {
   createRoute,
   getVehicles,
   getSingleVehicle,
-  getMyRoute,
   driverHome,
 };

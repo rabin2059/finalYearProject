@@ -61,8 +61,9 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
         context.pushNamed(
           '/payment',
           pathParameters: {
-            'url': Uri.encodeComponent(paymentUrl)
-          }, // ✅ Encode URL properly
+            'url': Uri.encodeComponent(paymentUrl),
+            'pidx': paymentId
+          }, 
         );
       }
     } catch (e) {
@@ -72,8 +73,8 @@ class _OverviewScreenState extends ConsumerState<OverviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bookState = ref.watch(bookProvider); // ✅ Use `watch` for reactivity
-    final book = bookState.book; // ✅ Extract book from state
+    final bookState = ref.watch(bookProvider); 
+    final book = bookState.book; 
 
     return Scaffold(
       appBar: AppBar(

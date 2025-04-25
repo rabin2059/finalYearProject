@@ -73,3 +73,5 @@ process.on("unhandledRejection", (reason, promise) => {
   logger.error("Unhandled Rejection at:", promise);
   logger.error("Reason:", reason);
 });
+
+module.exports = app;

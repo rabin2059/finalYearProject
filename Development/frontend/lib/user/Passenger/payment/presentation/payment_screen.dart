@@ -8,8 +8,9 @@ import 'dart:async';
 
 class PaymentScreen extends ConsumerStatefulWidget {
   final String paymentUrl;
+  final String pidx;
 
-  const PaymentScreen({super.key, required this.paymentUrl});
+  const PaymentScreen({super.key, required this.paymentUrl, required this.pidx});
 
   @override
   ConsumerState<PaymentScreen> createState() => _PaymentScreenState();
@@ -18,33 +19,32 @@ class PaymentScreen extends ConsumerStatefulWidget {
 class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   late final WebViewController _controller;
   late Timer _timer;
-  bool isRedirecting = false; // ✅ Prevent multiple redirects
+  bool isRedirecting = false; 
 
   @override
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller = WebViewController()
-        ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        ..setNavigationDelegate(NavigationDelegate(
-          onPageStarted: (String url) {
-            if (url.contains("status=Completed") && !isRedirecting) {
-              isRedirecting = true;
-              _handlePaymentSuccess();
-            }
-          },
-        ))
-        ..loadRequest(Uri.parse(widget.paymentUrl));
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(NavigationDelegate(
+        onPageStarted: (String url) {
+          if (url.contains("status=Completed") && !isRedirecting) {
+            isRedirecting = true;
+            _handlePaymentSuccess();
+          }
+        },
+      ))
+      ..loadRequest(Uri.parse(widget.paymentUrl));
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       _timer = Timer.periodic(const Duration(seconds: 5), (_) => checkPaymentStatus());
     });
   }
 
-  /// **✅ Backend Verification (Fallback)**
   Future<void> checkPaymentStatus() async {
     final response = await http.get(Uri.parse(
-        "http://localhost:3089/api/v1/makePayment/?pidx=7SHNYUc594NSKmB8b2ho82"));
+        "http://localhost:3089/api/v1/makePayment/?pidx=${widget.pidx}"));
 
     final data = json.decode(response.body);
 
@@ -56,10 +56,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     }
   }
 
-  /// **✅ Redirect on Payment Success**
   void _handlePaymentSuccess() {
-    _timer.cancel(); // Cancel the timer to prevent memory leaks
-    // ✅ Navigate to Booking Screen
+    _timer.cancel(); 
     context.go('/navigation');
   }
 
