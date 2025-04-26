@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../components/AppColors.dart';
 import '../../../../core/constants.dart';
 import '../../../authentication/login/providers/auth_provider.dart';
+import '../../home/provider/passenger_provider.dart';
 import '../../setting/providers/setting_provider.dart';
 import '../providers/profile_provider.dart';
 
@@ -39,10 +40,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   void initState() {
     super.initState();
     _loadUserData();
-    _addListeners(); // Listen for changes in text fields
+    _addListeners();
   }
 
-  /// Loads User Data into TextFields & Stores Initial Values
   void _loadUserData() {
     final settingState = ref.read(settingProvider);
 
@@ -62,7 +62,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
-  /// Attach Listeners to Detect Changes in Text Fields
   void _addListeners() {
     _usernameController.addListener(_checkForChanges);
     _emailController.addListener(_checkForChanges);
@@ -70,7 +69,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _addressController.addListener(_checkForChanges);
   }
 
-  /// Check if any field has changed
   void _checkForChanges() {
     setState(() {
       _hasChanged = _usernameController.text != originalUsername ||
@@ -81,11 +79,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     });
   }
 
-  /// Pick an Image
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     
-    // Show bottom sheet with options
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
@@ -210,7 +206,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  /// Update Profile
   Future<void> _updateProfile() async {
     if (!_hasChanged) {
       _showSnackBar("No changes were made");
@@ -244,6 +239,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
       if (mounted) {
         ref.watch(settingProvider.notifier).fetchUsers(userId);
+        ref.read(passengerProvider.notifier).fetchHomeData(userId);
         setState(() {
           _isLoading = false;
         });

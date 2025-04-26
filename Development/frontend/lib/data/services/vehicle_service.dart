@@ -16,7 +16,6 @@ class VehicleService {
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> jsonResponse = json.decode(response.body);
-      // The endpoint wraps the Vehicle inside a "vehicle" key
       return Vehicle.fromJson(jsonResponse['vehicle'] as Map<String, dynamic>);
     } else {
       throw Exception(

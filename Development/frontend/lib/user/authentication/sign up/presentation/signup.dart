@@ -26,6 +26,8 @@ class _SignUpState extends ConsumerState<SignUp> {
       TextEditingController();
 
   bool isLoading = false;
+  bool _showPassword = false;
+  bool _showConfirmPassword = false;
 
   Future<void> _createUser() async {
     try {
@@ -150,9 +152,15 @@ class _SignUpState extends ConsumerState<SignUp> {
                   CustomTextField(
                     hint: 'Enter your password',
                     prefixIcon: CupertinoIcons.lock,
-                    suffixIcon: CupertinoIcons.eye_slash,
+                    suffixIcon: _showPassword ? CupertinoIcons.eye : CupertinoIcons.eye_slash,
+                    obscureText: !_showPassword,
                     keyboardType: TextInputType.visiblePassword,
                     controller: passwordController,
+                    onSuffixTap: () {
+                      setState(() {
+                        _showPassword = !_showPassword;
+                      });
+                    },
                   ),
                   SizedBox(height: 20.h),
                   Row(
@@ -163,9 +171,15 @@ class _SignUpState extends ConsumerState<SignUp> {
                   CustomTextField(
                     hint: 'Confirm your password',
                     prefixIcon: CupertinoIcons.lock,
-                    suffixIcon: CupertinoIcons.eye_slash,
+                    suffixIcon: _showConfirmPassword ? CupertinoIcons.eye : CupertinoIcons.eye_slash,
+                    obscureText: !_showConfirmPassword,
                     keyboardType: TextInputType.visiblePassword,
                     controller: confirmPasswordController,
+                    onSuffixTap: () {
+                      setState(() {
+                        _showConfirmPassword = !_showConfirmPassword;
+                      });
+                    },
                   ),
                   SizedBox(height: 20.h),
                   CustomButton(

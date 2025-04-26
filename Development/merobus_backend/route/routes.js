@@ -48,6 +48,7 @@ router.post("/addVehicle", driverController.addVehicle);
 router.post("/createRoute", driverController.createRoute);
 router.get("/getVehicles", driverController.getVehicles);
 router.get("/getSingleVehicle", driverController.getSingleVehicle);
+router.put("/updateRoute", driverController.updateRoute);
 
 // bookings
 router.post("/booking", bookController.booking);

@@ -362,13 +362,6 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           backgroundColor: AppColors.primary,
           iconTheme: const IconThemeData(color: AppColors.textPrimary),
           actions: [
-            
-            IconButton(
-              icon: const Icon(Icons.info_outline),
-              onPressed: () {
-                _showBusInfo(context, busDetails);
-              },
-            ),
           ],
           centerTitle: true,
         ),

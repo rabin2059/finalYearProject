@@ -75,7 +75,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  /// Retrieve stored FCM token and send it to backend
   Future<void> _saveFcmTokenToServer() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -230,7 +229,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   /// Premium header with gradient and user info
-  Widget _buildHeader(String name, String email, String imageUrl, String recentTripsValue, String totalExpendValue, SettingState settingState) {
+  Widget _buildHeader(String name, String email, String image, String recentTripsValue, String totalExpendValue, SettingState settingState) {
     return Container(
       padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
       decoration: BoxDecoration(
@@ -277,7 +276,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             settingState.users[0].images != null
                         ? ClipOval(
                             child: Image.network(
-                              imageUrl + settingState.users[0].images!,
+                              imageUrl + image,
                               fit: BoxFit
                                   .cover, 
                               width: 106.h, 
@@ -310,7 +309,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       Text(
                         "Hello, $name!",
                         style: TextStyle(
-                          fontSize: 24.sp,
+                          fontSize: 20.sp,
                           fontWeight: FontWeight.bold,
                           color: AppColors.buttonText,
                         ),

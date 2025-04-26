@@ -43,18 +43,14 @@ class _BusScreenState extends ConsumerState<BusScreen> {
         return;
       }
 
-      final allBuses = ref
-          .read(busProvider)
-          .buses;
+      final allBuses = ref.read(busProvider).buses;
       final filtered = allBuses.where((bus) {
         final start = bus.route?.startPoint?.toLowerCase() ?? '';
         final end = bus.route?.endPoint?.toLowerCase() ?? '';
         return start.contains(from) && end.contains(to);
       }).toList();
 
-      ref
-          .read(busProvider.notifier)
-          .setFilteredBuses(filtered); 
+      ref.read(busProvider.notifier).setFilteredBuses(filtered);
     } catch (e) {
       debugPrint("Error filtering buses: $e");
     }
@@ -225,10 +221,9 @@ class _BusScreenState extends ConsumerState<BusScreen> {
           CircleAvatar(
             backgroundColor: AppColors.primary.withOpacity(0.1),
             radius: 18.r,
-            child: Icon(
-              Icons.person_outline,
-              color: AppColors.primary,
-              size: 22.sp,
+            child: Image.asset(
+              "assets/logo.png",
+              height: 22.sp,
             ),
           ),
         ],
@@ -380,12 +375,14 @@ class _BusScreenState extends ConsumerState<BusScreen> {
         ),
       );
     }
+    final sortedBuses = List.from(busState.buses)
+      ..sort((a, b) => b.id!.compareTo(a.id!));
 
     return ListView.builder(
       padding: EdgeInsets.symmetric(horizontal: 16.w),
-      itemCount: busState.buses.length,
+      itemCount: sortedBuses.length,
       itemBuilder: (context, index) {
-        final bus = busState.buses[index];
+        final bus = sortedBuses[index];
         return GestureDetector(
           onTap: () => context.pushNamed('/busDetail',
               pathParameters: {'id': bus.id.toString()}),
@@ -898,78 +895,78 @@ class _BusScreenState extends ConsumerState<BusScreen> {
   }
 }
 
-  // Copied from booking_screen.dart
-  Widget _buildSearchFieldWithIcon({
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
-    required Color iconColor,
-    required FocusNode focusNode,
-    required Function(String) onSearch,
-  }) {
-    final bool hasText = controller.text.isNotEmpty;
+// Copied from booking_screen.dart
+Widget _buildSearchFieldWithIcon({
+  required TextEditingController controller,
+  required String hint,
+  required IconData icon,
+  required Color iconColor,
+  required FocusNode focusNode,
+  required Function(String) onSearch,
+}) {
+  final bool hasText = controller.text.isNotEmpty;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(15.r),
-        border: Border.all(
-          color: focusNode.hasFocus || hasText
-              ? AppColors.primary.withOpacity(0.8)
-              : Colors.grey.shade300,
-          width: 1.5,
+  return Container(
+    decoration: BoxDecoration(
+      color: Colors.grey.shade50,
+      borderRadius: BorderRadius.circular(15.r),
+      border: Border.all(
+        color: focusNode.hasFocus || hasText
+            ? AppColors.primary.withOpacity(0.8)
+            : Colors.grey.shade300,
+        width: 1.5,
+      ),
+    ),
+    child: Row(
+      children: [
+        Padding(
+          padding: EdgeInsets.all(12.w),
+          child: Container(
+            padding: EdgeInsets.all(6.w),
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: iconColor,
+              size: 18.sp,
+            ),
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          Padding(
-            padding: EdgeInsets.all(12.w),
-            child: Container(
-              padding: EdgeInsets.all(6.w),
-              decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                color: iconColor,
-                size: 18.sp,
-              ),
-            ),
-          ),
-          Expanded(
-            child: TextField(
-              controller: controller,
-              focusNode: focusNode,
-              decoration: InputDecoration(
-                hintText: hint,
-                hintStyle: TextStyle(
-                  color: Colors.grey.shade500,
-                  fontSize: 15.sp,
-                ),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(vertical: 14.h),
-              ),
-              onChanged: onSearch,
-              style: TextStyle(
+        Expanded(
+          child: TextField(
+            controller: controller,
+            focusNode: focusNode,
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(
+                color: Colors.grey.shade500,
                 fontSize: 15.sp,
-                color: AppColors.textPrimary,
               ),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(vertical: 14.h),
+            ),
+            onChanged: onSearch,
+            style: TextStyle(
+              fontSize: 15.sp,
+              color: AppColors.textPrimary,
             ),
           ),
-          if (hasText)
-            IconButton(
-              icon: Icon(
-                Icons.close,
-                color: Colors.grey.shade600,
-                size: 18.sp,
-              ),
-              onPressed: () {
-                controller.clear();
-                onSearch("");
-              },
+        ),
+        if (hasText)
+          IconButton(
+            icon: Icon(
+              Icons.close,
+              color: Colors.grey.shade600,
+              size: 18.sp,
             ),
-        ],
-      ),
-    );
-  }
+            onPressed: () {
+              controller.clear();
+              onSearch("");
+            },
+          ),
+      ],
+    ),
+  );
+}

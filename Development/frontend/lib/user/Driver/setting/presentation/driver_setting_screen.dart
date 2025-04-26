@@ -46,9 +46,9 @@ class _DriverSettingScreenState extends ConsumerState<DriverSettingScreen> {
   }
 
   void _initializeUserRole() {
-    final authState = ref.read(authProvider); // Get stored role
+    final authState = ref.read(authProvider); 
     _userType =
-        authState.currentRole ?? UserRole.DRIVER; // Default to DRIVER if null
+        authState.currentRole ?? UserRole.DRIVER; 
   }
 
   @override
@@ -75,14 +75,13 @@ class _DriverSettingScreenState extends ConsumerState<DriverSettingScreen> {
     );
   }
 
-  /// **Fetch user data**
   Future<void> _fetchUserData() async {
     try {
       final settingNotifier = ref.read(settingProvider.notifier);
       final authState = ref.read(authProvider);
       final userId = authState.userId;
 
-      debugPrint('Fetching user data for userId: $userId'); // Debug print
+      debugPrint('Fetching user data for userId: $userId'); 
 
       if (userId != null) {
         await settingNotifier.fetchUsers(userId);
@@ -94,7 +93,6 @@ class _DriverSettingScreenState extends ConsumerState<DriverSettingScreen> {
     }
   }
 
-  /// **Builds the profile header**
   Widget _buildProfileHeader(settingState) {
     final hasUser = settingState.users.isNotEmpty;
     final user = hasUser ? settingState.users[0] : null;

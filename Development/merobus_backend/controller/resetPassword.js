@@ -98,6 +98,8 @@ const resetPassword = async (req, res) => {
   try {
     const { email, password, confirmPassword } = req.body;
 
+    console.log(req.body);
+
     if (!validator.isEmail(email)) {
       return res.status(400).json({ message: "Invalid email address" });
     }
@@ -115,14 +117,15 @@ const resetPassword = async (req, res) => {
     if (!validator.isStrongPassword(password)) {
       return res.status(400).json({ message: "Password is not strong" });
     }
+    console.log("Dfhdfgh")
 
     if (password !== confirmPassword) {
       return res.status(400).json({ message: "Passwords do not match" });
     }
+    console.log("sdfgdfg")
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Update the password and clear OTP in a single operation
     await prisma.user.update({
       where: { email: email },
       data: { password: hashedPassword, otp: null },

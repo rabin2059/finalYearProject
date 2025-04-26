@@ -2,7 +2,6 @@ const prisma = require("../utils/prisma.js");
 const requestRole = async (req, res) => {
   try {
     const { userId, licenseNo } = req.body;
-    console.log(req.body);
     const images = req.file ? `/uploads/${req.file.filename}` : null; // Check if a file was uploaded
     console.log(images);
     // Validate request body
