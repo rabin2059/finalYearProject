@@ -18,7 +18,10 @@ const booking = async (req, res) => {
     if (!seatNo || seatNo.length === 0) {
       return res
         .status(400)
-        .json({success: false, message: "At least one seat must be selected" });
+        .json({
+          success: false,
+          message: "At least one seat must be selected",
+        });
     }
 
     const seatNumbers = seatNo.map((seat) => parseInt(seat, 10));
@@ -75,7 +78,7 @@ const booking = async (req, res) => {
       where: { id: userId },
       select: { fcmToken: true },
     });
-      if (process.env.NODE_ENV !== "test" && bookingUser?.fcmToken) {
+    if (process.env.NODE_ENV !== "test" && bookingUser?.fcmToken) {
       await admin.messaging().send({
         token: bookingUser.fcmToken,
         notification: { title: notificationTitle, body: notificationBody },
@@ -93,7 +96,9 @@ const booking = async (req, res) => {
       console.error("Error creating booking:", error);
     }
     if (error?.status && error?.message) {
-      return res.status(error.status).json({ success: false, message: error.message });
+      return res
+        .status(error.status)
+        .json({ success: false, message: error.message });
     }
     return res.status(500).json({ message: error.message || "Server error" });
   }
@@ -101,7 +106,7 @@ const booking = async (req, res) => {
 
 const getBookings = async (req, res) => {
   try {
-    const { id, page = 1 } = req.query;
+    const { id } = req.query;
     const bookings = await prisma.booking.findMany({
       where: {
         userId: parseInt(id),
@@ -109,8 +114,6 @@ const getBookings = async (req, res) => {
       include: {
         bookingSeats: true,
       },
-      take: 5,
-      skip: (parseInt(page) - 1) * 5,
     });
 
     return res.status(200).json({ booking: bookings });
@@ -148,6 +151,9 @@ const getBookingsByVehicle = async (req, res) => {
       },
       include: {
         bookingSeats: true,
+      },
+      orderBy: {
+        createdAt: "desc",
       },
       take: 5,
       skip: (parseInt(page) - 1) * 5,
@@ -196,6 +202,9 @@ const getBookingByDate = async (req, res) => {
       },
       include: {
         bookingSeats: true,
+      },
+      orderBy: {
+        createdAt: "desc",
       },
       take: 5,
       skip: (parseInt(page) - 1) * 5,

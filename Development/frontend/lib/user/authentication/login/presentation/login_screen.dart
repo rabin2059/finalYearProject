@@ -20,6 +20,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isLoading = false;
+  bool _showPassword = false;
 
   /// Handle the login process
   Future<void> _loginUser() async {
@@ -149,9 +150,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   CustomTextField(
                     hint: 'Enter your password',
                     prefixIcon: CupertinoIcons.lock,
-                    suffixIcon: CupertinoIcons.eye_slash,
+                    suffixIcon: _showPassword ? CupertinoIcons.eye : CupertinoIcons.eye_slash,
+                    obscureText: !_showPassword,
                     keyboardType: TextInputType.visiblePassword,
                     controller: passwordController,
+                    onSuffixTap: () {
+                      setState(() {
+                        _showPassword = !_showPassword;
+                      });
+                    },
                   ),
                   SizedBox(
                     height: 10.h,

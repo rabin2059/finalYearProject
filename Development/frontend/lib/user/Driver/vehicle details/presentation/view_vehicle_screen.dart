@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:merobus/components/CustomButton.dart';
 import '../../../../components/AppColors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -11,7 +13,8 @@ class ViewVehicleScreen extends ConsumerStatefulWidget {
   ConsumerState<ViewVehicleScreen> createState() => _ViewVehicleScreenState();
 }
 
-class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with SingleTickerProviderStateMixin {
+class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _animation;
 
@@ -36,10 +39,8 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
   }
 
   List<List<String>> getSeatLayout(List<int?> totalSeats) {
-    // Create a set of booked seats (none for now as we're just viewing the layout)
     final Set<String> bookedSeats = {};
-    
-    // Get the vehicle type from provider
+
     final vehicleState = ref.read(vehicleProvider);
     final vehicleType = vehicleState.vehicle?.vehicleType ?? 'Bus';
 
@@ -49,14 +50,12 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
             ['X', 'X', '', 'X', 'X'],
             ['X', 'X', '', 'X', 'X'],
             ['X', 'X', '', 'X', 'X'],
-            // Add extra spacing after row 4 (visual grouping)
             ['X', 'X', '', 'X', 'X'],
             ['X', 'X', '', 'X', 'X'],
             ['X', 'X', '', 'X', 'X'],
             ['X', 'X', '', 'X', 'X'],
-            // Add extra spacing after row 8 (visual grouping)
             ['X', 'X', '', 'X', 'X'],
-            ['X', 'X', 'X', 'X', 'X'], // Back row often has 5 seats
+            ['X', 'X', 'X', 'X', 'X'],
           ]
         : [
             ['X', 'X'],
@@ -78,8 +77,7 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
         }
       }
     }
-    
-    // Remove rows that only have aisles or are fully empty
+
     baseLayout = baseLayout.where((row) {
       return row.any((cell) => cell.isNotEmpty && cell != '');
     }).toList();
@@ -103,7 +101,8 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
       body = const Center(child: Text('No vehicle found'));
     } else {
       final vehicle = vehicleState.vehicle!;
-      final totalSeats = vehicle.vehicleSeat?.map((seat) => seat.seatNo).toList() ?? [];
+      final totalSeats =
+          vehicle.vehicleSeat?.map((seat) => seat.seatNo).toList() ?? [];
       final primaryColor = AppColors.primary;
 
       body = FadeTransition(
@@ -126,7 +125,8 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                   SizedBox(height: 10.h),
                   Container(
                     margin: EdgeInsets.symmetric(horizontal: 20.w),
-                    padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
                     decoration: BoxDecoration(
                       color: AppColors.buttonText,
                       borderRadius: BorderRadius.circular(15.r),
@@ -163,7 +163,8 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                   SizedBox(height: 15.h),
                   Container(
                     margin: EdgeInsets.symmetric(horizontal: 20.w),
-                    padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
                     decoration: BoxDecoration(
                       color: AppColors.buttonText,
                       borderRadius: BorderRadius.circular(15.r),
@@ -178,8 +179,10 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildInfoItem(Icons.directions_car_filled, 'Model', vehicle.model ?? 'N/A'),
-                        _buildInfoItem(Icons.event_seat, 'Total Seats', '${totalSeats.length}'),
+                        _buildInfoItem(Icons.directions_car_filled, 'Model',
+                            vehicle.model ?? 'N/A'),
+                        _buildInfoItem(Icons.event_seat, 'Total Seats',
+                            '${totalSeats.length}'),
                       ],
                     ),
                   ),
@@ -211,18 +214,21 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                           ),
                           SizedBox(height: 15.h),
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 15.w, vertical: 10.h),
                             decoration: BoxDecoration(
                               color: AppColors.background,
                               borderRadius: BorderRadius.circular(12.r),
-                              border: Border.all(color: AppColors.textSecondary),
+                              border:
+                                  Border.all(color: AppColors.textSecondary),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Row(
                                   children: [
-                                    Icon(Icons.airline_seat_recline_extra, color: AppColors.primary, size: 20.sp),
+                                    Icon(Icons.airline_seat_recline_extra,
+                                        color: AppColors.primary, size: 20.sp),
                                     SizedBox(width: 8.w),
                                     Text(
                                       "Driver",
@@ -236,7 +242,9 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                                 ),
                                 Row(
                                   children: [
-                                    Icon(Icons.arrow_forward, color: AppColors.textSecondary, size: 16.sp),
+                                    Icon(Icons.arrow_forward,
+                                        color: AppColors.textSecondary,
+                                        size: 16.sp),
                                     SizedBox(width: 5.w),
                                     Text(
                                       "Front",
@@ -257,7 +265,8 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                               physics: const BouncingScrollPhysics(),
                               child: Column(
                                 children: [
-                                  _buildSeatLayout(getSeatLayout(totalSeats), AppColors.primary),
+                                  _buildSeatLayout(getSeatLayout(totalSeats),
+                                      AppColors.primary),
                                 ],
                               ),
                             ),
@@ -267,6 +276,25 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                     ),
                   ),
                   SizedBox(height: 20.h),
+                  CustomButton(
+                    text: "Update Route",
+                    color: AppColors.primary,
+                    fontSize: 20.sp,
+                    onPressed: () {
+                      final vehicle = ref.read(vehicleProvider).vehicle;
+                      final routeId = vehicle?.route?[0].id;
+                      if (routeId != null) {
+                        context.pushNamed('/routeUpdate',
+                            pathParameters: {"id": routeId.toString()});
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content:
+                                  Text("No Route assigned to this vehicle")),
+                        );
+                      }
+                    },
+                  )
                 ],
               ),
             ),
@@ -338,12 +366,15 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
       children: layout.asMap().entries.map((rowEntry) {
         final rowIndex = rowEntry.key;
         final row = rowEntry.value;
-        
-        final rowSpacing = rowIndex > 0 && rowIndex < layout.length - 1 ? 18.h : 12.h;
-        
-        final hasLeft = row.sublist(0, row.length ~/ 2).any((s) => s.isNotEmpty);
-        final hasRight = row.sublist((row.length ~/ 2) + 1).any((s) => s.isNotEmpty);
-        
+
+        final rowSpacing =
+            rowIndex > 0 && rowIndex < layout.length - 1 ? 18.h : 12.h;
+
+        final hasLeft =
+            row.sublist(0, row.length ~/ 2).any((s) => s.isNotEmpty);
+        final hasRight =
+            row.sublist((row.length ~/ 2) + 1).any((s) => s.isNotEmpty);
+
         MainAxisAlignment alignment = MainAxisAlignment.center;
         if (hasLeft && !hasRight) {
           alignment = MainAxisAlignment.start;
@@ -358,11 +389,11 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
               children: row.asMap().entries.map((seatEntry) {
                 final seatIndex = seatEntry.key;
                 final seat = seatEntry.value;
-                
+
                 // Add additional space for aisle
                 final isAisle = seat.isEmpty;
                 final horizontalPadding = isAisle ? 15.w : 6.w;
-                
+
                 return Padding(
                   padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                   child: seat.isNotEmpty
@@ -419,22 +450,21 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                           width: 30.w,
                           height: 52.h,
                           decoration: BoxDecoration(
-                            // Visualize the aisle with a faint line
-                            border: seatIndex == 2 ? Border(
-                              right: BorderSide(
-                                color: AppColors.textSecondary,
-                                width: 1,
-                                style: BorderStyle.solid,
-                              ),
-                            ) : null,
+                            border: seatIndex == 2
+                                ? Border(
+                                    right: BorderSide(
+                                      color: AppColors.textSecondary,
+                                      width: 1,
+                                      style: BorderStyle.solid,
+                                    ),
+                                  )
+                                : null,
                           ),
                         ),
                 );
               }).toList(),
             ),
             SizedBox(height: rowSpacing),
-            
-            // Add a row divider except after the last row
             if (rowIndex < layout.length - 1 && rowIndex % 4 == 3)
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 5.h, horizontal: 15.w),
@@ -451,7 +481,7 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
 
   void _showVehicleInfo(BuildContext context) {
     final vehicle = ref.read(vehicleProvider).vehicle;
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -510,7 +540,6 @@ class _ViewVehicleScreenState extends ConsumerState<ViewVehicleScreen> with Sing
                       value: vehicle?.vehicleType ?? 'N/A',
                     ),
                     Divider(height: 30.h),
-                    
                     if (vehicle?.vehicleSeat != null) ...[
                       Divider(height: 30.h),
                       _buildInfoRow(

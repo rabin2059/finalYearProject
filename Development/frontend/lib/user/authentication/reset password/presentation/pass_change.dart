@@ -1,19 +1,15 @@
-// Import necessary Flutter and Material Design packages
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-
-// Import custom components and utilities
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
 import '../../../../components/AppColors.dart';
 import '../../../../components/CustomButton.dart';
 import '../../../../components/CustomTextField.dart';
 import '../../../../core/constants.dart';
 
-/// Widget for handling password change functionality
 class PassChange extends StatefulWidget {
   const PassChange({super.key, required this.email});
 
@@ -24,10 +20,12 @@ class PassChange extends StatefulWidget {
 }
 
 class _PassState extends State<PassChange> {
-  // Controllers for password input fields
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
+
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +46,6 @@ class _PassState extends State<PassChange> {
         child: Column(
           children: [
             SizedBox(height: 20.h),
-            // New password section
             Row(
               children: [
                 textNames('New Password'),
@@ -58,11 +55,16 @@ class _PassState extends State<PassChange> {
             CustomTextField(
               hint: '********',
               prefixIcon: CupertinoIcons.lock,
-              suffixIcon: CupertinoIcons.eye_slash,
+              suffixIcon: _isPasswordVisible ? CupertinoIcons.eye : CupertinoIcons.eye_slash,
               controller: passwordController,
+              obscureText: !_isPasswordVisible,
+              onSuffixTap: () {
+                setState(() {
+                  _isPasswordVisible = !_isPasswordVisible;
+                });
+              },
             ),
             SizedBox(height: 20.h),
-            // Confirm password section
             Row(
               children: [
                 textNames('Confirm Password'),
@@ -72,11 +74,16 @@ class _PassState extends State<PassChange> {
             CustomTextField(
               hint: '********',
               prefixIcon: CupertinoIcons.lock,
-              suffixIcon: CupertinoIcons.eye_slash,
+              suffixIcon: _isConfirmPasswordVisible ? CupertinoIcons.eye : CupertinoIcons.eye_slash,
               controller: confirmPasswordController,
+              obscureText: !_isConfirmPasswordVisible,
+              onSuffixTap: () {
+                setState(() {
+                  _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                });
+              },
             ),
             SizedBox(height: 30.h),
-            // Submit button to change password
             CustomButton(
               text: 'Change Password',
               onPressed: () {
@@ -91,7 +98,6 @@ class _PassState extends State<PassChange> {
     );
   }
 
-  /// Helper method to create styled text labels
   Text textNames(String data) {
     return Text(
       data,
@@ -102,13 +108,6 @@ class _PassState extends State<PassChange> {
       ),
     );
   }
-
-  /// Sends a request to the server to change the user's password
-  ///
-  /// Makes a POST request to the resetPassword endpoint with the user's email
-  /// and new password. Validates that password fields are not empty.
-  /// On success, navigates to sign in screen.
-  /// On failure, shows error message to user.
   Future<void> _changePassword() async {
     final url = Uri.parse('$apiBaseUrl/resetPassword');
     final body = {
@@ -117,7 +116,6 @@ class _PassState extends State<PassChange> {
       'confirmPassword': confirmPasswordController.text,
     };
 
-    // Validate password fields are not empty
     if (passwordController.text.isEmpty ||
         confirmPasswordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -126,7 +124,6 @@ class _PassState extends State<PassChange> {
       return;
     }
 
-    // Send password change request
     final response = await http.put(
       url,
       body: jsonEncode(body),
@@ -135,7 +132,7 @@ class _PassState extends State<PassChange> {
 
     // Handle response
     if (response.statusCode == 200 || response.statusCode == 201) {
-     context.go('/signup');
+     context.go('/login');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to change password')),

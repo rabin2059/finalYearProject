@@ -243,7 +243,6 @@ const getMyPolylines = async (req, res) => {
   }
 };
 
-
 const getVehicleDetails = async (req, res) => {
   try {
     const { vehicleId } = req.params;
@@ -254,8 +253,16 @@ const getVehicleDetails = async (req, res) => {
       where: { id: parseInt(vehicleId, 10) },
       include: {
         VehicleSeat: {
-          select: { seatNo: true }
-        }
+          select: { seatNo: true },
+        },
+        Route: {
+          include: {
+            busStops: {
+              include: { busStop: true },
+              orderBy: { sequence: "asc" },
+            },
+          },
+        },
       },
     });
     if (!vehicle) {
@@ -272,5 +279,5 @@ module.exports = {
   getRoute,
   getActiveBuses,
   getMyPolylines,
-  getVehicleDetails
+  getVehicleDetails,
 };

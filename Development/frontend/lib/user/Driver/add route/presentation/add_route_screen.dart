@@ -9,6 +9,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 
+import '../../../../components/AppColors.dart';
 import '../../../../core/constants.dart';
 import '../../../map/providers/map_provider.dart';
 
@@ -218,8 +219,11 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red.shade700,
+        content: Text(
+          message,
+          style: TextStyle(color: AppColors.buttonText),
+        ),
+        backgroundColor: AppColors.accent,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.r),
@@ -232,8 +236,11 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
   void _showSuccessSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green.shade600,
+        content: Text(
+          message,
+          style: TextStyle(color: AppColors.buttonText),
+        ),
+        backgroundColor: AppColors.primary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.r),
@@ -258,20 +265,20 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
         });
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: AppColors.background,
         appBar: AppBar(
           title: Text(
             'Create Route',
             style: TextStyle(
-              color: Colors.black87,
+              color: AppColors.textPrimary,
               fontWeight: FontWeight.bold,
               fontSize: 18.sp,
             ),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.primary,
           elevation: 2,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_ios, size: 20.sp, color: Colors.black87),
+            icon: Icon(Icons.arrow_back_ios, size: 20.sp, color: AppColors.textPrimary),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -301,11 +308,11 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
                           icon: Icons.attach_money,
                           keyboardType: TextInputType.number,
                           prefix: Text(
-                            "₹ ",
+                            "Rs ",
                             style: TextStyle(
                               fontSize: 16.sp,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                         ),
@@ -325,7 +332,7 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
                           label: "Start Point",
                           hint: "Enter start location",
                           icon: Icons.trip_origin,
-                          iconColor: Colors.green,
+                          iconColor: AppColors.primary,
                           onSearch: (query) => _debouncedSearch(query, mapNotifier, null),
                         ),
                         if (_showPickupSuggestions)
@@ -348,7 +355,7 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
                           label: "End Point",
                           hint: "Enter end location",
                           icon: Icons.place,
-                          iconColor: Colors.red,
+                          iconColor: AppColors.accent,
                           onSearch: (query) => _debouncedSearch(query, mapNotifier, null),
                         ),
                         if (_showDropoffSuggestions)
@@ -415,14 +422,14 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
                                       width: 28.w,
                                       height: 28.w,
                                       decoration: BoxDecoration(
-                                        color: Colors.blue.withOpacity(0.1),
+                                        color: AppColors.primary.withOpacity(0.1),
                                         shape: BoxShape.circle,
                                       ),
                                       child: Center(
                                         child: Text(
                                           "${index + 1}",
                                           style: TextStyle(
-                                            color: Colors.blue,
+                                            color: AppColors.primary,
                                             fontWeight: FontWeight.bold,
                                             fontSize: 14.sp,
                                           ),
@@ -439,7 +446,7 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
                                             label: "Bus Stop ${index + 1}",
                                             hint: "Enter bus stop location",
                                             icon: Icons.directions_bus,
-                                            iconColor: Colors.blue,
+                                            iconColor: AppColors.primary,
                                             showLabel: false,
                                             onSearch: (query) => _debouncedSearch(query, mapNotifier, index),
                                           ),
@@ -465,12 +472,12 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
                                         margin: EdgeInsets.only(top: 12.h),
                                         padding: EdgeInsets.all(8.w),
                                         decoration: BoxDecoration(
-                                          color: Colors.red.withOpacity(0.1),
+                                          color: AppColors.accent.withOpacity(0.1),
                                           shape: BoxShape.circle,
                                         ),
                                         child: Icon(
                                           Icons.remove,
-                                          color: Colors.red,
+                                          color: AppColors.accent,
                                           size: 20.sp,
                                         ),
                                       ),
@@ -493,24 +500,24 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10.r),
                               border: Border.all(
-                                color: Colors.blue.shade300,
+                                color: AppColors.primary.withOpacity(0.5),
                                 width: 1.5,
                               ),
-                              color: Colors.blue.withOpacity(0.05),
+                              color: AppColors.primary.withOpacity(0.05),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
                                   Icons.add_circle_outline,
-                                  color: Colors.blue,
+                                  color: AppColors.primary,
                                   size: 20.sp,
                                 ),
                                 SizedBox(width: 8.w),
                                 Text(
                                   "Add Bus Stop",
                                   style: TextStyle(
-                                    color: Colors.blue,
+                                    color: AppColors.primary,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 15.sp,
                                   ),
@@ -528,8 +535,8 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
                   ElevatedButton(
                     onPressed: _saveRoute,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green.shade600,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.buttonText,
                       padding: EdgeInsets.symmetric(vertical: 16.h),
                       elevation: 2,
                       shape: RoundedRectangleBorder(
@@ -554,16 +561,16 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
             // Loading overlay
             if (_isLoading)
               Container(
-                color: Colors.black.withOpacity(0.5),
+                color: AppColors.textSecondary.withOpacity(0.5),
                 child: Center(
                   child: Container(
                     padding: EdgeInsets.all(24.w),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.background,
                       borderRadius: BorderRadius.circular(16.r),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: AppColors.textSecondary.withOpacity(0.1),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -572,8 +579,8 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+                        CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                         ),
                         SizedBox(height: 20.h),
                         Text(
@@ -581,6 +588,7 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
                           style: TextStyle(
                             fontSize: 16.sp,
                             fontWeight: FontWeight.w500,
+                            color: AppColors.textPrimary,
                           ),
                         ),
                       ],
@@ -602,11 +610,11 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.background,
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColors.textSecondary.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -619,14 +627,14 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
             width: double.infinity,
             padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
             decoration: BoxDecoration(
-              color: Colors.grey.shade50,
+              color: AppColors.background,
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(16.r),
                 topRight: Radius.circular(16.r),
               ),
               border: Border(
                 bottom: BorderSide(
-                  color: Colors.grey.shade200,
+                  color: AppColors.textSecondary.withOpacity(0.2),
                   width: 1,
                 ),
               ),
@@ -636,12 +644,12 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
                 Container(
                   padding: EdgeInsets.all(8.w),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
+                    color: AppColors.primary.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     icon,
-                    color: Colors.blue,
+                    color: AppColors.primary,
                     size: 20.sp,
                   ),
                 ),
@@ -651,7 +659,7 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
                   style: TextStyle(
                     fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ],
@@ -682,16 +690,16 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
           style: TextStyle(
             fontSize: 15.sp,
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            color: AppColors.textPrimary,
           ),
         ),
         SizedBox(height: 8.h),
         Container(
           decoration: BoxDecoration(
-            color: Colors.grey.shade50,
+            color: AppColors.background,
             borderRadius: BorderRadius.circular(12.r),
             border: Border.all(
-              color: Colors.grey.shade300,
+              color: AppColors.textSecondary.withOpacity(0.2),
               width: 1.5,
             ),
           ),
@@ -700,7 +708,7 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
               Container(
                 padding: EdgeInsets.all(12.w),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
+                  color: AppColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(12.r),
                     bottomLeft: Radius.circular(12.r),
@@ -708,11 +716,11 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
                 ),
                 child: Icon(
                   icon,
-                  color: Colors.blue,
+                  color: AppColors.primary,
                   size: 20.sp,
                 ),
               ),
-              if (prefix != null) 
+              if (prefix != null)
                 Padding(
                   padding: EdgeInsets.only(left: 12.w),
                   child: prefix,
@@ -724,7 +732,7 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
                   decoration: InputDecoration(
                     hintText: hint,
                     hintStyle: TextStyle(
-                      color: Colors.grey.shade400,
+                      color: AppColors.textSecondary.withOpacity(0.5),
                       fontSize: 15.sp,
                     ),
                     border: InputBorder.none,
@@ -732,7 +740,7 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
                   ),
                   style: TextStyle(
                     fontSize: 16.sp,
-                    color: Colors.black87,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ),
@@ -764,7 +772,7 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
                 style: TextStyle(
                   fontSize: 15.sp,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+                  color: AppColors.textPrimary,
                 ),
               ),
               SizedBox(height: 8.h),
@@ -772,10 +780,10 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
           ),
         Container(
           decoration: BoxDecoration(
-            color: Colors.grey.shade50,
+            color: AppColors.background,
             borderRadius: BorderRadius.circular(12.r),
             border: Border.all(
-              color: Colors.grey.shade300,
+              color: AppColors.textSecondary.withOpacity(0.2),
               width: 1.5,
             ),
           ),
@@ -802,7 +810,7 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
                   decoration: InputDecoration(
                     hintText: hint,
                     hintStyle: TextStyle(
-                      color: Colors.grey.shade400,
+                      color: AppColors.textSecondary.withOpacity(0.5),
                       fontSize: 15.sp,
                     ),
                     border: InputBorder.none,
@@ -811,7 +819,7 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
                         ? IconButton(
                             icon: Icon(
                               Icons.clear,
-                              color: Colors.grey.shade600,
+                              color: AppColors.textSecondary,
                               size: 18.sp,
                             ),
                             onPressed: () {
@@ -827,7 +835,7 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
                                   padding: EdgeInsets.all(12.w),
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.grey.shade600),
+                                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                                   ),
                                 ),
                               )
@@ -835,7 +843,7 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
                   ),
                   style: TextStyle(
                     fontSize: 16.sp,
-                    color: Colors.black87,
+                    color: AppColors.textPrimary,
                   ),
                   onChanged: onSearch,
                 ),
@@ -856,11 +864,11 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
     return Container(
       margin: EdgeInsets.only(top: 5.h),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.background,
         borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: AppColors.textSecondary.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -876,7 +884,7 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
                 child: Padding(
                   padding: EdgeInsets.all(16.w),
                   child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                   ),
                 ),
               )
@@ -886,7 +894,7 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
                     child: Text(
                       "No locations found",
                       style: TextStyle(
-                        color: Colors.grey.shade600,
+                        color: AppColors.textSecondary,
                         fontSize: 14.sp,
                       ),
                     ),
@@ -897,21 +905,21 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
                     itemCount: suggestions.length,
                     separatorBuilder: (context, index) => Divider(
                       height: 1,
-                      color: Colors.grey.shade200,
+                      color: AppColors.textSecondary.withOpacity(0.2),
                     ),
                     itemBuilder: (context, index) {
                       final suggestion = suggestions[index];
                       return ListTile(
                         leading: Icon(
                           Icons.location_on_outlined,
-                          color: Colors.blue,
+                          color: AppColors.primary,
                           size: 20.sp,
                         ),
                         title: Text(
                           suggestion,
                           style: TextStyle(
                             fontSize: 14.sp,
-                            color: Colors.black87,
+                            color: AppColors.textPrimary,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,

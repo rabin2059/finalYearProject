@@ -6,6 +6,7 @@ import 'package:merobus/data/models/chat_group_model.dart';
 import 'package:merobus/user/Driver/booking%20lists/presentation/book_vehicle_list_screen.dart';
 import 'package:merobus/user/Driver/home/presentation/driver_home_screen.dart';
 import 'package:merobus/user/Driver/setting/presentation/driver_setting_screen.dart';
+import 'package:merobus/user/Driver/update%20route/presentation/route_update_screen.dart';
 
 import '../core/shared_prefs_utils.dart';
 import '../user/Driver/add route/presentation/add_route_screen.dart';
@@ -142,6 +143,14 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
     },
   ),
   GoRoute(
+    name: '/routeUpdate',
+    path: '/routeUpdate/:id',
+    builder: (context, state) {
+      final routeID = int.parse(state.pathParameters['id'] ?? '0');
+      return RouteUpdateScreen(routeId: routeID);
+    },
+  ),
+  GoRoute(
       name: '/book',
       path: '/book/:id',
       builder: (context, state) {
@@ -186,8 +195,6 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
       path: '/viewVehicle',
       builder: (context, state) => ViewVehicleScreen()),
 ]);
-
-// 2) Define a little holder-class for type safety:
 
 class ChatArgs {
   final int groupId;

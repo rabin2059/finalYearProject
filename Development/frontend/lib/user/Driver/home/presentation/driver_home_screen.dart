@@ -33,7 +33,6 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     super.initState();
     final userId = ref.read(authProvider).userId;
     if (userId != null) {
-      // Load profile/user data
       ref.read(settingProvider.notifier).fetchUsers(userId).then((_) {
         final settingState = ref.read(settingProvider);
         if (settingState.users.isNotEmpty) {
@@ -41,14 +40,11 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
           ref.read(vehicleProvider.notifier).loadVehicle(vehicleId);
         }
       });
-      // Load driver stats
       ref.read(driverProvider.notifier).fetchDriverData(userId);
-      // Fetch driver ratings
       fetchDriverRatings(userId);
     }
   }
 
-  // Fetch driver ratings and update _driverAverageRating
   void fetchDriverRatings(int driverId) async {
     final response =
         await http.get(Uri.parse('$apiBaseUrl/getRating/$driverId'));
@@ -81,6 +77,21 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     final driverState = ref.watch(driverProvider);
     final vehicleState = ref.watch(vehicleProvider);
 
+    final vehicle = vehicleState.vehicle?.route?.isNotEmpty == true
+        ? vehicleState.vehicle!.route![0]
+        : null;
+
+    // Show loading indicator if user, vehicle, or driver data is not ready
+    if (!hasUser || vehicle == null || vehicleState.isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    final startPoint = vehicle.startPoint;
+    final endpoint = vehicle.endPoint;
     final stats = driverState.driverData?.driverStats;
     final hasStats = stats != null;
     final totalTripsValue = hasStats ? stats.totalTrips.toString() : '0';
@@ -104,8 +115,9 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
-              _buildHeader(userName!, userEmail, userImage, statusValue, settingState),
-              _buildStatusCard(vehicleId),
+              _buildHeader(
+                  userName!, userEmail, userImage, statusValue, settingState),
+              _buildStatusCard(vehicle),
               _buildStatsRow(totalTripsValue, totalEarningsValue, ratingValue),
               // _buildActionCards(vehicleId), // Removed action cards
             ],
@@ -135,8 +147,8 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     );
   }
 
-  Widget _buildHeader(
-      String name, String email, String imageUrl, String status, SettingState settingState) {
+  Widget _buildHeader(String name, String email, String image, String status,
+      SettingState settingState) {
     return Container(
       padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
       decoration: BoxDecoration(
@@ -166,34 +178,36 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                     border: Border.all(color: AppColors.buttonText, width: 2.w),
                   ),
                   child: CircleAvatar(
-                    radius: 53.h, 
-                    backgroundColor:
-                        Colors.grey[200], 
+                    radius: 53.h,
+                    backgroundColor: Colors.grey[200],
                     child: settingState.users.isNotEmpty &&
                             settingState.users[0].images != null
                         ? ClipOval(
                             child: Image.network(
-                              imageUrl + settingState.users[0].images!,
-                              fit: BoxFit
-                                  .cover, 
-                              width: 106.h, 
+                              imageUrl + image,
+                              fit: BoxFit.cover,
+                              width: 106.h,
                               height: 106.h,
                               errorBuilder: (context, error, stackTrace) {
-                                return Image.asset(
-                                  "assets/profile.png",
-                                  fit: BoxFit.cover,
-                                  width: 106.h,
-                                  height: 106.h,
+                                return Center(
+                                  child: Text(
+                                    "assets/profile.png",
+                                    style: TextStyle(
+                                        fontSize: 10.sp,
+                                        color: AppColors.textPrimary),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 );
                               },
                             ),
                           )
-                        : ClipOval(
-                            child: Image.asset(
-                              "assets/profile.png", 
-                              fit: BoxFit.cover,
-                              width: 106.h,
-                              height: 106.h,
+                        : Center(
+                            child: Text(
+                              "assets/profile.png",
+                              style: TextStyle(
+                                  fontSize: 10.sp,
+                                  color: AppColors.textPrimary),
+                              textAlign: TextAlign.center,
                             ),
                           ),
                   ),
@@ -265,7 +279,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     );
   }
 
-  Widget _buildStatusCard(dynamic vehicleId) {
+  Widget _buildStatusCard(vehicle) {
     return Padding(
       padding: EdgeInsets.all(16.w),
       child: Container(
@@ -313,7 +327,9 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                       ),
                       SizedBox(height: 2.h),
                       Text(
-                        "Bus ${vehicleId ?? 'Loading...'}",
+                        vehicle != null && vehicle.id != null
+                            ? "Bus ${vehicle.id}"
+                            : "No Vehicle Available",
                         style: TextStyle(
                           fontSize: 14.sp,
                           color: AppColors.textSecondary,
@@ -364,7 +380,9 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                                   fontSize: 12.sp,
                                   color: AppColors.textSecondary)),
                           SizedBox(height: 4.h),
-                          Text(startPoint ?? "Kathmandu",
+                          Text(
+                              vehicle?.startPoint?.split(',').first ??
+                                  "No Start Point",
                               style: TextStyle(
                                   fontSize: 14.sp,
                                   fontWeight: FontWeight.bold,
@@ -390,7 +408,9 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                                   fontSize: 12.sp,
                                   color: AppColors.textSecondary)),
                           SizedBox(height: 4.h),
-                          Text(endPoint ?? "Pokhara",
+                          Text(
+                              vehicle?.endPoint?.split(',').first ??
+                                  "No End Point",
                               style: TextStyle(
                                   fontSize: 14.sp,
                                   fontWeight: FontWeight.bold,
@@ -495,5 +515,4 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
       ),
     );
   }
-
 }

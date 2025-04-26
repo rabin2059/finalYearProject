@@ -163,8 +163,7 @@ class _AddVehicleState extends ConsumerState<AddVehicle> {
     );
     
     if (pickedTime != null) {
-      // Format time for display and backend
-      final now = DateTime.now().add(Duration(days: Random().nextInt(30)));
+      final now = DateTime.now();
       final selectedDateTime = DateTime(
         now.year,
         now.month,
@@ -173,8 +172,7 @@ class _AddVehicleState extends ConsumerState<AddVehicle> {
         pickedTime.minute,
       );
       
-      // Format for backend with full ISO 8601 DateTime string
-      final formattedTime = DateFormat("yyyy-MM-ddTHH:mm:ss'Z'").format(selectedDateTime.toUtc());
+      final formattedTime = DateFormat("yyyy-MM-ddTHH:mm:ss'Z'").format(selectedDateTime);
       
       setState(() {
         controller.text = formattedTime;

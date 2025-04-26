@@ -202,18 +202,16 @@ const createRoute = async (req, res) => {
 
         coordinates.push([busStop.latitude, busStop.longitude]);
 
-        // ✅ Fetch intermediate route points (except for last stop)
         if (i < busStops.length - 1) {
           const nextStop = busStops[i + 1];
           const routePoints = await getRoutePoints(
             [stop.latitude, stop.longitude],
             [nextStop.latitude, nextStop.longitude]
           );
-          coordinates.push(...routePoints); // Append road path
+          coordinates.push(...routePoints);
         }
       }
 
-      // ✅ Encode the polyline with intermediate points
       const encodedPolyline = polyline.encode(coordinates);
       console.log("Encoded Polyline:", encodedPolyline);
 
@@ -237,6 +235,92 @@ const createRoute = async (req, res) => {
   }
 };
 
+const updateRoute = async (req, res) => {
+  try {
+    const { routeId, startPoint, endPoint, fare, name, busStops } = req.body;
+    console.log(req.body)
+
+    if (!routeId) {
+      return res.status(400).json({ message: "Route ID is required" });
+    }
+
+    const existingRoute = await prisma.route.findUnique({
+      where: { id: parseInt(routeId) },
+    });
+
+    if (!existingRoute) {
+      return res.status(404).json({ message: "Route not found" });
+    }
+
+    const updatedRoute = await prisma.$transaction(async (tx) => {
+      const updated = await tx.route.update({
+        where: { id: parseInt(routeId) },
+        data: {
+          startPoint: startPoint || existingRoute.startPoint,
+          endPoint: endPoint || existingRoute.endPoint,
+          fare: fare !== undefined ? fare : existingRoute.fare,
+          name: name || existingRoute.name,
+        },
+      });
+
+      if (busStops?.length) {
+        await tx.routeBusStop.deleteMany({
+          where: { routeId: parseInt(routeId) },
+        });
+
+        let coordinates = [];
+
+        for (let i = 0; i < busStops.length; i++) {
+          const stop = busStops[i];
+
+          let busStop = await tx.busStop.findFirst({
+            where: { name: stop.name },
+          });
+          if (!busStop) {
+            busStop = await tx.busStop.create({
+              data: {
+                name: stop.name,
+                latitude: stop.latitude,
+                longitude: stop.longitude,
+              },
+            });
+          }
+
+          if (busStop.latitude !== 0 && busStop.longitude !== 0) {
+            coordinates.push([busStop.latitude, busStop.longitude]);
+          }
+
+          if (i < busStops.length - 1) {
+            const nextStop = busStops[i + 1];
+            if (stop.latitude !== 0 && stop.longitude !== 0 && nextStop.latitude !== 0 && nextStop.longitude !== 0) {
+              const routePoints = await getRoutePoints(
+                [stop.latitude, stop.longitude],
+                [nextStop.latitude, nextStop.longitude]
+              );
+              coordinates.push(...routePoints);
+            }
+          }
+        }
+
+        const encodedPolyline = polyline.encode(coordinates);
+        await tx.route.update({
+          where: { id: parseInt(routeId) },
+          data: { polyline: encodedPolyline },
+        });
+        console.log(encodedPolyline)
+      }
+
+      return updated;
+    });
+
+    res.status(200).json({ message: "Route updated successfully", updatedRoute });
+  } catch (error) {
+    console.error("Error updating route:", error);
+    res.status(500).json({ message: "Error updating route", error: error.message });
+  }
+};
+
+
 const getVehicles = async (req, res) => {
   try {
     const vehicles = await prisma.vehicle.findMany({
@@ -256,10 +340,9 @@ const getVehicles = async (req, res) => {
       },
     });
 
-    // Transform vehicles data to have Route as an object instead of an array
     const bus = vehicles.map((vehicle) => ({
       ...vehicle,
-      Route: vehicle.Route.length > 0 ? vehicle.Route[0] : null, // Convert array to single object
+      Route: vehicle.Route.length > 0 ? vehicle.Route[0] : null, 
     }));
 
     res.json({ message: "Vehicles fetched successfully", bus });
@@ -271,7 +354,7 @@ const getVehicles = async (req, res) => {
 
 const getSingleVehicle = async (req, res) => {
   try {
-    const { id } = req.query; // Get vehicle ID from URL params
+    const { id } = req.query;
 
     if (!id) {
       return res.status(400).json({ message: "Vehicle ID is required" });
@@ -280,20 +363,21 @@ const getSingleVehicle = async (req, res) => {
     const vehicle = await prisma.vehicle.findUnique({
       where: { id: parseInt(id) },
       include: {
-        owner: true, // Fetch owner details
-        VehicleSeat: { select: { seatNo: true } }, // Fetch seats
-        Booking: {
-          include: {
-            user: { select: { id: true, username: true } }, // Fetch booked users
-            bookingSeats: { select: { seatNo: true } }, // Fetch booked seats
-          },
-        },
+        owner: true,
+        VehicleSeat: { select: { seatNo: true } },
+
         Route: {
           include: {
             busStops: {
               include: { busStop: true },
-              orderBy: { sequence: "asc" }, // Fetch stops in order
+              orderBy: { sequence: "asc" },
             },
+          },
+        },
+        Booking: {
+          include: {
+            user: { select: { id: true, username: true } },
+            bookingSeats: { select: { seatNo: true } },
           },
         },
       },
@@ -321,7 +405,6 @@ const driverHome = async (req, res) => {
         .json({ message: "userId query parameter is required" });
     }
 
-    // 1. Fetch basic driver info
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -329,26 +412,23 @@ const driverHome = async (req, res) => {
         username: true,
         email: true,
         images: true,
-        status: true, // uses the `status` field on User (e.g. "Online"/"Offline")
+        status: true,
       },
     });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // 2. Count all trips on vehicles this user owns
     const totalTrips = await prisma.booking.count({
       where: { vehicle: { ownerId: userId } },
     });
 
-    // 3. Sum all fares on those trips
     const earningsAgg = await prisma.booking.aggregate({
       _sum: { totalFare: true },
       where: { vehicle: { ownerId: userId } },
     });
     const totalEarnings = earningsAgg._sum.totalFare ?? 0;
 
-    // 4. Average driver rating
     const ratingAgg = await prisma.driverRating.aggregate({
       _avg: { rating: true },
       where: { driverId: userId },
@@ -375,4 +455,5 @@ module.exports = {
   getVehicles,
   getSingleVehicle,
   driverHome,
+  updateRoute
 };
