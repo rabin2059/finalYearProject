@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../Driver/booking lists/presentation/book_vehicle_list_screen.dart';
@@ -43,8 +44,8 @@ class _DriverNavigationState extends ConsumerState<DriverNavigation> {
       onTap: _onItemTapped,
       items: [
         BottomNavigationBarItem(
-          icon: Icon(Icons.bus_alert),
-          label: 'Alerts',
+          icon: Icon(CupertinoIcons.bus),
+          label: 'Booking',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.home),

@@ -34,14 +34,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       final userId = authState.userId;
       if (userId != null) {
         ref.read(passengerProvider.notifier).fetchHomeData(userId);
-        _fetchUpcomingTrip(userId);
+        Future.microtask(() =>_fetchUpcomingTrip(userId));
       }
     });
   }
 
   Future<void> _fetchUpcomingTrip(int userId) async {
     try {
-      final response = await http.get(Uri.parse('$apiBaseUrl/upcoming-trip?userId=$userId'));
+      final response =
+          await http.get(Uri.parse('$apiBaseUrl/upcoming-trip?userId=$userId'));
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
         if (json['trips'] != null && json['trips'].isNotEmpty) {
@@ -106,11 +107,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+    final userId = authState.userId;
+    
     final passengerState = ref.watch(passengerProvider);
     final homeData = passengerState.homeData;
     final hasData = homeData != null;
-    final userName = hasData ? homeData!.user!.username : "Guest";
-    final userEmail = hasData ? homeData.user!.email ?? "No Email" : "guest@example.com";
+    final userName = hasData ? homeData.user!.username : "Guest";
+    final userEmail =
+        hasData ? homeData.user!.email ?? "No Email" : "guest@example.com";
     final userImage = hasData && homeData.user!.images != null
         ? homeData.user!.images!
         : "assets/profile.png";
@@ -129,7 +134,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               recentTripsValue,
               totalExpendValue,
               ref.watch(settingProvider),
-            ), 
+            ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
               child: Column(
@@ -145,7 +150,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                   SizedBox(height: 12.h),
                   Column(
-                    children: (_upcomingTrip != null && (_upcomingTrip as List).isNotEmpty)
+                    children: (_upcomingTrip != null &&
+                            (_upcomingTrip as List).isNotEmpty)
                         ? (_upcomingTrip as List).map<Widget>((trip) {
                             return Container(
                               margin: EdgeInsets.only(bottom: 12.h),
@@ -155,7 +161,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 borderRadius: BorderRadius.circular(12.r),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.textPrimary.withOpacity(0.15),
+                                    color:
+                                        AppColors.textPrimary.withOpacity(0.15),
                                     blurRadius: 6,
                                     offset: Offset(0, 3),
                                   ),
@@ -163,20 +170,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               ),
                               child: Row(
                                 children: [
-                                  Icon(Icons.directions_bus, color: AppColors.primary),
+                                  Icon(Icons.directions_bus,
+                                      color: AppColors.primary),
                                   SizedBox(width: 12.w),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          "${trip['pickUpPoint']} → ${trip['dropOffPoint']}",
-                                          style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                                          "${(trip['pickUpPoint'] as String).split(',').first} → ${(trip['dropOffPoint'] as String).split(',').first}",
+                                          style: TextStyle(
+                                              fontSize: 16.sp,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.textPrimary),
                                         ),
                                         SizedBox(height: 4.h),
                                         Text(
-                                          "Departure: ${DateTime.parse(trip['bookingDate']).toLocal().toString().substring(0, 16)}",
-                                          style: TextStyle(fontSize: 14.sp, color: AppColors.textSecondary),
+                                          "Departure: ${DateTime.parse(trip['bookingDate']).toLocal().toString().split(' ').first}",
+                                          style: TextStyle(
+                                              fontSize: 14.sp,
+                                              color: AppColors.textSecondary),
                                         ),
                                       ],
                                     ),
@@ -190,8 +204,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ],
               ),
             ),
-
-            SizedBox(height: 80.h), 
+            SizedBox(height: 80.h),
           ],
         ),
       ),
@@ -229,7 +242,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   /// Premium header with gradient and user info
-  Widget _buildHeader(String name, String email, String image, String recentTripsValue, String totalExpendValue, SettingState settingState) {
+  Widget _buildHeader(
+      String name,
+      String email,
+      String image,
+      String recentTripsValue,
+      String totalExpendValue,
+      SettingState settingState) {
     return Container(
       padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
       decoration: BoxDecoration(
@@ -269,17 +288,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ],
                   ),
                   child: CircleAvatar(
-                    radius: 53.h, 
-                    backgroundColor:
-                        Colors.grey[200], 
+                    radius: 53.h,
+                    backgroundColor: Colors.grey[200],
                     child: settingState.users.isNotEmpty &&
                             settingState.users[0].images != null
                         ? ClipOval(
                             child: Image.network(
                               imageUrl + image,
-                              fit: BoxFit
-                                  .cover, 
-                              width: 106.h, 
+                              fit: BoxFit.cover,
+                              width: 106.h,
                               height: 106.h,
                               errorBuilder: (context, error, stackTrace) {
                                 return Image.asset(
@@ -293,7 +310,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           )
                         : ClipOval(
                             child: Image.asset(
-                              "assets/profile.png", 
+                              "assets/profile.png",
                               fit: BoxFit.cover,
                               width: 106.h,
                               height: 106.h,
@@ -354,7 +371,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: _buildStatusCard(
                     icon: Icons.history,
                     title: "Recent Trips",
-                  value: recentTripsValue,
+                    value: recentTripsValue,
                   ),
                 ),
                 SizedBox(width: 16.w),
@@ -362,7 +379,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: _buildStatusCard(
                     icon: Icons.wallet,
                     title: "Total Expenses",
-                  value: totalExpendValue,
+                    value: totalExpendValue,
                   ),
                 ),
               ],
@@ -431,5 +448,4 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
-
 }

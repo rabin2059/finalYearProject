@@ -187,11 +187,6 @@ const getBookingByDate = async (req, res) => {
     const startDate = new Date(`${inputDate}T00:00:00.000Z`);
     const endDate = new Date(`${inputDate}T23:59:59.999Z`);
 
-    console.log("Received Date Query:", date);
-    console.log("Parsed Start Date:", startDate);
-    console.log("Parsed End Date:", endDate);
-
-    // Prisma Query
     const bookings = await prisma.booking.findMany({
       where: {
         bookingDate: {

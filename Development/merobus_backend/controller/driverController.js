@@ -238,7 +238,6 @@ const createRoute = async (req, res) => {
 const updateRoute = async (req, res) => {
   try {
     const { routeId, startPoint, endPoint, fare, name, busStops } = req.body;
-    console.log(req.body)
 
     if (!routeId) {
       return res.status(400).json({ message: "Route ID is required" });
@@ -285,6 +284,15 @@ const updateRoute = async (req, res) => {
               },
             });
           }
+
+          // 📌  Re‑attach this stop to the route with its sequence
+          await tx.routeBusStop.create({
+            data: {
+              routeId: parseInt(routeId),
+              busStopId: busStop.id,
+              sequence: stop.sequence,
+            },
+          });
 
           if (busStop.latitude !== 0 && busStop.longitude !== 0) {
             coordinates.push([busStop.latitude, busStop.longitude]);

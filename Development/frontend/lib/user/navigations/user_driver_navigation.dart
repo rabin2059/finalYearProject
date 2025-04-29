@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -44,8 +45,8 @@ class _UserDriverNavigationState extends ConsumerState<UserDriverNavigation> {
       unselectedItemColor: Colors.grey, 
       items: [
         BottomNavigationBarItem(
-          icon: Icon(Icons.bus_alert),
-          label: 'Alerts',
+          icon: Icon(CupertinoIcons.bus),
+          label: 'Buses',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.home),

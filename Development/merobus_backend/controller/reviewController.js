@@ -4,13 +4,18 @@ const createVehicleReview = async (req, res) => {
   const { driverId, rating, review } = req.body;
   const userId = req.user.userId;
   console.log(req.body);
-  console.log(userId);
 
   if (!driverId || typeof rating !== "number") {
     return res
       .status(400)
       .json({ message: "Driver ID and rating are required." });
   }
+
+  if (rating < 1 || rating > 5) {
+    return res.status(400).json({ message: "Rating must be between 1 and 5." });
+  }
+
+  if (!review) return res.status(400).json({ message: "Review is Required" });
 
   try {
     const newReview = await prisma.driverRating.create({
@@ -33,14 +38,14 @@ const createVehicleReview = async (req, res) => {
 
 const getVehicleRatings = async (req, res) => {
   const { driverId } = req.params;
-  console.log(driverId)
+  console.log(driverId);
 
   if (!driverId) {
     return res.status(400).json({ message: "Driver ID is required." });
   }
-  
+
   const id = parseInt(driverId);
-  console.log("idfgdg",id)
+  console.log("idfgdg", id);
 
   try {
     const ratings = await prisma.driverRating.findMany({

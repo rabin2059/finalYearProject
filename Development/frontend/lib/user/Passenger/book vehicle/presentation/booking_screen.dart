@@ -146,7 +146,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
             _selectedSeats.clear();
           });
 
-          ref.read(busProvider.notifier).fetchBusList(); // Refresh bus list
+          
+
+          ref.read(busProvider.notifier).fetchBusList(); 
           ref.read(busDetailsProvider.notifier).fetchBusDetail(widget.busId);
 
           final bookingId = data["result"]["newBooking"]["id"];

@@ -36,7 +36,6 @@ model User {
   UserChatGroup      UserChatGroup[]
 
   ratings            DriverRating[]
-  driverStatus       DriverStatus?
 
   Notification Notification[]
 
@@ -117,7 +116,7 @@ model BusStop {
   longitude          Float
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
-  routes             RouteBusStop[]   // Defines the many-to-many relationship with Route
+  routes             RouteBusStop[]   
 }
 
 model RouteBusStop {
@@ -126,7 +125,7 @@ model RouteBusStop {
   routeId            Int
   busStop            BusStop           @relation(fields: [busStopId], references: [id], onDelete: Cascade)
   busStopId          Int
-  sequence           Int               // Order of the bus stops in the route
+  sequence           Int               
 }
 
 model VehicleSeat {
@@ -194,17 +193,17 @@ model ChatGroup {
   id                 Int              @id @default(autoincrement())
   name               String
   vehicle            Vehicle?         @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
-  vehicleId          Int?             // Made optional to allow non-vehicle chat groups
+  vehicleId          Int?             
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
   messages           Message[]
-  users              User[]           @relation("UserChatGroups") // Many-to-many relationship with users
+  users              User[]           @relation("UserChatGroups")
   UserChatGroup      UserChatGroup[]
 }
 
 model Message {
   id                 Int              @id @default(autoincrement())
-  text               String           @db.Text     // Using Text type for longer messages
+  text               String           @db.Text   
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
   sender             User             @relation(fields: [senderId], references: [id], onDelete: Cascade)
@@ -212,10 +211,9 @@ model Message {
   chatGroup          ChatGroup        @relation(fields: [chatGroupId], references: [id], onDelete: Cascade)
   chatGroupId        Int
   isRead             Boolean          @default(false)
-  readAt             DateTime?        // Track when message was read
+  readAt             DateTime?      
 }
 
-// New model to track when users join chat groups
 model UserChatGroup {
   user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId             Int
@@ -227,17 +225,6 @@ model UserChatGroup {
   @@id([userId, chatGroupId])
 }
 
-model DriverStatus {
-  id                 Int              @id @default(autoincrement())
-  driver             User              @relation(fields: [driverId], references: [id], onDelete: Cascade)
-  driverId           Int              @unique
-  liveLatitude       Float?
-  liveLongitude      Float?
-  estimatedReachTime DateTime?
-  sharedRoute        String?          @db.Text
-  updatedAt          DateTime         @updatedAt
-}
-
 model DriverRating {
   id         Int      @id @default(autoincrement())
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -245,11 +232,10 @@ model DriverRating {
   driver     User     @relation("DriverRating", fields: [driverId], references: [id])
   driverId   Int
   rating     Float
-  review     String?  @db.Text
+  review     String  @db.Text
   createdAt  DateTime @default(now())
 }
 
-// New model for notifications
 model Notification {
   id        Int      @id @default(autoincrement())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)

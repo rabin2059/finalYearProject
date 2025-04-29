@@ -49,6 +49,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       // Navigate to the appropriate screen if login is successful
       if (ref.read(authProvider).isLoggedIn) {
+        await Future.delayed(Duration(seconds: 2));
         context.go('/navigation');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -150,7 +151,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   CustomTextField(
                     hint: 'Enter your password',
                     prefixIcon: CupertinoIcons.lock,
-                    suffixIcon: _showPassword ? CupertinoIcons.eye : CupertinoIcons.eye_slash,
+                    suffixIcon: _showPassword
+                        ? CupertinoIcons.eye
+                        : CupertinoIcons.eye_slash,
                     obscureText: !_showPassword,
                     keyboardType: TextInputType.visiblePassword,
                     controller: passwordController,
@@ -181,29 +184,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ],
                   ),
                   SizedBox(height: 20.h),
-                  isLoading
-                      ? const Center(
-                          child: CircularProgressIndicator(),
-                        )
-                      : CustomButton(
-                          text: 'Log In',
-                          onPressed: () {
-                            _loginUser();
-                          },
-                          height: 56.h,
-                          width: 3237.w,
-                          color: AppColors.primary,
-                          fontSize: 17.sp,
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56.h,
+                    child: ElevatedButton(
+                      onPressed: isLoading ? null : _loginUser,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
                         ),
-                  // if (authState.error != null)
-                  //   Padding(
-                  //     padding: const EdgeInsets.only(top: 16.0),
-                  //     child: Text(
-                  //       authState.error!,
-                  //       style: const TextStyle(color: Colors.red),
-                  //       textAlign: TextAlign.center,
-                  //     ),
-                  //   ),
+                      ),
+                      child: isLoading
+                          ? SizedBox(
+                              width: 24.w,
+                              height: 24.w,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.w,
+                              ),
+                            )
+                          : Text(
+                              'Log In',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 17.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    ),
+                  ),
                   SizedBox(
                     height: 10.h,
                   ),
