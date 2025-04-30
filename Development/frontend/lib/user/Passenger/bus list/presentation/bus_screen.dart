@@ -47,7 +47,7 @@ class _BusScreenState extends ConsumerState<BusScreen> {
       final filtered = allBuses.where((bus) {
         final start = bus.route?.startPoint?.toLowerCase() ?? '';
         final end = bus.route?.endPoint?.toLowerCase() ?? '';
-        return start.contains(from) && end.contains(to);
+        return (start.contains(from) && end.contains(to)) || (start.contains(to) && end.contains(from));
       }).toList();
 
       ref.read(busProvider.notifier).setFilteredBuses(filtered);

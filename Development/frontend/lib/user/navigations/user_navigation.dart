@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -38,8 +39,8 @@ class _UserNavigationState extends ConsumerState<UserNavigation> {
       onTap: _onItemTapped,
       items: [
         const BottomNavigationBarItem(
-          icon: Icon(Icons.bus_alert),
-          label: 'Alerts',
+          icon: Icon(CupertinoIcons.bus),
+          label: 'Buses',
         ),
         const BottomNavigationBarItem(
           icon: Icon(Icons.home),

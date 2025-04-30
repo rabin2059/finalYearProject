@@ -1,6 +1,47 @@
 const prisma = require("../utils/prisma.js");
 const polyline = require("@mapbox/polyline");
-const turf = require("@turf/turf");
+const R_EARTH = 6371000; 
+
+const toXY = (lat, lon) => {
+  const rad = Math.PI / 180;
+  return [
+    R_EARTH * lon * rad * Math.cos(lat * rad),
+    R_EARTH * lat * rad,
+  ];
+};
+
+const pointToSegmentDistance = (pLat, pLng, aLat, aLng, bLat, bLng) => {
+  const [px, py] = toXY(pLat, pLng);
+  const [ax, ay] = toXY(aLat, aLng);
+  const [bx, by] = toXY(bLat, bLng);
+
+  const dx = bx - ax;
+  const dy = by - ay;
+
+  if (dx === 0 && dy === 0) {
+    return Math.hypot(px - ax, py - ay);
+  }
+
+  let t = ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy);
+  t = Math.max(0, Math.min(1, t));
+
+  const cx = ax + t * dx;
+  const cy = ay + t * dy;
+
+  return Math.hypot(px - cx, py - cy);
+};
+
+const nearestDistance = (pLat, pLng, coords) => {
+  let min = Infinity;
+  for (let i = 0; i < coords.length - 1; i++) {
+    const [lat1, lng1] = coords[i];
+    const [lat2, lng2] = coords[i + 1];
+    const d = pointToSegmentDistance(pLat, pLng, lat1, lng1, lat2, lng2);
+    if (d < min) min = d;
+  }
+  return min;
+};
+
 const { activeBuses } = require("./socketController.js");
 
 const getRoute = async (req, res) => {
@@ -11,6 +52,10 @@ const getRoute = async (req, res) => {
       return res
         .status(400)
         .json({ message: "Start and End coordinates are required" });
+    }
+
+    if ([startLat, startLng, endLat, endLng].some((v) => isNaN(parseFloat(v)))) {
+      return res.status(400).json({ message: "Invalid coordinate values" });
     }
 
     const startPoint = [parseFloat(startLng), parseFloat(startLat)];
@@ -37,30 +82,19 @@ const getRoute = async (req, res) => {
     const validRoutes = routes.filter((route) => {
       if (!route.polyline) return false;
 
-      const decodedPolyline = polyline.decode(route.polyline);
-      const routeLine = turf.lineString(
-        decodedPolyline.map(([lat, lng]) => [lng, lat])
-      );
+      const decoded = polyline
+        .decode(route.polyline)
+        .map(([lat, lng]) => [parseFloat(lat), parseFloat(lng)])
+        .filter(([lat, lng]) => Number.isFinite(lat) && Number.isFinite(lng));
 
-      const closestStart = turf.nearestPointOnLine(
-        routeLine,
-        turf.point(startPoint)
-      );
-      const closestEnd = turf.nearestPointOnLine(
-        routeLine,
-        turf.point(endPoint)
-      );
+      if (decoded.length < 2) return false; 
 
-      const startDistance =
-        turf.distance(turf.point(startPoint), closestStart) * 1000;
-      const endDistance =
-        turf.distance(turf.point(endPoint), closestEnd) * 1000;
+      const startDist = nearestDistance(parseFloat(startLat), parseFloat(startLng), decoded);
+      const endDist   = nearestDistance(parseFloat(endLat),   parseFloat(endLng),   decoded);
 
-      const thresholdDistance = 100000; // 100 km
+      const thresholdDistance = 100_000;
 
-      return (
-        startDistance <= thresholdDistance && endDistance <= thresholdDistance
-      );
+      return startDist <= thresholdDistance && endDist <= thresholdDistance;
     });
 
     const vehiclesWithLiveData = validRoutes.map((route) => {

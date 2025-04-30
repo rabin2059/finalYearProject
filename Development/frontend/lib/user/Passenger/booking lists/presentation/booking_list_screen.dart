@@ -93,12 +93,12 @@ class _BookingListScreenState extends ConsumerState<BookingListScreen> {
     DateTime now = DateTime.now();
     bool isPastDate = bookingDate.isBefore(now);
     String adjustedStatus = booking.status;
-    
+
     if (isPastDate && booking.status.toLowerCase() == 'pending') {
       adjustedStatus = 'Expired';
     }
-    
-    final dayName = DateFormat('EEE').format(bookingDate);
+
+    final dayName = DateFormat('EEEE').format(bookingDate);
     final dayNum = DateFormat('d').format(bookingDate);
     final month = DateFormat('MMM').format(bookingDate);
 
@@ -174,7 +174,7 @@ class _BookingListScreenState extends ConsumerState<BookingListScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '$dayName, ${DateFormat('hh:mm a').format(bookingDate)}',
+                            '$dayName',
                             style: TextStyle(
                               fontSize: 14.sp,
                               fontWeight: FontWeight.w500,
@@ -290,7 +290,10 @@ class _BookingListScreenState extends ConsumerState<BookingListScreen> {
                                   ),
                                 ),
                                 Text(
-                                  booking.pickUpPoint.split(',').take(2).join(','),
+                                  booking.pickUpPoint
+                                      .split(',')
+                                      .take(2)
+                                      .join(','),
                                   style: TextStyle(
                                     fontSize: 14.sp,
                                     fontWeight: FontWeight.w500,
@@ -313,7 +316,10 @@ class _BookingListScreenState extends ConsumerState<BookingListScreen> {
                                   ),
                                 ),
                                 Text(
-                                  booking.dropOffPoint.split(',').take(2).join(','),
+                                  booking.dropOffPoint
+                                      .split(',')
+                                      .take(2)
+                                      .join(','),
                                   style: TextStyle(
                                     fontSize: 14.sp,
                                     fontWeight: FontWeight.w500,
@@ -330,13 +336,9 @@ class _BookingListScreenState extends ConsumerState<BookingListScreen> {
                     ],
                   ),
                 ),
-                
                 SizedBox(height: 16.h),
-                
                 Divider(color: AppColors.background, thickness: 1.h),
-                
                 SizedBox(height: 12.h),
-                
                 Row(
                   children: [
                     Column(
@@ -370,9 +372,7 @@ class _BookingListScreenState extends ConsumerState<BookingListScreen> {
                         ),
                       ],
                     ),
-                    
                     const Spacer(),
-                    
                     _buildActionButton(adjustedStatus, booking.id, isPastDate),
                   ],
                 ),
@@ -388,7 +388,8 @@ class _BookingListScreenState extends ConsumerState<BookingListScreen> {
     if (status.toLowerCase() == 'pending' && !isPastDate) {
       return ElevatedButton.icon(
         onPressed: () {
-          context.goNamed('/overview/$bookingId');
+          context.pushNamed('/overview',
+              pathParameters: {'id': bookingId.toString()});
         },
         icon: Icon(Icons.payment, size: 18.sp),
         label: Text('Pay Now', style: TextStyle(fontSize: 14.sp)),
@@ -402,24 +403,6 @@ class _BookingListScreenState extends ConsumerState<BookingListScreen> {
           elevation: 0,
         ),
       );
-    } else if (status.toLowerCase() == 'confirmed') {
-      return ElevatedButton.icon(
-        onPressed: () {
-          // Show ticket details
-        },
-        icon: Icon(Icons.confirmation_number_outlined, size: 18.sp),
-        label: Text('View Ticket', style: TextStyle(fontSize: 14.sp)),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
-          foregroundColor: AppColors.primary,
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.r),
-            side: BorderSide(color: AppColors.primary, width: 1),
-          ),
-          elevation: 0,
-        ),
-      );
     }
     return const SizedBox();
   }
@@ -427,7 +410,7 @@ class _BookingListScreenState extends ConsumerState<BookingListScreen> {
   Widget _buildStatusBadge(String status) {
     Color statusColor = _getStatusColor(status);
     IconData statusIcon;
-    
+
     switch (status.toLowerCase()) {
       case 'confirmed':
         statusIcon = Icons.check_circle;

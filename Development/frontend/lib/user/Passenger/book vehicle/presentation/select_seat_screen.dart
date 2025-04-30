@@ -21,7 +21,8 @@ class SelectSeatScreen extends ConsumerStatefulWidget {
   _SelectSeatScreenState createState() => _SelectSeatScreenState();
 }
 
-class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> with SingleTickerProviderStateMixin {
+class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen>
+    with SingleTickerProviderStateMixin {
   Set<String> _selectedSeats = {};
   late AnimationController _animationController;
   late Animation<double> _animation;
@@ -48,21 +49,20 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> with Single
     super.dispose();
   }
 
-  List<List<String>> getSeatLayout(List<int?> totalSeats, Set<String> bookedSeats) {
+  List<List<String>> getSeatLayout(
+      List<int?> totalSeats, Set<String> bookedSeats) {
     List<List<String>> baseLayout = widget.vehicleType == 'Bus'
         ? [
             ['X', 'X', '', 'X', 'X'],
             ['X', 'X', '', 'X', 'X'],
             ['X', 'X', '', 'X', 'X'],
             ['X', 'X', '', 'X', 'X'],
-            // Add extra spacing after row 4 (visual grouping)
             ['X', 'X', '', 'X', 'X'],
             ['X', 'X', '', 'X', 'X'],
             ['X', 'X', '', 'X', 'X'],
             ['X', 'X', '', 'X', 'X'],
-            // Add extra spacing after row 8 (visual grouping)
             ['X', 'X', '', 'X', 'X'],
-            ['X', 'X', 'X', 'X', 'X'], // Back row often has 5 seats
+            ['X', 'X', 'X', 'X', 'X'],
           ]
         : [
             ['X', 'X'],
@@ -84,7 +84,6 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> with Single
         }
       }
     }
-    // Remove rows that only have aisles or are fully empty
     baseLayout = baseLayout.where((row) {
       return row.any((cell) => cell.isNotEmpty && cell != '');
     }).toList();
@@ -94,19 +93,19 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> with Single
 
   void _toggleSeatSelection(String seat) {
     if (widget.bookedSeats.contains(seat) || seat == 'B') return;
-    
+
     setState(() {
       if (_selectedSeats.contains(seat)) {
         _selectedSeats.remove(seat);
       } else {
         _selectedSeats.add(seat);
       }
-      
+
       final busState = ref.read(busDetailsProvider);
       final fare = busState.vehicle?.route?.isNotEmpty ?? false
           ? busState.vehicle!.route![0].fare!
           : 0.0;
-      
+
       _totalPrice = (_selectedSeats.length * fare).toInt();
     });
   }
@@ -115,12 +114,13 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> with Single
   Widget build(BuildContext context) {
     final busState = ref.watch(busDetailsProvider);
     final state = busState.vehicle;
-    final totalSeats = state?.vehicleSeat?.map((seat) => seat.seatNo).toList() ?? [];
+    final totalSeats =
+        state?.vehicleSeat?.map((seat) => seat.seatNo).toList() ?? [];
     final bookedSeats = widget.bookedSeats.map((s) => s.toString()).toSet();
-    final fare = busState.vehicle?.route?.isNotEmpty ?? false 
-        ? busState.vehicle!.route![0].fare! * _selectedSeats.length 
+    final fare = busState.vehicle?.route?.isNotEmpty ?? false
+        ? busState.vehicle!.route![0].fare! * _selectedSeats.length
         : 0;
-    
+
     return FadeTransition(
       opacity: _animation,
       child: Scaffold(
@@ -160,7 +160,8 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> with Single
                   SizedBox(height: 10.h),
                   Container(
                     margin: EdgeInsets.symmetric(horizontal: 20.w),
-                    padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(15.r),
@@ -183,7 +184,7 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> with Single
                   ),
                   SizedBox(height: 20.h),
                   Expanded(
-                    child:             Container(
+                    child: Container(
                       margin: EdgeInsets.symmetric(horizontal: 20.w),
                       padding: EdgeInsets.fromLTRB(15.w, 15.w, 15.w, 10.w),
                       decoration: BoxDecoration(
@@ -200,7 +201,9 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> with Single
                       child: Column(
                         children: [
                           Text(
-                            widget.vehicleType == 'Bus' ? "Bus Seating Arrangement" : "Seating Arrangement",
+                            widget.vehicleType == 'Bus'
+                                ? "Bus Seating Arrangement"
+                                : "Seating Arrangement",
                             style: TextStyle(
                               fontSize: 18.sp,
                               fontWeight: FontWeight.bold,
@@ -209,7 +212,8 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> with Single
                           ),
                           SizedBox(height: 15.h),
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 15.w, vertical: 10.h),
                             decoration: BoxDecoration(
                               color: Colors.grey.shade50,
                               borderRadius: BorderRadius.circular(12.r),
@@ -220,7 +224,8 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> with Single
                               children: [
                                 Row(
                                   children: [
-                                    Icon(Icons.airline_seat_recline_extra, color: AppColors.primary, size: 20.sp),
+                                    Icon(Icons.airline_seat_recline_extra,
+                                        color: AppColors.primary, size: 20.sp),
                                     SizedBox(width: 8.w),
                                     Text(
                                       "Driver",
@@ -234,7 +239,8 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> with Single
                                 ),
                                 Row(
                                   children: [
-                                    Icon(Icons.arrow_forward, color: Colors.grey, size: 16.sp),
+                                    Icon(Icons.arrow_forward,
+                                        color: Colors.grey, size: 16.sp),
                                     SizedBox(width: 5.w),
                                     Text(
                                       "Front",
@@ -254,11 +260,11 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> with Single
                             child: SingleChildScrollView(
                               physics: const BouncingScrollPhysics(),
                               child: Column(
-                        children: [
-                         
-                          _buildSeatLayout(getSeatLayout(totalSeats, bookedSeats)),
-                        ],
-                      ),
+                                children: [
+                                  _buildSeatLayout(
+                                      getSeatLayout(totalSeats, bookedSeats)),
+                                ],
+                              ),
                             ),
                           ),
                         ],
@@ -294,29 +300,29 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> with Single
                             ),
                             SizedBox(width: 8.w),
                             _selectedSeats.isEmpty
-                              ? Text(
-                                  "None",
-                                  style: TextStyle(
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.primary,
-                                  ),
-                                )
-                              : Expanded(
-                                  child: SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    child: Text(
-                                      _selectedSeats.toList().join(", "),
-                                      style: TextStyle(
-                                        fontSize: 16.sp,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.primary,
+                                ? Text(
+                                    "None",
+                                    style: TextStyle(
+                                      fontSize: 16.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primary,
+                                    ),
+                                  )
+                                : Expanded(
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: Text(
+                                        _selectedSeats.toList().join(", "),
+                                        style: TextStyle(
+                                          fontSize: 16.sp,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.primary,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        softWrap: false,
                                       ),
-                                      overflow: TextOverflow.ellipsis,
-                                      softWrap: false,
                                     ),
                                   ),
-                                ),
                           ],
                         ),
                         SizedBox(height: 10.h),
@@ -426,28 +432,32 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> with Single
                       icon: Icons.check_circle,
                       color: AppColors.primary,
                       title: "How to select seats",
-                      description: "Tap on any available seat to select it. Tap again to deselect.",
+                      description:
+                          "Tap on any available seat to select it. Tap again to deselect.",
                     ),
                     Divider(height: 30.h),
                     _buildInfoItem(
                       icon: Icons.lock,
                       color: Colors.red.shade400,
                       title: "Booked seats",
-                      description: "Seats shown in red color are already booked and cannot be selected.",
+                      description:
+                          "Seats shown in red color are already booked and cannot be selected.",
                     ),
                     Divider(height: 30.h),
                     _buildInfoItem(
                       icon: Icons.info,
                       color: Colors.amber.shade700,
                       title: "Seat numbering",
-                      description: "Seat numbers are displayed on each seat. The layout may vary based on vehicle type.",
+                      description:
+                          "Seat numbers are displayed on each seat. The layout may vary based on vehicle type.",
                     ),
                     Divider(height: 30.h),
                     _buildInfoItem(
                       icon: Icons.payments,
                       color: Colors.green,
                       title: "Payment",
-                      description: "The total price will be calculated based on the number of seats selected and will be shown at checkout.",
+                      description:
+                          "The total price will be calculated based on the number of seats selected and will be shown at checkout.",
                     ),
                   ],
                 ),
@@ -569,12 +579,15 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> with Single
       children: layout.asMap().entries.map((rowEntry) {
         final rowIndex = rowEntry.key;
         final row = rowEntry.value;
-        
-        final rowSpacing = rowIndex > 0 && rowIndex < layout.length - 1 ? 18.h : 12.h;
-        
-        final hasLeft = row.sublist(0, row.length ~/ 2).any((s) => s.isNotEmpty);
-        final hasRight = row.sublist((row.length ~/ 2) + 1).any((s) => s.isNotEmpty);
-        
+
+        final rowSpacing =
+            rowIndex > 0 && rowIndex < layout.length - 1 ? 18.h : 12.h;
+
+        final hasLeft =
+            row.sublist(0, row.length ~/ 2).any((s) => s.isNotEmpty);
+        final hasRight =
+            row.sublist((row.length ~/ 2) + 1).any((s) => s.isNotEmpty);
+
         MainAxisAlignment alignment = MainAxisAlignment.center;
         if (hasLeft && !hasRight) {
           alignment = MainAxisAlignment.start;
@@ -589,11 +602,11 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> with Single
               children: row.asMap().entries.map((seatEntry) {
                 final seatIndex = seatEntry.key;
                 final seat = seatEntry.value;
-                
+
                 // Add additional space for aisle
                 final isAisle = seat.isEmpty;
                 final horizontalPadding = isAisle ? 15.w : 6.w;
-                
+
                 return Padding(
                   padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                   child: seat.isNotEmpty
@@ -658,7 +671,9 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> with Single
                                   Text(
                                     seat,
                                     style: TextStyle(
-                                      color: _selectedSeats.contains(seat) ? Colors.white : Colors.black87,
+                                      color: _selectedSeats.contains(seat)
+                                          ? Colors.white
+                                          : Colors.black87,
                                       fontSize: 15.sp,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -678,20 +693,22 @@ class _SelectSeatScreenState extends ConsumerState<SelectSeatScreen> with Single
                           height: 52.h,
                           decoration: BoxDecoration(
                             // Visualize the aisle with a faint line
-                            border: seatIndex == 2 ? Border(
-                              right: BorderSide(
-                                color: Colors.grey.shade300,
-                                width: 1,
-                                style: BorderStyle.solid,
-                              ),
-                            ) : null,
+                            border: seatIndex == 2
+                                ? Border(
+                                    right: BorderSide(
+                                      color: Colors.grey.shade300,
+                                      width: 1,
+                                      style: BorderStyle.solid,
+                                    ),
+                                  )
+                                : null,
                           ),
                         ),
                 );
               }).toList(),
             ),
             SizedBox(height: rowSpacing),
-            
+
             // Add a row divider except after the last row
             if (rowIndex < layout.length - 1 && rowIndex % 4 == 3)
               Padding(

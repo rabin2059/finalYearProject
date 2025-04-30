@@ -100,7 +100,7 @@ class _AddRouteScreenState extends ConsumerState<AddRouteScreen> {
       int index = _busStopControllers.length;
       _busStopControllers.add(TextEditingController());
       _busStopSuggestionsMap[index] = [];
-      _showBusStopSuggestionsMap[index] = false; // Ensure new fields don't show suggestions immediately
+      _showBusStopSuggestionsMap[index] = false; 
     });
   }
 

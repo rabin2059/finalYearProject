@@ -179,7 +179,10 @@ final goRouter = GoRouter(initialLocation: '/', routes: <RouteBase>[
     builder: (context, state) {
       final String? paymentUrl = state.pathParameters['url'];
       final String? pidx = state.pathParameters['pidx'];
-      if (paymentUrl == null || paymentUrl.isEmpty || pidx == null || pidx.isEmpty) {
+      if (paymentUrl == null ||
+          paymentUrl.isEmpty ||
+          pidx == null ||
+          pidx.isEmpty) {
         return Scaffold(
           body: Center(child: Text("Invalid Payment Parameters")),
         );

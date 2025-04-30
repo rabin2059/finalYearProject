@@ -7,7 +7,9 @@ const {
 
 const initialzeKhalti = async (req, res) => {
   try {
-    const { bookingId, userId, amount, website_url } = req.body;
+    const { bookingId, userId, amount, website_url, return_url } = req.body;
+
+    console.log(req.body)
 
     const booking = await prisma.booking.findFirst({
       where: { id: parseInt(bookingId) },
@@ -30,7 +32,7 @@ const initialzeKhalti = async (req, res) => {
       amount: amount * 100,
       purchase_order_id: bookPayment.id,
       purchase_order_name: "Book Payment",
-      return_url: "http://localhost:3089/api/v1/makePayment",
+      return_url,
       website_url,
     });
 
@@ -98,12 +100,11 @@ const makePayment = async (req, res) => {
     });
 
     if (user?.fcmToken) {
-      // Send FCM display notification
       await admin.messaging().send({
         token: user.fcmToken,
         notification: {
           title: "Payment Success",
-          body: `Your payment for booking #${booking.id} has been confirmed.`,
+          body: `Your payment for booking ${booking.id} has been confirmed.`,
         },
       });
 
@@ -112,7 +113,7 @@ const makePayment = async (req, res) => {
         data: {
           userId: user.id,
           title: "Payment Success",
-          body: `Your payment for booking #${booking.id} has been confirmed.`,
+          body: `Your payment for booking ${booking.id} has been confirmed.`,
         },
       });
     }
