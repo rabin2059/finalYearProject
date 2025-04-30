@@ -34,7 +34,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       final userId = authState.userId;
       if (userId != null) {
         ref.read(passengerProvider.notifier).fetchHomeData(userId);
-        Future.microtask(() =>_fetchUpcomingTrip(userId));
+        Future.microtask(() => _fetchUpcomingTrip(userId));
       }
     });
   }
@@ -109,7 +109,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final userId = authState.userId;
-    
+
     final passengerState = ref.watch(passengerProvider);
     final homeData = passengerState.homeData;
     final hasData = homeData != null;
@@ -340,22 +340,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                       ),
                     ],
-                  ),
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.buttonText.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  child: IconButton(
-                    onPressed: () {
-                      context.push('/notifications');
-                    },
-                    icon: Icon(
-                      Icons.notifications_none_outlined,
-                      color: AppColors.buttonText,
-                      size: 20.sp,
-                    ),
                   ),
                 ),
               ],

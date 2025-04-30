@@ -119,7 +119,6 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                   userName!, userEmail, userImage, statusValue, settingState),
               _buildStatusCard(vehicle),
               _buildStatsRow(totalTripsValue, totalEarningsValue, ratingValue),
-              // _buildActionCards(vehicleId), // Removed action cards
             ],
           ),
         ),

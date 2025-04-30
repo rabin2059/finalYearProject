@@ -153,7 +153,6 @@ class _RoleChangeScreenState extends ConsumerState<RoleChangeScreen> {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   )),
 
-              /// **GestureDetector now displays the selected file**
               GestureDetector(
                 onTap: _pickFile,
                 child: DottedBorder(
@@ -174,34 +173,34 @@ class _RoleChangeScreenState extends ConsumerState<RoleChangeScreen> {
                             ? ClipRRect(
                                 borderRadius: BorderRadius.circular(9.r),
                                 child: Image.file(
-                                  _selectedFile!, // ✅ Show selected file (Local)
+                                  _selectedFile!, 
                                   width: double.infinity,
                                   height: 165.h,
                                   fit: BoxFit.cover,
                                 ),
                               )
-                            : _buildFileInfoWidget() // ✅ Handle non-image files
+                            : _buildFileInfoWidget() 
                         : (settingState.users.isNotEmpty &&
                                 settingState.users[0].licenceImage != null)
                             ? ClipRRect(
                                 borderRadius: BorderRadius.circular(9.r),
                                 child: Image.network(
                                   settingState.users[0]
-                                      .licenceImage!, // ✅ Show existing image from API
+                                      .licenceImage!, 
                                   width: double.infinity,
                                   height: 165.h,
                                   fit: BoxFit.cover,
                                   errorBuilder: (context, error, stackTrace) =>
-                                      _buildFilePlaceholder(), // ✅ Fallback if image fails to load
+                                      _buildFilePlaceholder(), 
                                 ),
                               )
-                            : _buildFilePlaceholder(), // ✅ Show placeholder when no file is uploaded
+                            : _buildFilePlaceholder(),
                   ),
                 ),
               ),
               SizedBox(height: 20.h),
 
-              if (_errorMessage != null) // Display error message
+              if (_errorMessage != null) 
                 Padding(
                   padding: const EdgeInsets.only(top: 5.0),
                   child: Text(
@@ -212,7 +211,6 @@ class _RoleChangeScreenState extends ConsumerState<RoleChangeScreen> {
 
               SizedBox(height: 30.h),
 
-              /// **Submit & Cancel Buttons**
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

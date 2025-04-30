@@ -5201,3 +5201,9 @@ Unknown field `ChatGroup` for include statement on model `User`. Available optio
 2025-04-28 23:31:38 [info]: Server running on http://localhost:3089
 2025-04-28 23:31:51 [info]: Server running on http://localhost:3089
 2025-04-28 23:47:17 [info]: Server running on http://localhost:3089
+2025-04-30 08:30:05 [info]: Server running on http://localhost:3089
+2025-04-30 08:33:35 [info]: New client connected: SPC6snMQ5G0mbRvrAAAB (transport: websocket)
+2025-04-30 08:33:35 [info]: User 27 logged in via socket SPC6snMQ5G0mbRvrAAAB (transport: websocket)
+2025-04-30 08:35:07 [info]: New client connected: DpDft20_QNejjEm3AAAD (transport: websocket)
+2025-04-30 08:35:08 [info]: User 3 logged in via socket DpDft20_QNejjEm3AAAD (transport: websocket)
+2025-04-30 08:35:15 [info]: Client disconnected: SPC6snMQ5G0mbRvrAAAB, reason: ping timeout

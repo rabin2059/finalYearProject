@@ -1092,7 +1092,6 @@ class _MapScreensState extends ConsumerState<MapScreens> {
     return _currentZoom;
   }
 
-  /// **Handles Map Zoom Events**
   void _onMapEvent(MapEvent event) {
     if (event is MapEventMove) {
       setState(() {
